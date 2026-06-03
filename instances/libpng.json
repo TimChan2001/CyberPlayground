@@ -1,0 +1,314 @@
+[
+  {
+    "id": "T1_libpng_0039",
+    "project": "libpng",
+    "diff": {
+      "file": "pngset.c",
+      "line": 573,
+      "before": "((unsigned int)nparams + 1) * (sizeof (char *))",
+      "after": "((unsigned int)nparams) * (sizeof (char *))"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "",
+    "explanation": "Off-by-one in pCAL params array allocation: nparams slots instead of nparams+1, causing the subsequent memset to write sizeof(char*) bytes past the heap allocation"
+  },
+  {
+    "id": "T1_libpng_0040",
+    "project": "libpng",
+    "diff": {
+      "file": "pngrutil.c",
+      "line": 2213,
+      "before": "for (i = 0; i < nparams; i++)",
+      "after": "for (i = 0; i <= nparams; i++)"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "",
+    "explanation": "Off-by-one loop bound in pCAL parameter parsing: i <= nparams instead of i < nparams causes one extra iteration that writes params[nparams] past the heap-allocated pointer array"
+  },
+  {
+    "id": "T1_libpng_0043",
+    "project": "libpng",
+    "diff": {
+      "file": "pngrutil.c",
+      "line": 1032,
+      "before": "for (i = 0U, j = 0U; i < num; i++)",
+      "after": "for (i = 0U, j = 0U; i <= num; i++)"
+    },
+    "crash_type": "stack-buffer-overflow READ",
+    "family": "",
+    "explanation": "Off-by-one in PLTE palette read loop: i <= num instead of i < num reads buf[768..770] past the 768-byte stack buffer and writes palette[256] past the 256-entry stack array"
+  },
+  {
+    "id": "T1_libpng_0044",
+    "project": "libpng",
+    "diff": {
+      "file": "pngset.c",
+      "line": 1085,
+      "before": "key_len + text_length + lang_len + lang_key_len + 4))",
+      "after": "key_len + text_length + lang_len + lang_key_len + 3))"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "",
+    "explanation": "Text chunk allocation undersized by 1 byte in png_set_text_2: uses +3 instead of +4 for NUL terminators, causing 1-byte heap overflow on text NUL write"
+  },
+  {
+    "id": "T1_libpng_0045",
+    "project": "libpng",
+    "diff": {
+      "file": "pngrutil.c",
+      "line": 392,
+      "before": "      buffer = png_voidcast(png_byte *, png_malloc_base(png_ptr, new_size));",
+      "after": "      buffer = png_voidcast(png_byte *, png_malloc_base(png_ptr, 16));"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "M4",
+    "explanation": ""
+  },
+  {
+    "id": "T1_libpng_0046",
+    "project": "libpng",
+    "diff": {
+      "file": "pngrutil.c",
+      "line": 1032,
+      "before": "      for (i = 0U, j = 0U; i < num; i++)",
+      "after": "      for (i = 0U, j = 0U; i <= num; i++)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "M11",
+    "explanation": ""
+  },
+  {
+    "id": "T1_libpng_0048",
+    "project": "libpng",
+    "diff": {
+      "file": "pngset.c",
+      "line": 1101,
+      "before": "      memcpy(textp->key, text_ptr[i].key, key_len);",
+      "after": "      memcpy(textp->key, text_ptr[i].key, key_len + 256);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "B1",
+    "explanation": ""
+  },
+  {
+    "id": "T1_libpng_0049",
+    "project": "libpng",
+    "diff": {
+      "file": "pngset.c",
+      "line": 1196,
+      "before": "          memcpy(safe_trans, trans_alpha, (size_t)num_trans);",
+      "after": "          memcpy(safe_trans, trans_alpha, (size_t)num_trans + 256);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "B1",
+    "explanation": ""
+  },
+  {
+    "id": "T1_libpng_0050",
+    "project": "libpng",
+    "diff": {
+      "file": "pngset.c",
+      "line": 1211,
+      "before": "          memcpy(info_ptr->trans_alpha, trans_alpha, (size_t)num_trans);",
+      "after": "          memcpy(info_ptr->trans_alpha, trans_alpha, (size_t)num_trans + 256);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "B1",
+    "explanation": ""
+  },
+  {
+    "id": "T1_libpng_0051",
+    "project": "libpng",
+    "diff": {
+      "file": "pngset.c",
+      "line": 1227,
+      "before": "          memcpy(png_ptr->trans_alpha, trans_alpha, (size_t)num_trans);",
+      "after": "          memcpy(png_ptr->trans_alpha, trans_alpha, (size_t)num_trans + 256);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "B1",
+    "explanation": ""
+  },
+  {
+    "id": "T1_libpng_0053",
+    "project": "libpng",
+    "diff": {
+      "file": "pngset.c",
+      "line": 1016,
+      "before": "   for (i = 0; i < num_text; i++)",
+      "after": "   for (i = 0; i <= num_text; i++)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "D1",
+    "explanation": ""
+  },
+  {
+    "id": "T1_libpng_0054",
+    "project": "libpng",
+    "diff": {
+      "file": "pngset.c",
+      "line": 1123,
+      "before": "         memcpy(textp->text, text_ptr[i].text, text_length);",
+      "after": "         memcpy(textp->text, text_ptr[i].text, text_length + 256);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "B1",
+    "explanation": ""
+  },
+  {
+    "id": "T1_libpng_0055",
+    "project": "libpng",
+    "diff": {
+      "file": "pngset.c",
+      "line": 1123,
+      "before": "         memcpy(textp->text, text_ptr[i].text, text_length);",
+      "after": "         memcpy(textp->text, text_ptr[i].text, (text_length) * 2);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "B2",
+    "explanation": ""
+  },
+  {
+    "id": "T1_libpng_0056",
+    "project": "libpng",
+    "diff": {
+      "file": "pngmem.c",
+      "line": 54,
+      "before": "   ret = png_malloc(png_ptr, size);",
+      "after": "   ret = png_malloc(png_ptr, 1);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "Z1",
+    "explanation": ""
+  },
+  {
+    "id": "T1_libpng_0057",
+    "project": "libpng",
+    "diff": {
+      "file": "pngset.c",
+      "line": 1209,
+      "before": "              png_malloc(png_ptr, PNG_MAX_PALETTE_LENGTH));",
+      "after": "              png_malloc(png_ptr, 1));"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "Z1",
+    "explanation": ""
+  },
+  {
+    "id": "T1_libpng_0059",
+    "project": "libpng",
+    "diff": {
+      "file": "pngmem.c",
+      "line": 181,
+      "before": "   ret = png_malloc_base(png_ptr, size);",
+      "after": "   ret = png_malloc_base(png_ptr, 1);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "Z1",
+    "explanation": ""
+  },
+  {
+    "id": "T1_libpng_0060",
+    "project": "libpng",
+    "diff": {
+      "file": "pngmem.c",
+      "line": 219,
+      "before": "      void *ret = png_malloc_base(png_ptr, size);",
+      "after": "      void *ret = png_malloc_base(png_ptr, 1);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "Z1",
+    "explanation": ""
+  },
+  {
+    "id": "T1_libpng_0061",
+    "project": "libpng",
+    "diff": {
+      "file": "pngmem.c",
+      "line": 54,
+      "before": "   ret = png_malloc(png_ptr, size);",
+      "after": "   ret = png_malloc(png_ptr, (size)/8);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "Z4",
+    "explanation": ""
+  },
+  {
+    "id": "T1_libpng_0062",
+    "project": "libpng",
+    "diff": {
+      "file": "pngmem.c",
+      "line": 181,
+      "before": "   ret = png_malloc_base(png_ptr, size);",
+      "after": "   ret = png_malloc_base(png_ptr, (size)/8);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "Z4",
+    "explanation": ""
+  },
+  {
+    "id": "T1_libpng_0063",
+    "project": "libpng",
+    "diff": {
+      "file": "pngmem.c",
+      "line": 219,
+      "before": "      void *ret = png_malloc_base(png_ptr, size);",
+      "after": "      void *ret = png_malloc_base(png_ptr, (size)/8);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "Z4",
+    "explanation": ""
+  },
+  {
+    "id": "T1_libpng_0064",
+    "project": "libpng",
+    "diff": {
+      "file": "pngset.c",
+      "line": 1209,
+      "before": "              png_malloc(png_ptr, PNG_MAX_PALETTE_LENGTH));",
+      "after": "              png_malloc(png_ptr, (PNG_MAX_PALETTE_LENGTH)/8));"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "Z4",
+    "explanation": ""
+  },
+  {
+    "id": "T1_libpng_0113",
+    "project": "libpng",
+    "diff": {
+      "file": "pngset.c",
+      "line": 1123,
+      "before": "memcpy(textp->text, text_ptr[i].text, text_length);",
+      "after": "memcpy(textp->text, text_ptr[i].text, text_length + 64);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "A memcpy in png_set_text_2 copies sixty-four extra bytes when storing text chunk content."
+  },
+  {
+    "id": "T1_libpng_0114",
+    "project": "libpng",
+    "diff": {
+      "file": "pngset.c",
+      "line": 1085,
+      "before": "key_len + text_length + lang_len + lang_key_len + 4)",
+      "after": "key_len + text_length + lang_len + lang_key_len + 3)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "The text chunk allocation in png_set_text_2 reserves one byte too few for the combined key and text buffer."
+  },
+  {
+    "id": "T1_libpng_0117",
+    "project": "libpng",
+    "diff": {
+      "file": "pngset.c",
+      "line": 339,
+      "before": "memcpy(new_exif, exif, (size_t)num_exif);",
+      "after": "memcpy(new_exif, exif, (size_t)num_exif + 32);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "A memcpy in png_set_eXIf_1 copies thirty-two extra bytes when storing Exif data."
+  }
+]

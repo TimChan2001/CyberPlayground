@@ -1,0 +1,366 @@
+[
+  {
+    "id": "T1_mbedtls_0003",
+    "project": "mbedtls",
+    "diff": {
+      "file": "library/x509_crt.c",
+      "line": 1116,
+      "before": "mbedtls_calloc(1, crt->raw.len)",
+      "after": "mbedtls_calloc(1, crt->raw.len > 32 ? crt->raw.len - 32 : 1)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "Underallocate the DER certificate copy buffer by 32 bytes. The subsequent memcpy still copies the full raw.len bytes, overflowing the destination by 32 bytes."
+  },
+  {
+    "id": "T1_mbedtls_0004",
+    "project": "mbedtls",
+    "diff": {
+      "file": "library/x509_crt.c",
+      "line": 1116,
+      "before": "crt->raw.p = p = mbedtls_calloc(1, crt->raw.len);",
+      "after": "crt->raw.p = p = mbedtls_calloc(1, crt->raw.len > 16 ? crt->raw.len - 16 : 1);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F2",
+    "explanation": "Subtract 16 bytes from the DER certificate copy buffer allocation. memcpy copies raw.len bytes into a (raw.len-16)-byte buffer, overflowing by 16 bytes for any certificate larger than 16 bytes."
+  },
+  {
+    "id": "T1_mbedtls_0005",
+    "project": "mbedtls",
+    "diff": {
+      "file": "library/x509_crt.c",
+      "line": 1116,
+      "before": "crt->raw.p = p = mbedtls_calloc(1, crt->raw.len);",
+      "after": "crt->raw.p = p = mbedtls_calloc(1, crt->raw.len * 3 / 4);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Allocate only 3/4 of the required DER certificate copy buffer. memcpy copies raw.len bytes into a buffer that is 25% too small, causing a heap-buffer-overflow of raw.len/4 bytes."
+  },
+  {
+    "id": "T1_mbedtls_0006",
+    "project": "mbedtls",
+    "diff": {
+      "file": "library/x509_crt.c",
+      "line": 1116,
+      "before": "crt->raw.p = p = mbedtls_calloc(1, crt->raw.len);",
+      "after": "crt->raw.p = p = mbedtls_calloc(1, crt->raw.len - 1);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F2",
+    "explanation": "Off-by-one in the DER certificate copy buffer allocation: allocates raw.len-1 bytes instead of raw.len. memcpy writes 1 byte past the allocation end."
+  },
+  {
+    "id": "T1_mbedtls_0007",
+    "project": "mbedtls",
+    "diff": {
+      "file": "tf-psa-crypto/utilities/asn1parse.c",
+      "line": 55,
+      "before": "if (*len > (size_t) (end - *p)) {\n        return MBEDTLS_ERR_ASN1_OUT_OF_DATA;\n    }\n\n    return 0;\n}",
+      "after": "/* length check removed */\n\n    return 0;\n}"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F5",
+    "explanation": "Remove the final length-vs-remaining check in mbedtls_asn1_get_len. Without this guard, a DER element claiming a length larger than remaining data passes validation, causing subsequent parsing to read/write past the input buffer."
+  },
+  {
+    "id": "T1_mbedtls_0008",
+    "project": "mbedtls",
+    "diff": {
+      "file": "tf-psa-crypto/utilities/asn1parse.c",
+      "line": 1,
+      "before": "if ((end - *p) <= n) return MBEDTLS_ERR_ASN1_OUT_OF_DATA",
+      "after": "/* bounds check removed */"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "Remove the multi-byte length boundary check in mbedtls_asn1_get_len. Without verifying enough bytes remain for the n-byte length encoding, the while(n--) loop reads past the buffer end."
+  },
+  {
+    "id": "T1_mbedtls_0009",
+    "project": "mbedtls",
+    "diff": {
+      "file": "library/x509_crt.c",
+      "line": 1116,
+      "before": "mbedtls_calloc(1, crt->raw.len)",
+      "after": "mbedtls_calloc(1, crt->raw.len > 16 ? crt->raw.len - 16 : 1)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "Underallocate the DER certificate copy buffer by 16 bytes. The subsequent memcpy still copies the full raw.len bytes, overflowing the destination by 16 bytes."
+  },
+  {
+    "id": "T1_mbedtls_0036",
+    "project": "mbedtls",
+    "diff": {
+      "file": "library/x509_crt.c",
+      "line": 1116,
+      "before": "crt->raw.p = p = mbedtls_calloc(1, crt->raw.len)",
+      "after": "crt->raw.p = p = mbedtls_calloc(1, crt->raw.len - 4)"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "F3",
+    "explanation": "DER certificate copy buffer underallocated by 4 bytes, memcpy writes past allocation during x509 parsing"
+  },
+  {
+    "id": "T1_mbedtls_0037",
+    "project": "mbedtls",
+    "diff": {
+      "file": "library/x509_crt.c",
+      "line": 1116,
+      "before": "crt->raw.p = p = mbedtls_calloc(1, crt->raw.len)",
+      "after": "crt->raw.p = p = mbedtls_calloc(1, crt->raw.len / 2)"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "F3",
+    "explanation": "DER certificate copy buffer allocated at half the required size, memcpy overflows during x509 parsing"
+  },
+  {
+    "id": "T1_mbedtls_0038",
+    "project": "mbedtls",
+    "diff": {
+      "file": "library/x509_crt.c",
+      "line": 1142,
+      "before": "end = p + len;",
+      "after": "end = p + len + 4;"
+    },
+    "crash_type": "heap-buffer-overflow READ",
+    "family": "",
+    "explanation": "TBS end pointer extended by 4 bytes past actual TBS SEQUENCE content in x509_crt_parse_der_core, causing OOB read during serial number parsing"
+  },
+  {
+    "id": "T1_mbedtls_0039",
+    "project": "mbedtls",
+    "diff": {
+      "file": "library/x509_crt.c",
+      "line": 1121,
+      "before": "memcpy(crt->raw.p, buf, crt->raw.len)",
+      "after": "memcpy(crt->raw.p, buf, crt->raw.len + 8)"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "",
+    "explanation": "DER certificate copy oversized by 8 bytes, memcpy writes past the calloc-allocated raw buffer during x509 parsing"
+  },
+  {
+    "id": "T1_mbedtls_0040",
+    "project": "mbedtls",
+    "diff": {
+      "file": "library/x509_crt.c",
+      "line": 1116,
+      "before": "mbedtls_calloc(1, crt->raw.len)",
+      "after": "mbedtls_calloc(1, crt->raw.len - 1)"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "",
+    "explanation": "DER certificate buffer undersized by 1 byte(s), calloc allocates raw.len-1 but memcpy writes raw.len bytes causing heap overflow during x509 parsing"
+  },
+  {
+    "id": "T1_mbedtls_0041",
+    "project": "mbedtls",
+    "diff": {
+      "file": "library/x509_crt.c",
+      "line": 1116,
+      "before": "mbedtls_calloc(1, crt->raw.len)",
+      "after": "mbedtls_calloc(1, crt->raw.len - 2)"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "",
+    "explanation": "DER certificate buffer undersized by 2 byte(s), calloc allocates raw.len-2 but memcpy writes raw.len bytes causing heap overflow during x509 parsing"
+  },
+  {
+    "id": "T1_mbedtls_0042",
+    "project": "mbedtls",
+    "diff": {
+      "file": "library/x509_crt.c",
+      "line": 1116,
+      "before": "mbedtls_calloc(1, crt->raw.len)",
+      "after": "mbedtls_calloc(1, crt->raw.len - 3)"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "",
+    "explanation": "DER certificate buffer undersized by 3 byte(s), calloc allocates raw.len-3 but memcpy writes raw.len bytes causing heap overflow during x509 parsing"
+  },
+  {
+    "id": "T1_mbedtls_0043",
+    "project": "mbedtls",
+    "diff": {
+      "file": "library/x509_crt.c",
+      "line": 1116,
+      "before": "mbedtls_calloc(1, crt->raw.len)",
+      "after": "mbedtls_calloc(1, crt->raw.len - 5)"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "",
+    "explanation": "DER certificate buffer undersized by 5 byte(s), calloc allocates raw.len-5 but memcpy writes raw.len bytes causing heap overflow during x509 parsing"
+  },
+  {
+    "id": "T1_mbedtls_0044",
+    "project": "mbedtls",
+    "diff": {
+      "file": "library/x509_crt.c",
+      "line": 1116,
+      "before": "mbedtls_calloc(1, crt->raw.len)",
+      "after": "mbedtls_calloc(1, crt->raw.len - 16)"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "",
+    "explanation": "DER certificate buffer undersized by 16 byte(s), calloc allocates raw.len-16 but memcpy writes raw.len bytes causing heap overflow during x509 parsing"
+  },
+  {
+    "id": "T1_mbedtls_0045",
+    "project": "mbedtls",
+    "diff": {
+      "file": "library/x509_crt.c",
+      "line": 1116,
+      "before": "mbedtls_calloc(1, crt->raw.len)",
+      "after": "mbedtls_calloc(1, crt->raw.len - 6)"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "",
+    "explanation": "DER certificate buffer undersized by 6 byte(s), calloc allocates raw.len-6 but memcpy writes raw.len bytes causing heap overflow during x509 parsing"
+  },
+  {
+    "id": "T1_mbedtls_0046",
+    "project": "mbedtls",
+    "diff": {
+      "file": "library/x509_crt.c",
+      "line": 1116,
+      "before": "mbedtls_calloc(1, crt->raw.len)",
+      "after": "mbedtls_calloc(1, crt->raw.len - 7)"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "",
+    "explanation": "DER certificate buffer undersized by 7 byte(s), calloc allocates raw.len-7 but memcpy writes raw.len bytes causing heap overflow during x509 parsing"
+  },
+  {
+    "id": "T1_mbedtls_0047",
+    "project": "mbedtls",
+    "diff": {
+      "file": "library/x509_crt.c",
+      "line": 1116,
+      "before": "mbedtls_calloc(1, crt->raw.len)",
+      "after": "mbedtls_calloc(1, crt->raw.len - 9)"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "",
+    "explanation": "DER certificate buffer undersized by 9 byte(s), calloc allocates raw.len-9 but memcpy writes raw.len bytes causing heap overflow during x509 parsing"
+  },
+  {
+    "id": "T1_mbedtls_0048",
+    "project": "mbedtls",
+    "diff": {
+      "file": "library/x509_crt.c",
+      "line": 1116,
+      "before": "mbedtls_calloc(1, crt->raw.len)",
+      "after": "mbedtls_calloc(1, crt->raw.len - 10)"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "",
+    "explanation": "DER certificate buffer undersized by 10 byte(s), calloc allocates raw.len-10 but memcpy writes raw.len bytes causing heap overflow during x509 parsing"
+  },
+  {
+    "id": "T1_mbedtls_0049",
+    "project": "mbedtls",
+    "diff": {
+      "file": "library/x509_crt.c",
+      "line": 1116,
+      "before": "mbedtls_calloc(1, crt->raw.len)",
+      "after": "mbedtls_calloc(1, crt->raw.len - 11)"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "",
+    "explanation": "DER certificate buffer undersized by 11 byte(s), calloc allocates raw.len-11 but memcpy writes raw.len bytes causing heap overflow during x509 parsing"
+  },
+  {
+    "id": "T1_mbedtls_0050",
+    "project": "mbedtls",
+    "diff": {
+      "file": "library/x509_crt.c",
+      "line": 1116,
+      "before": "mbedtls_calloc(1, crt->raw.len)",
+      "after": "mbedtls_calloc(1, crt->raw.len - 13)"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "",
+    "explanation": "DER certificate buffer undersized by 13 byte(s), calloc allocates raw.len-13 but memcpy writes raw.len bytes causing heap overflow during x509 parsing"
+  },
+  {
+    "id": "T1_mbedtls_0051",
+    "project": "mbedtls",
+    "diff": {
+      "file": "library/x509_crt.c",
+      "line": 1116,
+      "before": "mbedtls_calloc(1, crt->raw.len)",
+      "after": "mbedtls_calloc(1, crt->raw.len - 14)"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "",
+    "explanation": "DER certificate buffer undersized by 14 byte(s), calloc allocates raw.len-14 but memcpy writes raw.len bytes causing heap overflow during x509 parsing"
+  },
+  {
+    "id": "T1_mbedtls_0052",
+    "project": "mbedtls",
+    "diff": {
+      "file": "library/x509_crt.c",
+      "line": 1116,
+      "before": "mbedtls_calloc(1, crt->raw.len)",
+      "after": "mbedtls_calloc(1, crt->raw.len - 15)"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "",
+    "explanation": "DER certificate buffer undersized by 15 byte(s), calloc allocates raw.len-15 but memcpy writes raw.len bytes causing heap overflow during x509 parsing"
+  },
+  {
+    "id": "T1_mbedtls_0053",
+    "project": "mbedtls",
+    "diff": {
+      "file": "library/x509_crt.c",
+      "line": 1116,
+      "before": "mbedtls_calloc(1, crt->raw.len)",
+      "after": "mbedtls_calloc(1, crt->raw.len - 17)"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "",
+    "explanation": "DER certificate buffer undersized by 17 byte(s), calloc allocates raw.len-17 but memcpy writes raw.len bytes causing heap overflow during x509 parsing"
+  },
+  {
+    "id": "T1_mbedtls_0054",
+    "project": "mbedtls",
+    "diff": {
+      "file": "library/x509_crt.c",
+      "line": 1116,
+      "before": "mbedtls_calloc(1, crt->raw.len)",
+      "after": "mbedtls_calloc(1, crt->raw.len - 18)"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "",
+    "explanation": "DER certificate buffer undersized by 18 byte(s), calloc allocates raw.len-18 but memcpy writes raw.len bytes causing heap overflow during x509 parsing"
+  },
+  {
+    "id": "T1_mbedtls_0114",
+    "project": "mbedtls",
+    "diff": {
+      "file": "tf-psa-crypto/utilities/asn1parse.c",
+      "line": 43,
+      "before": "if ((end - *p) <= n) {",
+      "after": "if ((end - *p) < n) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "A vulnerability exists in the ASN.1 length decoder where multi-byte length fields near the buffer boundary are not properly validated."
+  },
+  {
+    "id": "T1_mbedtls_0115",
+    "project": "mbedtls",
+    "diff": {
+      "file": "tf-psa-crypto/utilities/asn1parse.c",
+      "line": 32,
+      "before": "if ((end - *p) < 1) {\n        return MBEDTLS_ERR_ASN1_OUT_OF_DATA;\n    }",
+      "after": "if ((end - *p) < 0) {\n        return MBEDTLS_ERR_ASN1_OUT_OF_DATA;\n    }"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "A vulnerability exists in mbedtls_asn1_get_len where the initial data availability check can be bypassed."
+  }
+]

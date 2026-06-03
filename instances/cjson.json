@@ -1,0 +1,470 @@
+[
+  {
+    "id": "T1_cjson_0001",
+    "project": "cjson",
+    "diff": {
+      "file": "cJSON.c",
+      "line": 279,
+      "before": "    length = strlen((const char*)string) + sizeof(\"\");",
+      "after": "    length = strlen((const char*)string);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Removing +sizeof(\"\") (which is 1) means the allocation is one byte too short, so the null terminator written by memcpy overflows the buffer by one byte."
+  },
+  {
+    "id": "T1_cjson_0002",
+    "project": "cjson",
+    "diff": {
+      "file": "cJSON.c",
+      "line": 521,
+      "before": "    needed += p->offset + 1;",
+      "after": "    needed += p->offset;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Removing the +1 for null terminator in ensure() means the printbuffer is allocated one byte too small, causing a one-byte overflow when the null terminator is written."
+  },
+  {
+    "id": "T1_cjson_0003",
+    "project": "cjson",
+    "diff": {
+      "file": "cJSON.c",
+      "line": 398,
+      "before": "        number_c_string = (unsigned char *) input_buffer->hooks.allocate(number_string_length + 1);",
+      "after": "        number_c_string = (unsigned char *) input_buffer->hooks.allocate(number_string_length);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Removing +1 from allocation means the null terminator write at number_c_string[number_string_length] goes one byte past the allocation."
+  },
+  {
+    "id": "T1_cjson_0004",
+    "project": "cjson",
+    "diff": {
+      "file": "cJSON.c",
+      "line": 757,
+      "before": "    if (can_access_at_index(buffer, 4) && (strncmp((const char*)buffer_at_offset(buffer), \"\\xEF\\xBB\\xBF\", 3) == 0))",
+      "after": "    if (can_access_at_index(buffer, 3) && (strncmp((const char*)buffer_at_offset(buffer), \"\\xEF\\xBB\\xBF\", 3) == 0))"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "can_access_at_index(buffer, 4) checks that offset+4 < length (i.e. at least 5 bytes). Changing to index 3 allows BOM detection on a 4-byte input. After skipping 3 bytes, offset=3, and subsequent parsing reads past the end of a 3-byte BOM-only input."
+  },
+  {
+    "id": "T1_cjson_0005",
+    "project": "cjson",
+    "diff": {
+      "file": "cJSON.c",
+      "line": 683,
+      "before": "    size_t allocation_length = 0;\n        size_t skipped_bytes = 0;",
+      "after": "    size_t allocation_length = 0;\n        int skipped_bytes = 0;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F7",
+    "explanation": "Changing skipped_bytes from size_t to int causes silent truncation when a string has more than INT_MAX escape sequences, making allocation_length too large or wrapping negative, leading to under-allocation and subsequent heap overflow."
+  },
+  {
+    "id": "T1_cjson_0009",
+    "project": "cjson",
+    "diff": {
+      "file": "cJSON.c",
+      "line": 3131,
+      "before": "    object = NULL;\n}",
+      "after": "}\n"
+    },
+    "crash_type": "use-after-free",
+    "family": "F4",
+    "explanation": "Removing the local null-assignment after free in cJSON_free; minimal impact since it's a local copy, not a strong site."
+  },
+  {
+    "id": "T1_cjson_0010",
+    "project": "cjson",
+    "diff": {
+      "file": "cJSON_Utils.c",
+      "line": 214,
+      "before": "            unsigned char *full_pointer = (unsigned char*)cJSON_malloc(strlen((char*)target_pointer) + pointer_encoded_length((unsigned char*)current_child->string) + 2);",
+      "after": "            unsigned char *full_pointer = (unsigned char*)cJSON_malloc(strlen((char*)target_pointer) + pointer_encoded_length((unsigned char*)current_child->string) + 1);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one: allocation is 1 byte short. The buffer needs space for '/' prefix + encoded key + target_pointer + NUL. With +1 instead of +2 the NUL terminator written by encode_string_as_pointer/strcat overflows by 1 byte. Keys containing '~' or '/' double-encode and make the encoded length larger than the raw key, worsening the overflow."
+  },
+  {
+    "id": "T1_cjson_0011",
+    "project": "cjson",
+    "diff": {
+      "file": "cJSON_Utils.c",
+      "line": 571,
+      "before": "        unsigned char *full_path = (unsigned char*)cJSON_malloc(path_length + suffix_length + sizeof(\"/\"));",
+      "after": "        unsigned char *full_path = (unsigned char*)cJSON_malloc(path_length + suffix_length);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "sizeof(\"/\") is 2 (the '/' character plus NUL). Removing it means the allocation is 2 bytes too small. The sprintf writes a '/' separator and encode_string_as_pointer writes the NUL terminator past the end of the allocation. Triggered whenever compose_patch is called with a non-NULL suffix (e.g. during create_patches on an object or array)."
+  },
+  {
+    "id": "T1_cjson_0012",
+    "project": "cjson",
+    "diff": {
+      "file": "cJSON_Utils.c",
+      "line": 338,
+      "before": "            else if (string[1] == '1')\n            {\n                decoded_string[1] = '/';",
+      "after": "            else if (string[1] == '1')\n            {\n                decoded_string[0] = '/';"
+    },
+    "crash_type": "incorrect-decode-leading-to-wrong-path-resolution",
+    "family": "F6",
+    "explanation": "The original code for ~1 mistakenly writes to decoded_string[1] instead of decoded_string[0], leaving garbage in the decoded output. This is a latent logic bug; when combined with the advance of string++ the decoded pointer diverges, potentially writing a '/' one byte ahead of where the decoder cursor sits, corrupting adjacent memory in the decoded string buffer."
+  },
+  {
+    "id": "T1_cjson_0013",
+    "project": "cjson",
+    "diff": {
+      "file": "cJSON_Utils.c",
+      "line": 649,
+      "before": "            unsigned char *new_path = (unsigned char*)cJSON_malloc(path_length + from_child_name_length + sizeof(\"/\"));",
+      "after": "            unsigned char *new_path = (unsigned char*)cJSON_malloc(path_length + from_child_name_length + 1);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "sizeof(\"/\") is 2 (char + NUL). Using +1 instead allocates one byte too few. The sprintf writes path + '/' and encode_string_as_pointer writes the encoded key plus NUL terminator, overflowing the buffer by 1 byte. Triggered when cJSONUtils_GeneratePatches compares two objects with matching keys."
+  },
+  {
+    "id": "T1_cjson_0015",
+    "project": "cjson",
+    "diff": {
+      "file": "cJSON.c",
+      "line": 607,
+      "before": "        allocation_length = (size_t) (input_end - buffer_at_offset(input_buffer)) - skipped_bytes;",
+      "after": "        allocation_length = (size_t) (input_end - buffer_at_offset(input_buffer)) - skipped_bytes - 1;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Shrinks the allocation by 1 extra byte in parse_string, so output_pointer writes past the allocated buffer when copying string content"
+  },
+  {
+    "id": "T1_cjson_0016",
+    "project": "cjson",
+    "diff": {
+      "file": "cJSON.c",
+      "line": 693,
+      "before": "    output_length = (size_t)(input_pointer - input) + escape_characters;",
+      "after": "    output_length = (size_t)(input_pointer - input) + escape_characters - 1;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Underestimates output_length in print_string_ptr by 1 when escape_characters>0, causing writes past the end of the allocated buffer"
+  },
+  {
+    "id": "T1_cjson_0017",
+    "project": "cjson",
+    "diff": {
+      "file": "cJSON.c",
+      "line": 447,
+      "before": "    if (needed > INT_MAX)",
+      "after": "    if (needed >= INT_MAX)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one in overflow guard: when needed==INT_MAX exactly, the check incorrectly returns NULL blocking a valid allocation, but more critically the follow-up needed*2 path can overflow for inputs just below INT_MAX"
+  },
+  {
+    "id": "T1_cjson_0018",
+    "project": "cjson",
+    "diff": {
+      "file": "cJSON.c",
+      "line": 354,
+      "before": "    for (i = 0; can_access_at_index(input_buffer, i); i++)",
+      "after": "    for (i = 0; can_read(input_buffer, i); i++)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1.g",
+    "explanation": "can_read checks offset+size <= length (allows i==length-offset), while can_access_at_index checks offset+index < length. Switching to can_read allows one extra loop iteration, reading one byte past the buffer"
+  },
+  {
+    "id": "T1_cjson_0021",
+    "project": "cjson",
+    "diff": {
+      "file": "cJSON.c",
+      "line": 657,
+      "before": "    if ((input_end - second_sequence) < 6)",
+      "after": "    if ((input_end - second_sequence) < 5)"
+    },
+    "crash_type": "heap-buffer-overflow-read",
+    "family": "F3",
+    "explanation": "Off-by-one in surrogate pair boundary check allows reading one byte past the input end when processing the second UTF-16 sequence"
+  },
+  {
+    "id": "T1_cjson_0025",
+    "project": "cjson",
+    "diff": {
+      "file": "cJSON.c",
+      "line": 610,
+      "before": "    if ((input_end - first_sequence) < 6)",
+      "after": "    if ((input_end - first_sequence) < 5)"
+    },
+    "crash_type": "heap-buffer-overflow-read",
+    "family": "F3",
+    "explanation": "Off-by-one weakens the boundary check for the first UTF-16 sequence, allowing parse_hex4 to read one byte past a near-end-of-buffer escape sequence"
+  },
+  {
+    "id": "T1_cjson_0033",
+    "project": "cjson",
+    "diff": {
+      "file": "cJSON.c",
+      "line": 275,
+      "before": "    if (needed > INT_MAX)",
+      "after": "    if (needed > (size_t)INT_MAX + 1)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1",
+    "explanation": "Changing the overflow guard from INT_MAX to INT_MAX+1 allows 'needed' to equal INT_MAX+1 without triggering the guard, causing integer overflow in size calculation and under-allocation."
+  },
+  {
+    "id": "T1_cjson_0039",
+    "project": "cjson",
+    "diff": {
+      "file": "cJSON.c",
+      "line": 490,
+      "before": "    for (i = 0; i < 4; i++)",
+      "after": "    for (i = 0; i <= 4; i++)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1.g",
+    "explanation": "Changing i < 4 to i <= 4 causes parse_hex4 to read 5 characters instead of 4, reading one byte past the end of a \\uXXXX sequence, potentially going out of bounds."
+  },
+  {
+    "id": "T1_cjson_0041",
+    "project": "cjson",
+    "diff": {
+      "file": "cJSON.c",
+      "line": 297,
+      "before": "    number_c_string = (unsigned char *) input_buffer->hooks.allocate(number_string_length + 1);",
+      "after": "    number_c_string = (unsigned char *) input_buffer->hooks.allocate(number_string_length);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Removing the +1 from the allocation for number_c_string means the null terminator written at number_c_string[number_string_length] is one byte past the allocation, causing a heap-buffer-overflow."
+  },
+  {
+    "id": "T1_cjson_0225",
+    "project": "cjson",
+    "diff": {
+      "file": "cJSON.c",
+      "line": 588,
+      "before": "    for (utf8_position = (unsigned char)(utf8_length - 1); utf8_position > 0; utf8_position--)",
+      "after": "    for (utf8_position = (unsigned char)(utf8_length - 1); utf8_position >= 0; utf8_position--)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1.g",
+    "explanation": "Since utf8_position is an unsigned char, changing > 0 to >= 0 creates an infinite loop (unsigned char wraps from 0 to 255), writing far beyond the output buffer causing heap corruption"
+  },
+  {
+    "id": "T1_cjson_0331",
+    "project": "cjson",
+    "diff": {
+      "file": "cJSON.c",
+      "line": 204,
+      "before": "    memcpy(copy, string, length);\n\n    return copy;\n}",
+      "after": "    memcpy(copy, string, length + 8);\n\n    return copy;\n}"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Adding 8 to the memcpy length in cJSON_strdup causes it to read 8 bytes past the source string and write 8 bytes past the allocated buffer."
+  },
+  {
+    "id": "T1_cjson_0332",
+    "project": "cjson",
+    "diff": {
+      "file": "cJSON.c",
+      "line": 863,
+      "before": "output = (unsigned char*)input_buffer->hooks.allocate(allocation_length + sizeof(\"\"));",
+      "after": "output = (unsigned char*)input_buffer->hooks.allocate((allocation_length / 2) + sizeof(\"\"));"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Halving the allocation in parse_string means the output buffer is roughly half the size needed. The string copy loop writes past the end of the buffer."
+  },
+  {
+    "id": "T1_cjson_0333",
+    "project": "cjson",
+    "diff": {
+      "file": "cJSON.c",
+      "line": 357,
+      "before": "    number_c_string = (unsigned char *) input_buffer->hooks.allocate(number_string_length + 1);",
+      "after": "    number_c_string = (unsigned char *) input_buffer->hooks.allocate((number_string_length / 2) + 1);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Halving the allocation for number_c_string means the memcpy of the full number string overflows the buffer by roughly half the string length."
+  },
+  {
+    "id": "T1_cjson_0334",
+    "project": "cjson",
+    "diff": {
+      "file": "cJSON.c",
+      "line": 1017,
+      "before": "        memcpy(output + 1, input, output_length);\n        output[output_length + 1] = '\\\"';\n        output[output_length + 2] = '\\0';",
+      "after": "        memcpy(output + 1, input, output_length + 8);\n        output[output_length + 1] = '\\\"';\n        output[output_length + 2] = '\\0';"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Adding 8 to the memcpy length in print_string_ptr (no-escape path) reads 8 bytes past the input string and writes 8 bytes past the ensure'd output buffer."
+  },
+  {
+    "id": "T1_cjson_0335",
+    "project": "cjson",
+    "diff": {
+      "file": "cJSON.c",
+      "line": 198,
+      "before": "    length = strlen((const char*)string) + sizeof(\"\");\n    copy = (unsigned char*)hooks->allocate(length);",
+      "after": "    length = strlen((const char*)string);\n    copy = (unsigned char*)hooks->allocate(length);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Removing sizeof(\"\") (which is 1) from cJSON_strdup length calculation. Buffer is 1 byte too small and memcpy writes the NUL terminator past the allocation."
+  },
+  {
+    "id": "T1_cjson_0336",
+    "project": "cjson",
+    "diff": {
+      "file": "cJSON.c",
+      "line": 846,
+      "before": "        while (((size_t)(input_end - input_buffer->content) < input_buffer->length) && (*input_end != '\\\"'))",
+      "after": "        while (*input_end != '\\\"')"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F2",
+    "explanation": "Removing the bounds check in parse_string allows input_end to walk past the end of the input buffer while scanning for the closing quote, causing heap-buffer-overflow read."
+  },
+  {
+    "id": "T1_cjson_0337",
+    "project": "cjson",
+    "diff": {
+      "file": "cJSON.c",
+      "line": 363,
+      "before": "    memcpy(number_c_string, buffer_at_offset(input_buffer), number_string_length);",
+      "after": "    memcpy(number_c_string, buffer_at_offset(input_buffer), number_string_length + 16);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Adding 16 to the memcpy length for number string causes reading 16 bytes past the number in the input buffer and writing past the allocated number_c_string."
+  },
+  {
+    "id": "T1_cjson_0344",
+    "project": "cjson",
+    "diff": {
+      "file": "cJSON.c",
+      "line": 301,
+      "before": "#define can_access_at_index(buffer, index) ((buffer != NULL) && (((buffer)->offset + index) < (buffer)->length))",
+      "after": "#define can_access_at_index(buffer, index) ((buffer != NULL) && (((buffer)->offset + index) <= (buffer)->length))"
+    },
+    "crash_type": "heap-buffer-overflow READ",
+    "family": "F3.a",
+    "explanation": "A vulnerability exists in the buffer access boundary check macro where a comparison operator allows reading one byte past the allocated input buffer."
+  },
+  {
+    "id": "T1_cjson_0345",
+    "project": "cjson",
+    "diff": {
+      "file": "cJSON.c",
+      "line": 841,
+      "before": "while (((size_t)(input_end - input_buffer->content) < input_buffer->length) && (*input_end != '\\\"'))",
+      "after": "while (((size_t)(input_end - input_buffer->content) <= input_buffer->length) && (*input_end != '\\\"'))"
+    },
+    "crash_type": "heap-buffer-overflow READ",
+    "family": "F3.a",
+    "explanation": "A vulnerability exists in the string scanning loop where the boundary check allows iteration one byte past the input buffer when the closing quote is missing."
+  },
+  {
+    "id": "T1_cjson_0347",
+    "project": "cjson",
+    "diff": {
+      "file": "cJSON.c",
+      "line": 841,
+      "before": "while (((size_t)(input_end - input_buffer->content) < input_buffer->length) && (*input_end != \\\"\\\"\\\"",
+      "after": "while (((size_t)(input_end - input_buffer->content) <= input_buffer->length) && (*input_end != \\\"\\\"\\\""
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one in string scanning loop allows reading one byte past input buffer while searching for closing quote"
+  },
+  {
+    "id": "T1_cjson_0348",
+    "project": "cjson",
+    "diff": {
+      "file": "cJSON.c",
+      "line": 862,
+      "before": "allocation_length = (size_t) (input_end - buffer_at_offset(input_buffer)) - skipped_bytes;",
+      "after": "allocation_length = (size_t) (input_end - buffer_at_offset(input_buffer)) - skipped_bytes * 2;"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "",
+    "explanation": "Heap overflow in parse_string: string allocation doubly subtracts escape byte count"
+  },
+  {
+    "id": "T1_cjson_0349",
+    "project": "cjson",
+    "diff": {
+      "file": "cJSON.c",
+      "line": 1000,
+      "before": "escape_characters += 5;",
+      "after": "escape_characters += 3;"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "",
+    "explanation": "Heap overflow in print_string_ptr: escape character count for control chars underestimated by 2 per char"
+  },
+  {
+    "id": "T1_cjson_0350",
+    "project": "cjson",
+    "diff": {
+      "file": "cJSON.c",
+      "line": 199,
+      "before": "copy = (unsigned char*)hooks->allocate(length);",
+      "after": "copy = (unsigned char*)hooks->allocate(length - 1);"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "",
+    "explanation": "Heap overflow in cJSON_strdup: allocation one byte short, memcpy writes past buffer"
+  },
+  {
+    "id": "T1_cjson_0353",
+    "project": "cjson",
+    "diff": {
+      "file": "cJSON.c",
+      "line": 243,
+      "before": "cJSON* node = (cJSON*)hooks->allocate(sizeof(cJSON));",
+      "after": "cJSON* node = (cJSON*)hooks->allocate(sizeof(cJSON) - 8);"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "F3",
+    "explanation": "A vulnerability exists in the internal cJSON node constructor where the allocation is undersized, causing subsequent initialization to overflow the heap buffer."
+  },
+  {
+    "id": "T1_cjson_0354",
+    "project": "cjson",
+    "diff": {
+      "file": "cJSON.c",
+      "line": 199,
+      "before": "copy = (unsigned char*)hooks->allocate(length);",
+      "after": "copy = (unsigned char*)hooks->allocate(length > 1 ? length / 2 : 1);"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "F3",
+    "explanation": "A vulnerability exists in the internal string duplication function where the destination buffer is allocated at half the required size."
+  },
+  {
+    "id": "T1_cjson_0355",
+    "project": "cjson",
+    "diff": {
+      "file": "cJSON.c",
+      "line": 246,
+      "before": "memset(node, 0, sizeof(cJSON));",
+      "after": "memset(node, 0, sizeof(cJSON) + 16);"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "F3",
+    "explanation": "A vulnerability exists in the internal node constructor where the zero-initialization writes past the allocated memory region."
+  }
+]

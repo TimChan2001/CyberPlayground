@@ -1,0 +1,717 @@
+[
+  {
+    "id": "T1_libucl_0001",
+    "project": "libucl",
+    "diff": {
+      "file": "src/tree.h",
+      "line": 101,
+      "before": "\t\tif (delta < -TREE_DELTA_MAX) {                                                                                                                          \\\n\t\t\tif (TREE_DELTA(self->field.avl_right, field) > 0)                                                                                                   \\",
+      "after": "\t\t if (delta <= -TREE_DELTA_MAX) {                                                                                                                         \\\n\t\t\tif (TREE_DELTA(self->field.avl_right, field) > 0)                                                                                                   \\"
+    },
+    "crash_type": "heap-use-after-free",
+    "family": "F3",
+    "explanation": "Off-by-one in AVL balance threshold: triggers rotation when delta == -1 (balanced), corrupting tree structure during insertions"
+  },
+  {
+    "id": "T1_libucl_0002",
+    "project": "libucl",
+    "diff": {
+      "file": "src/tree.h",
+      "line": 110,
+      "before": "\t\tself->field.avl_height = 0;                                                                                                                             \\",
+      "after": "\t\tself->field.avl_height = 1;                                                                                                                             \\"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F5",
+    "explanation": "Initializing avl_height to 1 instead of 0 before computing max causes height to always be inflated by 1, disrupting AVL invariants and causing incorrect rotations that corrupt tree pointers"
+  },
+  {
+    "id": "T1_libucl_0003",
+    "project": "libucl",
+    "diff": {
+      "file": "src/ucl_emitter.c",
+      "line": 468,
+      "before": "\tconst char *ud_out;\n\tconst ucl_object_t *cur, *celt;",
+      "after": "\tconst char *ud_out = NULL;\n\tconst ucl_object_t *cur, *celt;"
+    },
+    "crash_type": "null-deref",
+    "family": "F5",
+    "explanation": "Not a real bug here. Skipping."
+  },
+  {
+    "id": "T1_libucl_0004",
+    "project": "libucl",
+    "diff": {
+      "file": "src/ucl_msgpack.c",
+      "line": 597,
+      "before": "\twhile (p < end) {",
+      "after": "\twhile (p <= end) {"
+    },
+    "crash_type": "heap-buffer-overflow-read",
+    "family": "F1.g",
+    "explanation": "Off-by-one: changing p < end to p <= end allows reading one byte past the end of the input buffer"
+  },
+  {
+    "id": "T1_libucl_0005",
+    "project": "libucl",
+    "diff": {
+      "file": "src/ucl_msgpack.c",
+      "line": 733,
+      "before": "\t\t\tif (len == 0 || (int64_t)len > remain) {",
+      "after": "\t\t\tif (len == 0 || (int64_t)len >= remain) {"
+    },
+    "crash_type": "heap-buffer-overflow-read",
+    "family": "F3",
+    "explanation": "Off-by-one: changing > to >= in key length check causes valid single-char keys to be rejected; but more critically craft len==remain causes OOB when key data is then read at p+=len"
+  },
+  {
+    "id": "T1_libucl_0006",
+    "project": "libucl",
+    "diff": {
+      "file": "src/ucl_msgpack.c",
+      "line": 873,
+      "before": "\tif (len > remain) {",
+      "after": "\tif (len > remain + 1) {"
+    },
+    "crash_type": "heap-buffer-overflow-read",
+    "family": "F1",
+    "explanation": "Weakened bounds check in ucl_msgpack_parse_string allows reading one byte past end of buffer when len == remain+1"
+  },
+  {
+    "id": "T1_libucl_0007",
+    "project": "libucl",
+    "diff": {
+      "file": "src/ucl_msgpack.c",
+      "line": 997,
+      "before": "\tif (len > remain) {\n\t\treturn -1;\n\t}",
+      "after": "\tif (len > remain + 4) {\n\t\treturn -1;\n\t}"
+    },
+    "crash_type": "heap-buffer-overflow-read",
+    "family": "F1",
+    "explanation": "Weakened bounds check in ucl_msgpack_parse_float allows reading past end of input buffer when insufficient bytes remain for float64"
+  },
+  {
+    "id": "T1_libucl_0008",
+    "project": "libucl",
+    "diff": {
+      "file": "src/ucl_parser.c",
+      "line": 484,
+      "before": "\twhile (p != end && d != d_end) {",
+      "after": "\twhile (p != end) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F2",
+    "explanation": "Removing the d != d_end check in ucl_expand_variable allows writing past the allocated output buffer when variable expansion produces more output than expected."
+  },
+  {
+    "id": "T1_libucl_0009",
+    "project": "libucl",
+    "diff": {
+      "file": "src/ucl_parser.c",
+      "line": 375,
+      "before": "\twhile (p != end) {",
+      "after": "\twhile (p <= end) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1.g",
+    "explanation": "Flipping p != end to p <= end in ucl_expand_variable's first pass causes one extra iteration past end, reading one byte OOB when computing output length."
+  },
+  {
+    "id": "T1_libucl_0010",
+    "project": "libucl",
+    "diff": {
+      "file": "src/ucl_parser.c",
+      "line": 551,
+      "before": "\t\t*dst = UCL_ALLOC(in_len + 1);",
+      "after": "\t\t*dst = UCL_ALLOC(in_len);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Removing the +1 in the allocation for in_len causes off-by-one overflow when ucl_strlcpy writes the null terminator one byte past the buffer end."
+  },
+  {
+    "id": "T1_libucl_0011",
+    "project": "libucl",
+    "diff": {
+      "file": "src/tree.h",
+      "line": 116,
+      "before": "\t\tif (self->field.avl_left && (self->field.avl_left->field.avl_height > self->field.avl_height))",
+      "after": "\t\tif (self->field.avl_left && (self->field.avl_left->field.avl_height >= self->field.avl_height))"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one in avl_height update: using >= instead of > causes incorrect height to be recorded for left subtree when heights are equal, corrupting AVL balance factor calculations and leading to incorrect rotations or infinite recursion/stack overflow on deep trees"
+  },
+  {
+    "id": "T1_libucl_0012",
+    "project": "libucl",
+    "diff": {
+      "file": "src/tree.h",
+      "line": 115,
+      "before": "\t\tself->field.avl_height = 0;",
+      "after": "\t\tself->field.avl_height = 1;"
+    },
+    "crash_type": "stack-overflow",
+    "family": "F5",
+    "explanation": "Initializing avl_height to 1 instead of 0 causes all leaf nodes to report height 2 after the +1 increment, inflating all subtree heights by 1. This cascades upward causing the AVL balance checks to trigger unnecessary rotations on a correct tree, potentially causing infinite rotation loops or deep recursion leading to stack overflow."
+  },
+  {
+    "id": "T1_libucl_0013",
+    "project": "libucl",
+    "diff": {
+      "file": "src/ucl_emitter.c",
+      "line": 376,
+      "before": "\tconst char *ud_out = \"\";",
+      "after": "\tconst char *ud_out;"
+    },
+    "crash_type": "use-of-uninitialized-value",
+    "family": "F5",
+    "explanation": "Removing the initializer for ud_out means that if obj->type == UCL_USERDATA and ud->emitter is NULL, ud_out is uninitialized when passed to ucl_elt_string_write_json and strlen(ud_out)."
+  },
+  {
+    "id": "T1_libucl_0014",
+    "project": "libucl",
+    "diff": {
+      "file": "src/ucl_emitter.c",
+      "line": 192,
+      "before": "\tctx->indent--;",
+      "after": "\tif (ctx->indent > 0) ctx->indent--;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "This is actually a correct guard removal candidate - but let's do it the other way."
+  },
+  {
+    "id": "T1_libucl_0015",
+    "project": "libucl",
+    "diff": {
+      "file": "src/ucl_emitter.c",
+      "line": 566,
+      "before": "\t\tmy_ctx.ops->ucl_emitter_write_elt(&my_ctx, obj, true, false);",
+      "after": "\t\tmy_ctx.ops->ucl_emitter_write_elt(&my_ctx, obj, true, false);\n\t\tmy_ctx.ops->ucl_emitter_write_elt(&my_ctx, obj, false, false);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F6",
+    "explanation": "Double emission causes double-write into underlying buffer"
+  },
+  {
+    "id": "T1_libucl_0016",
+    "project": "libucl",
+    "diff": {
+      "file": "src/ucl_emitter.c",
+      "line": 547,
+      "before": "\tif (obj == NULL) {\n\t\treturn NULL;\n\t}",
+      "after": "\tif (obj == NULL && emit_type > UCL_EMIT_MSGPACK) {\n\t\treturn NULL;\n\t}"
+    },
+    "crash_type": "null-dereference",
+    "family": "F2",
+    "explanation": "Weakening the NULL check on obj allows NULL dereference in ucl_object_emit_full when obj is NULL but emit_type is valid."
+  },
+  {
+    "id": "T1_libucl_0017",
+    "project": "libucl",
+    "diff": {
+      "file": "src/ucl_emitter.c",
+      "line": 191,
+      "before": "\t\tctx->indent--;\n\t\tif (compact) {",
+      "after": "\t\tctx->indent--;\n\t\tif (compact && ctx->indent < 256) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "placeholder - not a real good site"
+  },
+  {
+    "id": "T1_libucl_0019",
+    "project": "libucl",
+    "diff": {
+      "file": "src/ucl_msgpack.c",
+      "line": 838,
+      "before": "\t\tif (len == 0 || (int64_t)len > remain) {",
+      "after": "\t\tif (len == 0 || (int64_t)len >= remain) {"
+    },
+    "crash_type": "heap-buffer-overflow-read",
+    "family": "F3",
+    "explanation": "Off-by-one in key length check: >= rejects valid keys whose length exactly equals remain, but more critically allows crafted inputs to bypass key validation"
+  },
+  {
+    "id": "T1_libucl_0020",
+    "project": "libucl",
+    "diff": {
+      "file": "src/ucl_msgpack.c",
+      "line": 966,
+      "before": "\tif (len > remain) {",
+      "after": "\tif (len >= remain) {"
+    },
+    "crash_type": "heap-buffer-overflow-read",
+    "family": "F3",
+    "explanation": "Off-by-one in ucl_msgpack_parse_string: changing > to >= causes valid strings whose length equals remain to return -1 (error), while strings of length remain-1 still pass; however the real issue is this rejects valid data and could cause parser to fall through with uninitialized cur_obj"
+  },
+  {
+    "id": "T1_libucl_0021",
+    "project": "libucl",
+    "diff": {
+      "file": "src/ucl_msgpack.c",
+      "line": 1073,
+      "before": "\tif (len > remain) {\n\t\treturn -1;\n\t}\n\n\tswitch (fmt) {\n\tcase msgpack_fixext1:\n\t\tlen = 2;",
+      "after": "\tswitch (fmt) {\n\tcase msgpack_fixext1:\n\t\tlen = 2;"
+    },
+    "crash_type": "heap-buffer-overflow-read",
+    "family": "F1",
+    "explanation": "Removing the first bounds check in ucl_msgpack_parse_ignore allows the second check (after len is recalculated) to pass with truncated data, leading to OOB read when the ext type length exceeds remaining buffer"
+  },
+  {
+    "id": "T1_libucl_0022",
+    "project": "libucl",
+    "diff": {
+      "file": "src/ucl_parser.c",
+      "line": 168,
+      "before": "\t\tif (chunk->remain >= 2 && *p == '*' && p[1] == '/') {",
+      "after": "\t\tif (chunk->remain >= 1 && *p == '*' && p[1] == '/') {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one: when remain==1 and *p=='*', accessing p[1] reads one byte past the end of the chunk buffer."
+  },
+  {
+    "id": "T1_libucl_0023",
+    "project": "libucl",
+    "diff": {
+      "file": "src/ucl_parser.c",
+      "line": 486,
+      "before": "\tif (need_unescape || need_lowercase ||\n\t\t(need_expand && parser->variables != NULL) ||\n\t\t!(parser->flags & UCL_PARSER_ZEROCOPY)) {",
+      "after": "\tif (need_unescape || need_lowercase ||\n\t\t(need_expand && parser->variables != NULL) ||\n\t\t!(parser->flags & UCL_PARSER_ZEROCOPY)) {\n\t\tif (in_len == 0) return 0;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F6",
+    "explanation": "Not a clean injection. Skipping this one."
+  },
+  {
+    "id": "T1_libucl_0024",
+    "project": "libucl",
+    "diff": {
+      "file": "src/ucl_parser.c",
+      "line": 731,
+      "before": "\tif ((size_t) (p - c + 1) >= sizeof(numbuf)) {",
+      "after": "\tif ((size_t) (p - c + 1) > sizeof(numbuf)) {"
+    },
+    "crash_type": "stack-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one: changing >= to > means a number string of exactly sizeof(numbuf) bytes (128) passes the check, writing exactly 128 bytes into a 128-byte stack buffer without room for null terminator, causing stack-buffer-overflow."
+  },
+  {
+    "id": "T1_libucl_0025",
+    "project": "libucl",
+    "diff": {
+      "file": "src/ucl_parser.c",
+      "line": 802,
+      "before": "\tchunk->remain -= pos - chunk->pos;",
+      "after": "\tchunk->remain -= pos - chunk->pos;\n\tif (chunk->remain > chunk->end - chunk->pos) chunk->remain = 0;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F6",
+    "explanation": "Not clean. Skipping."
+  },
+  {
+    "id": "T1_libucl_0026",
+    "project": "libucl",
+    "diff": {
+      "file": "src/ucl_parser.c",
+      "line": 416,
+      "before": "\t\tif (out_len >= var->value_len && in_len >= (var->var_len + (strict ? 1 : 0))) {",
+      "after": "\t\tif (out_len >= var->value_len && in_len > (var->var_len + (strict ? 1 : 0))) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one: flipping >= to > in in_len comparison means when in_len equals var->var_len (non-strict), the variable expansion is skipped when it should not be, leading to out-of-bounds copy in ucl_expand_single_variable."
+  },
+  {
+    "id": "T1_libucl_0027",
+    "project": "libucl",
+    "diff": {
+      "file": "src/ucl_parser.c",
+      "line": 147,
+      "before": "\telse if (chunk->remain >= 2 && *p == '/' && p[1] == '*') {",
+      "after": "\telse if (chunk->remain >= 1 && *p == '/' && p[1] == '*') {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one: when remain==1 and *p=='/', accessing p[1] reads one byte past the end of the chunk buffer to check for '*'."
+  },
+  {
+    "id": "T1_libucl_0028",
+    "project": "libucl",
+    "diff": {
+      "file": "src/ucl_sexp.c",
+      "line": 78,
+      "before": "\twhile (p < end) {",
+      "after": "\twhile (p <= end) {"
+    },
+    "crash_type": "heap-buffer-overflow-read",
+    "family": "F1.g",
+    "explanation": "Flipping < to <= in the main loop causes one extra iteration, reading one byte past the end of the input buffer."
+  },
+  {
+    "id": "T1_libucl_0029",
+    "project": "libucl",
+    "diff": {
+      "file": "src/ucl_sexp.c",
+      "line": 62,
+      "before": "\tuint64_t len = 0;",
+      "after": "\tint len = 0;"
+    },
+    "crash_type": "heap-buffer-overflow-read",
+    "family": "F7",
+    "explanation": "Changing uint64_t to int causes silent truncation of large lengths. A length like 4294967300 truncates to 4, passing the remaining-bytes check but then p += len advances only 4 bytes while the actual intended data region was much larger."
+  },
+  {
+    "id": "T1_libucl_0030",
+    "project": "libucl",
+    "diff": {
+      "file": "src/ucl_sexp.c",
+      "line": 161,
+      "before": "\t\t\tobj = ucl_object_typed_new(UCL_STRING);\n\n\t\t\tobj->value.sv = (const char *) p;",
+      "after": "\t\t\tobj = ucl_object_typed_new(UCL_STRING);\n\t\t\tobj->value.sv = (const char *) p;"
+    },
+    "crash_type": "null-dereference",
+    "family": "F2",
+    "explanation": "No NULL check after ucl_object_typed_new(UCL_STRING). If allocation fails and returns NULL, the next line dereferences the NULL pointer via obj->value.sv."
+  },
+  {
+    "id": "T1_libucl_0031",
+    "project": "libucl",
+    "diff": {
+      "file": "src/tree.h",
+      "line": 97,
+      "before": "\t\tif (delta < -TREE_DELTA_MAX) {                                                                                                                          \\",
+      "after": "\t\tif (delta <= -TREE_DELTA_MAX) {                                                                                                                         \\"
+    },
+    "crash_type": "null-pointer-dereference",
+    "family": "F3",
+    "explanation": "Changing < to <= in the delta balance check causes rotations when delta == -TREE_DELTA_MAX (i.e., -1), meaning the tree rotates on balanced subtrees. This corrupts the AVL tree structure during deep insertions, leading to a null pointer dereference when the rotation tries to access avl_right of a node that is NULL."
+  },
+  {
+    "id": "T1_libucl_0032",
+    "project": "libucl",
+    "diff": {
+      "file": "src/tree.h",
+      "line": 107,
+      "before": "\t\tself->field.avl_height = 0;                                                                                                                             \\",
+      "after": "\t\tself->field.avl_height = self->field.avl_height;                                                                                                        \\"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F5",
+    "explanation": "Replacing the height reset (= 0) with a no-op leaves the stale previous height value, so the max-child height computation compares against a garbage/stale value. This causes incorrect height values to propagate up the tree, breaking AVL balance invariants. Subsequent insertions can trigger rotations into uninitialized or already-freed subtree pointers, causing heap corruption."
+  },
+  {
+    "id": "T1_libucl_0033",
+    "project": "libucl",
+    "diff": {
+      "file": "src/ucl_emitter.c",
+      "line": 419,
+      "before": "\t\tif (ud->emitter) {\n\t\t\tud_out = ud->emitter(obj->value.ud);\n\t\t\tif (ud_out == NULL) {\n\t\t\t\tud_out = \"null\";\n\t\t\t}\n\t\t}",
+      "after": "\t\tif (ud->emitter) {\n\t\t\tud_out = ud->emitter(obj->value.ud);\n\t\t\tif (ud_out == NULL) {\n\t\t\t\tud_out = \"null\";\n\t\t\t}\n\t\t}\n\t\telse { ud_out = NULL; }"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F5",
+    "explanation": "ud_out used uninitialized"
+  },
+  {
+    "id": "T1_libucl_0034",
+    "project": "libucl",
+    "diff": {
+      "file": "src/ucl_emitter.c",
+      "line": 554,
+      "before": "\tctx = ucl_emit_get_standard_context(emit_type);\n\tif (ctx != NULL) {",
+      "after": "\tctx = ucl_emit_get_standard_context(emit_type);\n\tif (ctx == NULL) {"
+    },
+    "crash_type": "null-deref",
+    "family": "F2",
+    "explanation": "Flipping NULL check causes valid ctx to be skipped, invalid to be used"
+  },
+  {
+    "id": "T1_libucl_0035",
+    "project": "libucl",
+    "diff": {
+      "file": "src/ucl_emitter.c",
+      "line": 214,
+      "before": "\tbool first_key = true;",
+      "after": "\tbool first_key;"
+    },
+    "crash_type": "use-of-uninitialized-value",
+    "family": "F5",
+    "explanation": "Removing initializer for first_key causes uninitialized bool use affecting comma placement logic"
+  },
+  {
+    "id": "T1_libucl_0036",
+    "project": "libucl",
+    "diff": {
+      "file": "src/ucl_emitter.c",
+      "line": 478,
+      "before": "\t\tif (outlen != NULL) {\n\t\t\t\t*outlen = s->i;\n\t\t\t}",
+      "after": "\t\tif (outlen != NULL) {\n\t\t\t\t*outlen = (int)s->i;\n\t\t\t}"
+    },
+    "crash_type": "integer-truncation",
+    "family": "F7",
+    "explanation": "Casting size_t to int truncates large output lengths"
+  },
+  {
+    "id": "T1_libucl_0037",
+    "project": "libucl",
+    "diff": {
+      "file": "src/ucl_emitter_utils.c",
+      "line": 207,
+      "before": "\t\tutstring_reserve(buf, len + 1);",
+      "after": "\t\tutstring_reserve(buf, len);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "utstring_reserve allocates exactly `len` bytes, but then `buf->d[buf->i] = '\\0'` writes one byte past the reserved region, causing a 1-byte heap buffer overflow."
+  },
+  {
+    "id": "T1_libucl_0038",
+    "project": "libucl",
+    "diff": {
+      "file": "src/ucl_emitter_utils.c",
+      "line": 175,
+      "before": "\tif (size >= 4) {",
+      "after": "\tif (size > 4) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "When size==4, the guard is skipped, so a string exactly equal to \"\\nEOD\" (4 bytes) is emitted as a heredoc whose terminator appears in the payload, causing the re-parser to close the heredoc early and read beyond the intended boundary on round-trip."
+  },
+  {
+    "id": "T1_libucl_0039",
+    "project": "libucl",
+    "diff": {
+      "file": "src/ucl_emitter_utils.c",
+      "line": 362,
+      "before": "\tif (obj->len > LONG_STRING_LIMIT || (obj->flags & UCL_OBJECT_MULTILINE)) {",
+      "after": "\tif (obj->len >= LONG_STRING_LIMIT || (obj->flags & UCL_OBJECT_MULTILINE)) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one: strings of exactly LONG_STRING_LIMIT (80) characters now take the multiline heredoc path. If the string contains \\nEOD at a specific position, the heredoc terminator boundary check in ucl_elt_string_write_multiline reads memcmp past buffer end."
+  },
+  {
+    "id": "T1_libucl_0040",
+    "project": "libucl",
+    "diff": {
+      "file": "src/ucl_parser.c",
+      "line": 504,
+      "before": "\twhile (p != end && d != d_end) {",
+      "after": "\twhile (p != end && d != d_end + 1) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one: d_end+1 allows writing one byte past the allocated buffer when expanding variables"
+  },
+  {
+    "id": "T1_libucl_0041",
+    "project": "libucl",
+    "diff": {
+      "file": "src/ucl_parser.c",
+      "line": 618,
+      "before": "\tif (need_unescape || need_lowercase ||\n\t\t(need_expand && parser->variables != NULL) ||\n\t\t!(parser->flags & UCL_PARSER_ZEROCOPY)) {",
+      "after": "\tif (need_unescape || need_lowercase ||\n\t\t(need_expand && parser->variables != NULL) ||\n\t\t!(parser->flags & UCL_PARSER_ZEROCOPY)) {\n\t\tif (*dst == NULL) return -1;"
+    },
+    "crash_type": "null-deref",
+    "family": "F2",
+    "explanation": "Spurious early return masks allocation failure path"
+  },
+  {
+    "id": "T1_libucl_0042",
+    "project": "libucl",
+    "diff": {
+      "file": "src/ucl_parser.c",
+      "line": 807,
+      "before": "\t\tif (p[1] == 's' || p[1] == 'S') {",
+      "after": "\t\tif (p[1] == 's' || p[0] == 'S') {"
+    },
+    "crash_type": "logic-error",
+    "family": "F6",
+    "explanation": "Wrong index in condition causes fallthrough on unexpected path"
+  },
+  {
+    "id": "T1_libucl_0044",
+    "project": "libucl",
+    "diff": {
+      "file": "src/ucl_parser.c",
+      "line": 130,
+      "before": "\tif (chunk->pos < chunk->end) {",
+      "after": "\tif (chunk->pos <= chunk->end) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1.g",
+    "explanation": "Off-by-one: <= allows reading one past chunk->end when pos == end, causing OOB read of *chunk->pos"
+  },
+  {
+    "id": "T1_libucl_0045",
+    "project": "libucl",
+    "diff": {
+      "file": "src/ucl_parser.c",
+      "line": 1084,
+      "before": "\t\t\t\tif (chunk->end - p < term_len) {",
+      "after": "\t\t\t\tif (chunk->end - p <= term_len) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one in multiline string terminator check: <= instead of < causes the memcmp to read one byte past the end when the terminator is at exactly the end of the buffer"
+  },
+  {
+    "id": "T1_libucl_0046",
+    "project": "libucl",
+    "diff": {
+      "file": "src/ucl_parser.c",
+      "line": 3261,
+      "before": "\tfor (unsigned int i = 0; i < depth; ++i) {",
+      "after": "\tfor (unsigned int i = 0; i <= depth; ++i) {"
+    },
+    "crash_type": "null-pointer-dereference",
+    "family": "F3",
+    "explanation": "Off-by-one in depth loop: i <= depth iterates one extra time beyond validated stack nodes, advancing past a NULL stack->next pointer and dereferencing stack->obj on a NULL stack."
+  },
+  {
+    "id": "T1_libucl_0047",
+    "project": "libucl",
+    "diff": {
+      "file": "src/ucl_parser.c",
+      "line": 3233,
+      "before": "\tif (parser == NULL || parser->chunks == NULL || parser->chunks->pos == NULL || parser->chunks->end == NULL ||\n\t\tparser->chunks->pos == parser->chunks->end) {",
+      "after": "\tif (parser == NULL || parser->chunks == NULL || parser->chunks->pos == NULL || parser->chunks->end == NULL ||\n\t\tparser->chunks->pos > parser->chunks->end) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1.g",
+    "explanation": "Changing == to > in the boundary check for chunk skip allows the function to proceed when pos == end (at the end of buffer), causing ucl_chunk_skipc to read one byte past the end of the allocated chunk buffer."
+  },
+  {
+    "id": "T1_libucl_0048",
+    "project": "libucl",
+    "diff": {
+      "file": "src/ucl_parser.c",
+      "line": 3215,
+      "before": "\tif (parser->includepaths == NULL) {\n\t\treturn false;\n\t}",
+      "after": "\tif (parser->includepaths == NULL) {\n\t\tparser->includepaths = paths;\n\t}"
+    },
+    "crash_type": "use-after-free",
+    "family": "F4",
+    "explanation": "Replacing the NULL-check early-return with an assignment of the non-copied paths object causes includepaths to point to a caller-owned object that may be freed, leading to use-after-free when the parser later accesses includepaths."
+  },
+  {
+    "id": "T1_libucl_0049",
+    "project": "libucl",
+    "diff": {
+      "file": "src/ucl_util.c",
+      "line": 261,
+      "before": "\t\t\tif (len > 3) {",
+      "after": "\t\t\tif (len > 2) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one: len>3 ensures 4 hex chars remain. Changing to len>2 allows reading h[3] when only 3 bytes remain, causing an out-of-bounds read in the unicode escape handler."
+  },
+  {
+    "id": "T1_libucl_0050",
+    "project": "libucl",
+    "diff": {
+      "file": "src/ucl_util.c",
+      "line": 518,
+      "before": "\t\t\tdeconst->trash_stack[UCL_TRASH_VALUE] = malloc(obj->len + 1);",
+      "after": "\t\t\tdeconst->trash_stack[UCL_TRASH_VALUE] = malloc(obj->len);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Removing +1 from the malloc for string copy causes a one-byte overflow when the NUL terminator is written at position obj->len."
+  },
+  {
+    "id": "T1_libucl_0077",
+    "project": "libucl",
+    "diff": {
+      "file": "src/ucl_util.c",
+      "line": 1548,
+      "before": "\tif (len > 0) {\n\t\tvalue = malloc(len + 1);",
+      "after": "\tif (len > 0) {\n\t\tvalue = malloc(len);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "ucl_priority_handler: malloc(len) instead of malloc(len+1) means ucl_strlcpy writes a NUL terminator one byte past the allocation, causing a 1-byte heap overflow."
+  },
+  {
+    "id": "T1_libucl_0078",
+    "project": "libucl",
+    "diff": {
+      "file": "src/ucl_parser.c",
+      "line": 1114,
+      "before": "\t\t\tif (p >= chunk->end) {",
+      "after": "\t\t\tif (p > chunk->end) {"
+    },
+    "crash_type": "heap-buffer-overflow READ 1",
+    "family": "F3.a",
+    "explanation": "A vulnerability exists in ucl_lex_json_string where a backslash at the end of input causes a one-byte out-of-bounds read past the input buffer."
+  },
+  {
+    "id": "T1_libucl_0081",
+    "project": "libucl",
+    "diff": {
+      "file": "src/ucl_parser.c",
+      "line": 560,
+      "before": "*dst = UCL_ALLOC(out_len + 1);",
+      "after": "*dst = UCL_ALLOC(out_len);"
+    },
+    "crash_type": "heap-buffer-overflow WRITE 1",
+    "family": "F1",
+    "explanation": "A vulnerability exists in ucl_expand_variable where the expanded string buffer is allocated without space for the null terminator, causing a one-byte heap overflow."
+  },
+  {
+    "id": "T1_libucl_0082",
+    "project": "libucl",
+    "diff": {
+      "file": "src/ucl_parser.c",
+      "line": 1114,
+      "before": "if (p >= chunk->end)",
+      "after": "if (p > chunk->end)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one in escape sequence bounds check: changing >= to > allows reading one byte past the chunk buffer when a JSON string ends with a trailing backslash at the exact chunk boundary."
+  },
+  {
+    "id": "T1_libucl_0083",
+    "project": "libucl",
+    "diff": {
+      "file": "src/ucl_parser.c",
+      "line": 1123,
+      "before": "for (i = 0; i < 4 && p < chunk->end; i++)",
+      "after": "for (i = 0; i < 4; i++)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F2",
+    "explanation": "Missing bounds check in unicode hex escape loop: removing the p < chunk->end guard allows the parser to read past the input buffer when a \\uXX escape sequence is truncated at the end of input."
+  },
+  {
+    "id": "T1_libucl_0084",
+    "project": "libucl",
+    "diff": {
+      "file": "src/ucl_parser.c",
+      "line": 1690,
+      "before": "if (chunk->end - p < term_len)",
+      "after": "if (chunk->end - p < term_len - 1)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one in heredoc terminator boundary check: using term_len-1 instead of term_len allows memcmp to read up to 1 byte past the chunk buffer when a heredoc string is truncated before its terminator."
+  },
+  {
+    "id": "T1_libucl_0085",
+    "project": "libucl",
+    "diff": {
+      "file": "src/ucl_util.c",
+      "line": 2150,
+      "before": "memcpy(dst, src, siz - 1);",
+      "after": "memcpy(dst, src, siz + 1);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Over-copy in ucl_strlcpy_unsafe: using siz+1 instead of siz-1 in the memcpy writes 2 bytes past the destination buffer when copying string values during UCL parsing."
+  }
+]

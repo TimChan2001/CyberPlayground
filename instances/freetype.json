@@ -1,0 +1,93 @@
+[
+  {
+    "id": "T1_freetype_0023",
+    "project": "freetype",
+    "diff": {
+      "file": "src/sfnt/sfobjs.c",
+      "line": 75,
+      "before": "    for ( n = 0; n < len; n++ )",
+      "after": "    for ( n = 0; n <= len; n++ )"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "",
+    "explanation": "Off-by-one in UTF-16 name iteration loop: n < len changed to n <= len causes one extra iteration reading 2 bytes past the entry string and writing 1 byte past the allocated buffer"
+  },
+  {
+    "id": "T1_freetype_0024",
+    "project": "freetype",
+    "diff": {
+      "file": "src/sfnt/sfobjs.c",
+      "line": 1203,
+      "before": "        for ( m = 0; m < root->num_charmaps; m++ )",
+      "after": "        for ( m = 0; m <= root->num_charmaps; m++ )"
+    },
+    "crash_type": "heap-buffer-overflow READ",
+    "family": "",
+    "explanation": "Off-by-one in charmap enumeration loop: m < root->num_charmaps changed to m <= root->num_charmaps causes OOB read on charmaps array"
+  },
+  {
+    "id": "T1_freetype_0028",
+    "project": "freetype",
+    "diff": {
+      "file": "src/sfnt/sfobjs.c",
+      "line": 160,
+      "before": "    for ( n = 0; n < face->num_names; n++, rec++ )",
+      "after": "    for ( n = 0; n <= face->num_names; n++, rec++ )"
+    },
+    "crash_type": "heap-buffer-overflow READ",
+    "family": "F1.g",
+    "explanation": "Off-by-one in name record iteration causes one extra read past the allocated name table array"
+  },
+  {
+    "id": "T1_freetype_0029",
+    "project": "freetype",
+    "diff": {
+      "file": "src/sfnt/sfobjs.c",
+      "line": 472,
+      "before": "      for ( n = 0; n < face->ttc_header.count; n++ )",
+      "after": "      for ( n = 0; n <= face->ttc_header.count; n++ )"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "F1.g",
+    "explanation": "Off-by-one in TTC offset table iteration writes one entry past the allocated offsets array"
+  },
+  {
+    "id": "T1_freetype_0030",
+    "project": "freetype",
+    "diff": {
+      "file": "src/sfnt/ttpost.c",
+      "line": 188,
+      "before": "    for ( n = 0; n < num_glyphs; n++ )",
+      "after": "    for ( n = 0; n <= num_glyphs; n++ )"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "F1.g",
+    "explanation": "Off-by-one in post table format 2.0 glyph name index loop writes one entry past the allocated glyph_indices array"
+  },
+  {
+    "id": "T1_freetype_0063",
+    "project": "freetype",
+    "diff": {
+      "file": "src/truetype/ttinterp.c",
+      "line": 80,
+      "before": "#define BOUNDS( x, n )   ( (FT_UInt)(x)  >= (FT_UInt)(n)  )",
+      "after": "#define BOUNDS( x, n )   ( (FT_UInt)(x)  > (FT_UInt)(n)  )"
+    },
+    "crash_type": "SEGV",
+    "family": "F3",
+    "explanation": "Off-by-one in BOUNDS macro weakens array bounds checking throughout TrueType hinting interpreter"
+  },
+  {
+    "id": "T1_freetype_0065",
+    "project": "freetype",
+    "diff": {
+      "file": "src/psaux/psobjs.c",
+      "line": 1166,
+      "before": "if ( FT_QALLOC( string, len + 1 ) )",
+      "after": "if ( FT_QALLOC( string, len ) )"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "F1",
+    "explanation": "Undersized string allocation in ps_parser_load_field allows null terminator to overflow heap buffer"
+  }
+]

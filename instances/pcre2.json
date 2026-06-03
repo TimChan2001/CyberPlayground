@@ -1,0 +1,1068 @@
+[
+  {
+    "id": "T1_pcre2_0001",
+    "project": "pcre2",
+    "diff": {
+      "file": "src/pcre2_auto_possess.c",
+      "line": 597,
+      "before": "      if (chr < 255 && (cb->ctypes[chr] & ctype_word) != 0) return FALSE;",
+      "after": "      if (chr < 256 && (cb->ctypes[chr] & ctype_word) != 0) return FALSE;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one: chr < 255 excludes chr==255 from the word-char check, but changing it to chr < 256 causes a 1-byte OOB read on cb->ctypes[256] since ctypes is a 256-byte array indexed 0-255."
+  },
+  {
+    "id": "T1_pcre2_0002",
+    "project": "pcre2",
+    "diff": {
+      "file": "src/pcre2_auto_possess.c",
+      "line": 432,
+      "before": "if (--(*rec_limit) <= 0) return FALSE;  /* Recursion has gone too deep */",
+      "after": "if (--(*rec_limit) < 0) return FALSE;  /* Recursion has gone too deep */"
+    },
+    "crash_type": "stack-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one in recursion limit: changing <= 0 to < 0 allows one extra level of recursion before bailing out, potentially causing a stack overflow on deeply nested patterns."
+  },
+  {
+    "id": "T1_pcre2_0003",
+    "project": "pcre2",
+    "diff": {
+      "file": "src/pcre2_auto_possess.c",
+      "line": 310,
+      "before": "     if (clist_dest >= list + MAX_LIST)",
+      "after": "     if (clist_dest > list + MAX_LIST)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one in clist_dest bounds check: changing >= to > allows writing one element past the end of the list[] array when a caseless set has exactly MAX_LIST-2 characters, causing a heap buffer overflow."
+  },
+  {
+    "id": "T1_pcre2_0004",
+    "project": "pcre2",
+    "diff": {
+      "file": "src/pcre2_chkdint.c",
+      "line": 78,
+      "before": "if (sizeof(m) > sizeof(*r) && m > (INT64_OR_DOUBLE)PCRE2_SIZE_MAX) return TRUE;",
+      "after": "if (sizeof(m) > sizeof(*r) && m >= (INT64_OR_DOUBLE)PCRE2_SIZE_MAX) return TRUE;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Changing > to >= in the PCRE2_SIZE_MAX overflow check causes the function to return TRUE (overflow) when m == PCRE2_SIZE_MAX, which is actually a valid value. More critically, the off-by-one means that a computed size of exactly PCRE2_SIZE_MAX is incorrectly flagged, but values just above it on systems where INT64_OR_DOUBLE can represent larger values than PCRE2_SIZE_MAX slip through, leading to a truncated allocation size and subsequent heap buffer overflow."
+  },
+  {
+    "id": "T1_pcre2_0005",
+    "project": "pcre2",
+    "diff": {
+      "file": "src/pcre2_compile.c",
+      "line": 753,
+      "before": "if (ptr >= ptrend || !IS_DIGIT(*ptr)) return FALSE;",
+      "after": "if (ptr > ptrend || !IS_DIGIT(*ptr)) return FALSE;"
+    },
+    "crash_type": "heap-buffer-overflow-read",
+    "family": "F1.g",
+    "explanation": "Off-by-one: flipping >= to > allows ptr to equal ptrend before calling IS_DIGIT(*ptr), reading one byte past the end of the input buffer when ptr == ptrend."
+  },
+  {
+    "id": "T1_pcre2_0006",
+    "project": "pcre2",
+    "diff": {
+      "file": "src/pcre2_compile.c",
+      "line": 698,
+      "before": "  if (n > max_value)\n    {\n    *errorcodeptr = max_error;\n    while (ptr < ptrend && IS_DIGIT(*ptr)) ptr++;\n    goto EXIT;\n    }",
+      "after": "  if (n >= max_value)\n    {\n    *errorcodeptr = max_error;\n    while (ptr < ptrend && IS_DIGIT(*ptr)) ptr++;\n    goto EXIT;\n    }"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one: changing > to >= in the max_value check causes ERR5 to be raised for the maximum valid repeat count (65535), while values that actually overflow are not caught, leading to incorrect behavior and potential downstream memory corruption."
+  },
+  {
+    "id": "T1_pcre2_0007",
+    "project": "pcre2",
+    "diff": {
+      "file": "src/pcre2_compile.c",
+      "line": 670,
+      "before": "PCRE2_ASSERT(max_value <= INT_MAX/10 - 1);",
+      "after": "PCRE2_ASSERT(max_value <= INT_MAX/10);"
+    },
+    "crash_type": "integer-overflow",
+    "family": "F3",
+    "explanation": "Relaxing the assertion allows max_value close to INT_MAX/10, meaning the multiplication n*10 in the loop can overflow a 32-bit integer, causing wrap-around and bypassing the bounds check."
+  },
+  {
+    "id": "T1_pcre2_0008",
+    "project": "pcre2",
+    "diff": {
+      "file": "src/pcre2_compile.c",
+      "line": 5380,
+      "before": "while (ptr < ptrend && IS_DIGIT(*ptr))",
+      "after": "while (ptr <= ptrend && IS_DIGIT(*ptr))"
+    },
+    "crash_type": "heap-buffer-overflow-read",
+    "family": "F1.g",
+    "explanation": "Changing < to <= in the callout digit-parsing loop allows ptr to equal ptrend, reading one byte past the allocated input buffer when an explicit length is used."
+  },
+  {
+    "id": "T1_pcre2_0009",
+    "project": "pcre2",
+    "diff": {
+      "file": "src/pcre2_compile.c",
+      "line": 7369,
+      "before": "      if (cb->names_found >= cb->named_group_list_size)",
+      "after": "      if (cb->names_found > cb->named_group_list_size)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one: the check should trigger resize when names_found >= list_size, but > means we write one entry past the end of the allocated named_groups array before resizing."
+  },
+  {
+    "id": "T1_pcre2_0010",
+    "project": "pcre2",
+    "diff": {
+      "file": "src/pcre2_compile.c",
+      "line": 7957,
+      "before": "    if (pptr[1] < META_END && pptr[2] == META_CLASS_END)",
+      "after": "    if (pptr[1] <= META_END && pptr[2] == META_CLASS_END)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Flipping < to <= allows META_END itself to be treated as a character value in the 1-char class optimization, causing incorrect code generation and potential out-of-bounds write."
+  },
+  {
+    "id": "T1_pcre2_0012",
+    "project": "pcre2",
+    "diff": {
+      "file": "src/pcre2_chkdint.c",
+      "line": 77,
+      "before": "if (m > PCRE2_SIZE_MAX) return TRUE;",
+      "after": "if (m >= PCRE2_SIZE_MAX) return TRUE;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Flipping > to >= in the double-based overflow check causes values exactly equal to PCRE2_SIZE_MAX to be incorrectly rejected as overflow, and allows values just above the boundary through due to floating point imprecision near PCRE2_SIZE_MAX."
+  },
+  {
+    "id": "T1_pcre2_0013",
+    "project": "pcre2",
+    "diff": {
+      "file": "src/pcre2_compile.c",
+      "line": 3437,
+      "before": "      if (ptrend - ptr >= 6 &&",
+      "after": "      if (ptrend - ptr >= 5 &&"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Reducing the minimum required length from 6 to 5 allows the POSIX weird word boundary check to proceed with one fewer character available, causing out-of-bounds read when accessing ptr[5] via strncmp_c8 with length 6."
+  },
+  {
+    "id": "T1_pcre2_0014",
+    "project": "pcre2",
+    "diff": {
+      "file": "src/pcre2_compile.c",
+      "line": 3510,
+      "before": "        if (ptrend - ptr >= 3 &&",
+      "after": "        if (ptrend - ptr >= 2 &&"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "The check for expect_cond_assert looks at ptr[0], ptr[1], and ptr[2], but reducing the guard from 3 to 2 allows access to ptr[2] when only 2 bytes remain, causing a 1-byte out-of-bounds read."
+  },
+  {
+    "id": "T1_pcre2_0015",
+    "project": "pcre2",
+    "diff": {
+      "file": "src/pcre2_compile.c",
+      "line": 3553,
+      "before": "        ok = ptr[2] == CHAR_EQUALS_SIGN || ptr[2] == CHAR_EXCLAMATION_MARK;",
+      "after": "        ok = ptr[1] == CHAR_EQUALS_SIGN || ptr[1] == CHAR_EXCLAMATION_MARK;"
+    },
+    "crash_type": "incorrect-behavior-leading-to-security-bypass",
+    "family": "F3",
+    "explanation": "Using ptr[1] instead of ptr[2] for the lookbehind condition assertion check causes wrong acceptance/rejection of patterns, potentially allowing malformed conditional patterns through that later trigger memory issues."
+  },
+  {
+    "id": "T1_pcre2_0016",
+    "project": "pcre2",
+    "diff": {
+      "file": "src/pcre2_compile.c",
+      "line": 3618,
+      "before": "      else if (ptrend - ptr <= 1 || (c = ptr[1]) == CHAR_RIGHT_PARENTHESIS)",
+      "after": "      else if (ptrend - ptr <= 0 || (c = ptr[1]) == CHAR_RIGHT_PARENTHESIS)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Changing the guard from <= 1 to <= 0 means that when exactly 1 byte remains after ptr, ptr[1] is accessed out-of-bounds since the check no longer prevents reading ptr[1] when ptrend - ptr == 1."
+  },
+  {
+    "id": "T1_pcre2_0017",
+    "project": "pcre2",
+    "diff": {
+      "file": "src/pcre2_compile.c",
+      "line": 5842,
+      "before": "      else if (ptrend - ptr >= 10 &&",
+      "after": "      else if (ptrend - ptr > 10 &&"
+    },
+    "crash_type": "heap-buffer-over-read",
+    "family": "F3",
+    "explanation": "Off-by-one: changing >= to > means a 10-char VERSION string is not recognized, but more critically a boundary exactly at 10 chars skips bounds check causing potential read past buffer end when accessing ptr[7]"
+  },
+  {
+    "id": "T1_pcre2_0018",
+    "project": "pcre2",
+    "diff": {
+      "file": "src/pcre2_compile.c",
+      "line": 5925,
+      "before": "        memcpy(newspace, cb->named_groups,\n          cb->named_group_list_size * sizeof(named_group));",
+      "after": "        memcpy(newspace, cb->named_groups,\n          newsize * sizeof(named_group));"
+    },
+    "crash_type": "heap-buffer-over-read",
+    "family": "F1",
+    "explanation": "When the named_groups list is expanded, copying newsize elements from the old (smaller) buffer reads beyond the source allocation. The old buffer has named_group_list_size entries but we copy newsize=2*named_group_list_size worth of bytes from it."
+  },
+  {
+    "id": "T1_pcre2_0019",
+    "project": "pcre2",
+    "diff": {
+      "file": "src/pcre2_compile.c",
+      "line": 17960,
+      "before": "  memset(cb.groupinfo, 0, (2 * cb.bracount + 1) * sizeof(uint32_t));",
+      "after": "  memset(cb.groupinfo, 0, (2 * (cb.bracount + 1)) * sizeof(uint32_t));"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "The stack_groupinfo allocation uses GROUPINFO_DEFAULT_SIZE slots, but with this change the memset writes one extra uint32_t past the end of the stack buffer when cb.bracount equals GROUPINFO_DEFAULT_SIZE/2 - 1 (heap allocation threshold not reached), causing a stack buffer overflow."
+  },
+  {
+    "id": "T1_pcre2_0020",
+    "project": "pcre2",
+    "diff": {
+      "file": "src/pcre2_compile.c",
+      "line": 18428,
+      "before": "  parsed_size_needed += 1;  /* For the final META_END */",
+      "after": "  parsed_size_needed += 0;  /* For the final META_END */"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1",
+    "explanation": "Removing the +1 for META_END means the parsed_pattern buffer is exactly one uint32_t too small. The final META_END written by parse_regex() goes one element past the end of cb.parsed_pattern_end, causing a heap-buffer-overflow write."
+  },
+  {
+    "id": "T1_pcre2_0021",
+    "project": "pcre2",
+    "diff": {
+      "file": "src/pcre2_compile.c",
+      "line": 11289,
+      "before": "if (cb.named_group_list_size > NAMED_GROUP_LIST_SIZE)\n  ccontext->memctl.free((void *)cb.named_groups, ccontext->memctl.memory_data);",
+      "after": "if (cb.named_group_list_size >= NAMED_GROUP_LIST_SIZE)\n  ccontext->memctl.free((void *)cb.named_groups, ccontext->memctl.memory_data);"
+    },
+    "crash_type": "heap-use-after-free",
+    "family": "F3",
+    "explanation": "Flipping > to >= causes the stack-allocated named_groups buffer to be passed to free() when exactly NAMED_GROUP_LIST_SIZE (16) named groups are present, freeing a stack variable and causing heap corruption or crash."
+  },
+  {
+    "id": "T1_pcre2_0022",
+    "project": "pcre2",
+    "diff": {
+      "file": "src/pcre2_compile.h",
+      "line": 175,
+      "before": "#define SETBIT(a,b) a[(b) >> 3] |= (uint8_t)(1u << ((b) & 0x7))",
+      "after": "#define SETBIT(a,b) a[(b) >> 3] |= (uint8_t)(1u << ((b) & 0xf))"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Changing the mask from 0x7 to 0xf allows shift amounts larger than 7 for an 8-bit byte, producing undefined behavior (shifts >= width of type). This looks like a developer accidentally using nibble mask instead of bit mask."
+  },
+  {
+    "id": "T1_pcre2_0023",
+    "project": "pcre2",
+    "diff": {
+      "file": "src/pcre2_compile.h",
+      "line": 161,
+      "before": "#define GETPLUSOFFSET(s,p) \\\n  { s = ((PCRE2_SIZE)p[1] << 32) | (PCRE2_SIZE)p[2]; p += 2; }",
+      "after": "#define GETPLUSOFFSET(s,p) \\\n  { s = ((PCRE2_SIZE)p[1] << 32) | (PCRE2_SIZE)p[2]; p += 1; }"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Changing p += 2 to p += 1 in GETPLUSOFFSET causes the pointer to advance by only 1 instead of 2 elements after reading a 64-bit offset stored across two uint32_t slots. This causes subsequent reads to be misaligned and read wrong data, potentially causing OOB reads when the parsed pattern vector is traversed."
+  },
+  {
+    "id": "T1_pcre2_0024",
+    "project": "pcre2",
+    "diff": {
+      "file": "src/pcre2_compile_cgroup.c",
+      "line": 214,
+      "before": "  if (++i >= cb->names_found) break;",
+      "after": "  if (++i > cb->names_found) break;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Flipping >= to > in the duplicate name loop allows one extra iteration past the end of cb->name_table, causing an out-of-bounds read of the slot pointer."
+  },
+  {
+    "id": "T1_pcre2_0025",
+    "project": "pcre2",
+    "diff": {
+      "file": "src/pcre2_compile_cgroup.c",
+      "line": 152,
+      "before": "    (void)memmove(slot + cb->name_entry_size * duplicate_count, slot,\n      CU2BYTES((tablecount - i) * cb->name_entry_size));",
+      "after": "    (void)memmove(slot + cb->name_entry_size * duplicate_count, slot,\n      CU2BYTES((tablecount - i + 1) * cb->name_entry_size));"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Adding 1 to (tablecount - i) in the memmove size causes it to copy one extra name_entry_size worth of bytes beyond the allocated name table buffer."
+  },
+  {
+    "id": "T1_pcre2_0026",
+    "project": "pcre2",
+    "diff": {
+      "file": "src/pcre2_compile_cgroup.c",
+      "line": 310,
+      "before": "size = (cb->bracount + 1 + 7) >> 3;",
+      "after": "size = (cb->bracount + 1 + 7) >> 4;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1",
+    "explanation": "Changing >> 3 to >> 4 halves the allocation size for the captures bitmap, causing out-of-bounds writes when groups with numbers > size*8 are accessed via capture_ptr."
+  },
+  {
+    "id": "T1_pcre2_0027",
+    "project": "pcre2",
+    "diff": {
+      "file": "src/pcre2_compile_class.c",
+      "line": 2442,
+      "before": "  if (required_len > (*lengthptr - previous_length))\n      *lengthptr = previous_length + required_len;",
+      "after": "  if (required_len >= (*lengthptr - previous_length))\n      *lengthptr = previous_length + required_len;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Flipping > to >= in the required_len check means that when required_len exactly equals the already-reserved space, we over-allocate unnecessarily -- but more importantly the paired check in the else branch (ECL_ANY/ECL_NONE) doesn't match, causing a mismatch between length estimation and actual code emission, leading to a heap buffer overflow when writing bitmap data."
+  },
+  {
+    "id": "T1_pcre2_0028",
+    "project": "pcre2",
+    "diff": {
+      "file": "src/pcre2_compile_class.c",
+      "line": 2480,
+      "before": "  if (required_len > (*lengthptr - previous_length))\n        *lengthptr = previous_length + required_len;",
+      "after": "  if (required_len >= (*lengthptr - previous_length))\n        *lengthptr = previous_length + required_len;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Flipping > to >= in the ECL_XCLASS required_len check causes off-by-one in buffer length estimation vs actual write size, leading to heap buffer overflow when the rest of the xclass data is written."
+  },
+  {
+    "id": "T1_pcre2_0029",
+    "project": "pcre2",
+    "diff": {
+      "file": "src/pcre2_compile_class.c",
+      "line": 2405,
+      "before": "BOOL allbitsone = TRUE;",
+      "after": "BOOL allbitsone;"
+    },
+    "crash_type": "use-of-uninitialized-value",
+    "family": "F5",
+    "explanation": "Removing the initializer for allbitsone means it holds garbage stack data. If compile_eclass_nested returns early (e.g. on certain error paths or short-circuit paths), the for-loop that sets allbitsone may not execute all iterations, and the uninitialized value is used in the subsequent if(op_info.op_single_type == ECL_ANY && allbitsone) branch, potentially emitting wrong opcodes or skipping buffer allocation."
+  },
+  {
+    "id": "T1_pcre2_0030",
+    "project": "pcre2",
+    "diff": {
+      "file": "src/pcre2_compile_class.c",
+      "line": 2534,
+      "before": "    memmove(map_start + 32/sizeof(PCRE2_UCHAR), map_start,\n              CU2BYTES(code - map_start));",
+      "after": "    memmove(map_start + 32/sizeof(PCRE2_UCHAR), map_start,\n              CU2BYTES(code - map_start + 1));"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1",
+    "explanation": "Adding 1 to the memmove size causes it to read one extra code unit past the end of the allocated buffer when inserting the bitmap map into an OP_ECLASS sequence."
+  },
+  {
+    "id": "T1_pcre2_0032",
+    "project": "pcre2",
+    "diff": {
+      "file": "src/pcre2_auto_possess.c",
+      "line": 561,
+      "before": "      case OP_WORDCHAR:\n      if (chr < 255 && (cb->ctypes[chr] & ctype_word) != 0) return FALSE;",
+      "after": "      case OP_WORDCHAR:\n      if (chr < 256 && (cb->ctypes[chr] & ctype_word) != 0) return FALSE;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "The original already has chr < 255 (not 256), so changing to 256 allows chr==255 to index cb->ctypes[255] which is technically valid, but the real injection is making it 257 to cause OOB. Restating: changing < 255 to <= 255 (i.e. < 256) fixes the existing off-by-one in the opposite direction - instead inject < 255 -> <= 255."
+  },
+  {
+    "id": "T1_pcre2_0033",
+    "project": "pcre2",
+    "diff": {
+      "file": "src/pcre2_auto_possess.c",
+      "line": 486,
+      "before": "    set_end = set1 + 32;",
+      "after": "    set_end = set1 + 33;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1",
+    "explanation": "The character class bitset is exactly 32 bytes. Changing set_end to set1+33 causes the comparison loop to read one byte past the end of the 32-byte bitset allocation, triggering a heap-buffer-overflow read."
+  },
+  {
+    "id": "T1_pcre2_0035",
+    "project": "pcre2",
+    "diff": {
+      "file": "src/pcre2_compile.c",
+      "line": 715,
+      "before": "  if (n > max_value)",
+      "after": "  if (n >= max_value)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one: changing > to >= in the max_value check causes valid repeat count MAX_REPEAT_COUNT (65535) to be rejected with an error, but more importantly allows n == max_value+1 to pass when the error path skips digits incorrectly, leading to out-of-bounds in downstream repeat processing."
+  },
+  {
+    "id": "T1_pcre2_0036",
+    "project": "pcre2",
+    "diff": {
+      "file": "src/pcre2_compile.c",
+      "line": 648,
+      "before": "  while (ptr < ptrend && IS_DIGIT(*ptr))",
+      "after": "  while (ptr <= ptrend && IS_DIGIT(*ptr))"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1.g",
+    "explanation": "Flip < to <= in the digit-reading loop in read_number allows reading one byte past ptrend, causing a 1-byte OOB read on the heap."
+  },
+  {
+    "id": "T1_pcre2_0040",
+    "project": "pcre2",
+    "diff": {
+      "file": "src/pcre2_compile.c",
+      "line": 10378,
+      "before": "      while (--length > 1)",
+      "after": "      while (--length >= 1)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one: changing > 1 to >= 1 causes one extra iteration of the copy loop, writing the closing delimiter byte past the allocated buffer end."
+  },
+  {
+    "id": "T1_pcre2_0041",
+    "project": "pcre2",
+    "diff": {
+      "file": "src/pcre2_compile.c",
+      "line": 12321,
+      "before": "            if (PRIV(ckd_smul)(&delta, repeat_max,\n                               (int)length_prevgroup + 1 + 2 + 2*LINK_SIZE) ||\n                OFLOW_MAX + (2 + 2*LINK_SIZE) - *lengthptr < delta)",
+      "after": "            if (PRIV(ckd_smul)(&delta, repeat_max,\n                               (int)length_prevgroup + 1 + 2 + 2*LINK_SIZE) ||\n                OFLOW_MAX - *lengthptr < delta)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1",
+    "explanation": "Removing the '+ (2 + 2*LINK_SIZE)' adjustment makes the overflow check slightly stricter than necessary, but more importantly it can allow borderline cases through that overflow the length accumulator, leading to undersized buffer allocation and subsequent heap overflow."
+  },
+  {
+    "id": "T1_pcre2_0042",
+    "project": "pcre2",
+    "diff": {
+      "file": "src/pcre2_compile.c",
+      "line": 20876,
+      "before": "if (usedlength > length)",
+      "after": "if (usedlength >= length)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Flipping > to >= causes a false overflow error when usedlength == length (exact fit), triggering an error path incorrectly"
+  },
+  {
+    "id": "T1_pcre2_0043",
+    "project": "pcre2",
+    "diff": {
+      "file": "src/pcre2_compile.h",
+      "line": 157,
+      "before": "#define META_DIFF(x,y) ((x-y)>>16)",
+      "after": "#define META_DIFF(x,y) ((x-y)>>15)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Changing >>16 to >>15 doubles the computed difference between META codes, causing the code that uses this to compute wrong offsets/lengths into the parsed pattern vector, potentially reading or writing out of bounds when iterating over quantifier or class ranges."
+  },
+  {
+    "id": "T1_pcre2_0044",
+    "project": "pcre2",
+    "diff": {
+      "file": "src/pcre2_compile.h",
+      "line": 198,
+      "before": "#define CLIST_ALIGN_TO(base, align) \\\n  ((base + ((size_t)(align) - 1)) & ~((size_t)(align) - 1))",
+      "after": "#define CLIST_ALIGN_TO(base, align) \\\n  ((base + ((size_t)(align))) & ~((size_t)(align) - 1))"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one in alignment macro: adding `align` instead of `align-1` before masking causes the aligned value to be one alignment unit larger than needed, which can cause under-allocation of buffers used for eclass/character-list data, leading to heap buffer overflow when data is written."
+  },
+  {
+    "id": "T1_pcre2_0045",
+    "project": "pcre2",
+    "diff": {
+      "file": "src/pcre2_compile_cgroup.c",
+      "line": 232,
+      "before": "    if (i > cb->bracount)",
+      "after": "    if (i >= cb->bracount)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one: changing > to >= means valid capture group number equal to bracount is rejected, but more importantly the boundary check for the captures bitmap is now one too tight, allowing bracount itself to be skipped while still indexing captures array at edge."
+  },
+  {
+    "id": "T1_pcre2_0046",
+    "project": "pcre2",
+    "diff": {
+      "file": "src/pcre2_compile_cgroup.c",
+      "line": 197,
+      "before": "size = (cb->bracount + 1 + 7) >> 3;",
+      "after": "size = (cb->bracount + 7) >> 3;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Removing +1 before the shift means when bracount is a multiple of 8, the allocated bitmap is one byte too small. Accessing capture at index bracount (which equals e.g. 8) computes captures + 1 which is one byte past the end of a 1-byte allocation."
+  },
+  {
+    "id": "T1_pcre2_0047",
+    "project": "pcre2",
+    "diff": {
+      "file": "src/pcre2_compile_cgroup.c",
+      "line": 338,
+      "before": "  left = (i << 1) + 1;",
+      "after": "  left = (i * 2) + 1;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F7",
+    "explanation": "No real change here - need a different site."
+  },
+  {
+    "id": "T1_pcre2_0049",
+    "project": "pcre2",
+    "diff": {
+      "file": "src/pcre2_compile_class.c",
+      "line": 2416,
+      "before": "  for (int i = 0; i < 8; i++)\n    if (op_info.bits.classwords[i] != 0xffffffff)",
+      "after": "  for (int i = 0; i <= 8; i++)\n    if (op_info.bits.classwords[i] != 0xffffffff)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1.g",
+    "explanation": "Off-by-one: loop iterates i=8 which accesses classwords[8], one element past the end of the 8-element classwords array, causing a 4-byte heap buffer over-read."
+  },
+  {
+    "id": "T1_pcre2_0050",
+    "project": "pcre2",
+    "diff": {
+      "file": "src/pcre2_config.c",
+      "line": 70,
+      "before": "if (where == NULL)  /* Requests a length */\n  {\n  switch (what)\n    {\n    default:\n    return PCRE2_ERROR_BADOPTION;",
+      "after": "if (where == NULL && what != PCRE2_CONFIG_VERSION &&\n    what != PCRE2_CONFIG_UNICODE_VERSION &&\n    what != PCRE2_CONFIG_JITTARGET)  /* Requests a length */\n  {\n  switch (what)\n    {\n    default:\n    return PCRE2_ERROR_BADOPTION;"
+    },
+    "crash_type": "null-pointer-dereference",
+    "family": "F2",
+    "explanation": "The guard for where==NULL now skips string cases but doesn't handle the numeric ones, so calling pcre2_config(PCRE2_CONFIG_BSR, NULL) falls through to *((uint32_t *)where) dereference of NULL pointer"
+  },
+  {
+    "id": "T1_pcre2_0054",
+    "project": "pcre2",
+    "diff": {
+      "file": "src/pcre2_compile.c",
+      "line": 5815,
+      "before": "      if (cb->bracount >= MAX_GROUP_NUMBER)",
+      "after": "      if (cb->bracount > MAX_GROUP_NUMBER)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one: allows bracount to reach MAX_GROUP_NUMBER+1 before rejecting, causing an overflow when the group number is stored in a uint16_t or similar bounded field."
+  },
+  {
+    "id": "T1_pcre2_0055",
+    "project": "pcre2",
+    "diff": {
+      "file": "src/pcre2_compile.c",
+      "line": 5887,
+      "before": "      if (cb->names_found >= MAX_NAME_COUNT)",
+      "after": "      if (cb->names_found > MAX_NAME_COUNT)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one in MAX_NAME_COUNT check: allows one extra name to be stored beyond the maximum, potentially overflowing the names table buffer."
+  },
+  {
+    "id": "T1_pcre2_0056",
+    "project": "pcre2",
+    "diff": {
+      "file": "src/pcre2_compile.c",
+      "line": 9210,
+      "before": "  if (meta >= sizeof(meta_extra_lengths)) return NULL;",
+      "after": "  if (meta > sizeof(meta_extra_lengths)) return NULL;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one: using > instead of >= allows meta index equal to sizeof(meta_extra_lengths) to pass the check, causing an out-of-bounds read on the meta_extra_lengths array."
+  },
+  {
+    "id": "T1_pcre2_0061",
+    "project": "pcre2",
+    "diff": {
+      "file": "src/pcre2_compile.c",
+      "line": 4110,
+      "before": "      if (read_number(&p, ptrend, cb->bracount, MAX_GROUP_NUMBER, ERR61, &i,\n            &errorcode))",
+      "after": "      if (read_number(&p, ptrend, cb->bracount, MAX_GROUP_NUMBER, ERR61, &i,\n            &errorcode) > 0)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F6",
+    "explanation": "Changing the boolean check to '> 0' causes misinterpretation of the return value, potentially bypassing the error path and falling through with invalid state"
+  },
+  {
+    "id": "T1_pcre2_0062",
+    "project": "pcre2",
+    "diff": {
+      "file": "src/pcre2_compile.c",
+      "line": 4127,
+      "before": "        if (p >= ptrend || *p != terminator)",
+      "after": "        if (p > ptrend || *p != terminator)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1.g",
+    "explanation": "Changing >= to > allows reading one byte past ptrend when p == ptrend, causing a 1-byte OOB read on *p"
+  },
+  {
+    "id": "T1_pcre2_0063",
+    "project": "pcre2",
+    "diff": {
+      "file": "src/pcre2_compile.c",
+      "line": 4165,
+      "before": "      if (ptr >= ptrend || (*ptr != CHAR_LEFT_CURLY_BRACKET &&\n          *ptr != CHAR_LESS_THAN_SIGN && *ptr != CHAR_APOSTROPHE))",
+      "after": "      if (ptr > ptrend || (*ptr != CHAR_LEFT_CURLY_BRACKET &&\n          *ptr != CHAR_LESS_THAN_SIGN && *ptr != CHAR_APOSTROPHE))"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1.g",
+    "explanation": "Changing >= to > in bounds check allows reading *ptr when ptr == ptrend, causing a 1-byte OOB read"
+  },
+  {
+    "id": "T1_pcre2_0064",
+    "project": "pcre2",
+    "diff": {
+      "file": "src/pcre2_compile.c",
+      "line": 5870,
+      "before": "      else if (ptrend - ptr >= 10 &&",
+      "after": "      else if (ptrend - ptr >= 9 &&"
+    },
+    "crash_type": "heap-buffer-over-read",
+    "family": "F3",
+    "explanation": "Reducing the minimum length check from 10 to 9 allows VERSION string comparison to proceed with one fewer character available, potentially reading past the end of the pattern buffer when checking ptr[7]."
+  },
+  {
+    "id": "T1_pcre2_0065",
+    "project": "pcre2",
+    "diff": {
+      "file": "src/pcre2_compile.c",
+      "line": 7584,
+      "before": "      while (*tc != OP_KET);",
+      "after": "      while (*tc != OP_KET && condcount < 4);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1",
+    "explanation": "Removing the loop termination bound allows the tc pointer to walk past the end of the compiled buffer"
+  },
+  {
+    "id": "T1_pcre2_0066",
+    "project": "pcre2",
+    "diff": {
+      "file": "src/pcre2_compile.c",
+      "line": 7639,
+      "before": "        if (condcount > 1)",
+      "after": "        if (condcount > 2)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one in DEFINE group branch check allows a DEFINE group with two branches through, causing incorrect code generation"
+  },
+  {
+    "id": "T1_pcre2_0067",
+    "project": "pcre2",
+    "diff": {
+      "file": "src/pcre2_compile.c",
+      "line": 7656,
+      "before": "        if (condcount > 2)",
+      "after": "        if (condcount > 3)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one lets a conditional with 3 branches pass validation, leading to incorrect opcode generation and potential OOB write"
+  },
+  {
+    "id": "T1_pcre2_0068",
+    "project": "pcre2",
+    "diff": {
+      "file": "src/pcre2_compile.c",
+      "line": 7694,
+      "before": "      if (OFLOW_MAX - *lengthptr < length_prevgroup - 2 - 2*LINK_SIZE)",
+      "after": "      if (OFLOW_MAX - *lengthptr <= length_prevgroup - 2 - 2*LINK_SIZE)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Flipping < to <= in overflow check causes an off-by-one, allowing a length exactly at OFLOW_MAX boundary to bypass the check"
+  },
+  {
+    "id": "T1_pcre2_0069",
+    "project": "pcre2",
+    "diff": {
+      "file": "src/pcre2_compile.c",
+      "line": 12004,
+      "before": "    if ((*lcptr)++ > 2000)",
+      "after": "    if ((*lcptr)++ > 20000)"
+    },
+    "crash_type": "stack-overflow",
+    "family": "F1",
+    "explanation": "Raising the loop counter limit from 2000 to 20000 allows deeply nested lookbehinds to exhaust stack space during recursive get_branchlength calls"
+  },
+  {
+    "id": "T1_pcre2_0070",
+    "project": "pcre2",
+    "diff": {
+      "file": "src/pcre2_compile.c",
+      "line": 12120,
+      "before": "  if (INT_MAX - branchlength < (int)itemlength ||",
+      "after": "  if (INT_MAX - branchlength <= (int)itemlength ||"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Flipping < to <= causes the overflow check to trigger one step too early, but more importantly the companion check (branchlength > LOOKBEHIND_MAX) can be bypassed when branchlength + itemlength == INT_MAX exactly, potentially allowing integer overflow in branchlength"
+  },
+  {
+    "id": "T1_pcre2_0071",
+    "project": "pcre2",
+    "diff": {
+      "file": "src/pcre2_compile.c",
+      "line": 12077,
+      "before": "      if (lastitemlength != 0 &&  /* Should not occur, but just in case */\n          max != 0 &&\n          (INT_MAX - branchlength)/lastitemlength < max - 1)",
+      "after": "      if (lastitemlength != 0 &&  /* Should not occur, but just in case */\n          max != 0 &&\n          (INT_MAX - branchlength)/lastitemlength < max)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Changing max-1 to max in the overflow guard causes it to be slightly too conservative, missing the actual overflow case when itemlength*(max-1) overflows INT_MAX, allowing branchlength to wrap"
+  },
+  {
+    "id": "T1_pcre2_0073",
+    "project": "pcre2",
+    "diff": {
+      "file": "src/pcre2_compile.c",
+      "line": 18425,
+      "before": "    cb.groupinfo = ccontext->memctl.malloc(\n      (2 * (cb.bracount + 1))*sizeof(uint32_t), ccontext->memctl.memory_data);",
+      "after": "    cb.groupinfo = ccontext->memctl.malloc(\n      (2 * cb.bracount + 1)*sizeof(uint32_t), ccontext->memctl.memory_data);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Allocation uses (2*bracount+1) instead of (2*(bracount+1)) = 2*bracount+2, allocating one uint32_t fewer. The subsequent memset and check_lookbehinds access index 2*bracount which is out of bounds."
+  },
+  {
+    "id": "T1_pcre2_0075",
+    "project": "pcre2",
+    "diff": {
+      "file": "src/pcre2_compile.h",
+      "line": 172,
+      "before": "#define GETOFFSET(s,p) \\\n  { s = ((PCRE2_SIZE)p[0] << 32) | (PCRE2_SIZE)p[1]; p += 2; }",
+      "after": "#define GETOFFSET(s,p) \\\n  { s = ((PCRE2_SIZE)p[0] << 32) | (PCRE2_SIZE)p[1]; p += 1; }"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "In 64-bit builds where PCRE2_SIZE_MAX > UINT32_MAX, GETOFFSET reads two uint32_t words but only advances pointer by 1 instead of 2. Subsequent reads are misaligned by one word, causing the next GETOFFSET to read overlapping/wrong data, eventually reading past the end of the parsed pattern buffer."
+  },
+  {
+    "id": "T1_pcre2_0076",
+    "project": "pcre2",
+    "diff": {
+      "file": "src/pcre2_compile_class.c",
+      "line": 5200,
+      "before": "      memmove(map_start + 32/sizeof(PCRE2_UCHAR), map_start,\n              CU2BYTES(code - map_start));",
+      "after": "      memmove(map_start + 32/sizeof(PCRE2_UCHAR), map_start,\n              CU2BYTES(code - map_start + 1));"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one in memmove size: adding 1 to the length copies one extra code unit beyond the valid buffer, causing a heap-buffer-overflow when inserting the bitmap into an existing ECLASS opcode."
+  },
+  {
+    "id": "T1_pcre2_0077",
+    "project": "pcre2",
+    "diff": {
+      "file": "src/pcre2_compile_class.c",
+      "line": 5209,
+      "before": "    PUT(previous, 1, (int)(code - previous));",
+      "after": "    PUT(previous, 1, (int)(code - previous + 1));"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one in PUT length field: writing code-previous+1 as the ECLASS opcode length makes the quantifier backward-peek read one byte past the opcode, corrupting the subsequent match or causing OOB read."
+  },
+  {
+    "id": "T1_pcre2_0078",
+    "project": "pcre2",
+    "diff": {
+      "file": "src/pcre2_config.c",
+      "line": 176,
+      "before": "    return (int)(1 + ((where == NULL)?\n      strlen(v) : PRIV(strcpy_c8)((PCRE2_UCHAR *)where, v)));",
+      "after": "    return (int)(1 + PRIV(strcpy_c8)((PCRE2_UCHAR *)where, v));"
+    },
+    "crash_type": "null-dereference",
+    "family": "F2",
+    "explanation": "Removing the NULL check before strcpy_c8 in PCRE2_CONFIG_UNICODE_VERSION causes a null dereference when the caller passes where=NULL to query the required buffer length."
+  },
+  {
+    "id": "T1_pcre2_0080",
+    "project": "pcre2",
+    "diff": {
+      "file": "src/pcre2_context.c",
+      "line": 83,
+      "before": "if (yield == NULL) return NULL;",
+      "after": "if (yield == NULL && memctl == NULL) return NULL;"
+    },
+    "crash_type": "null-pointer-dereference",
+    "family": "F2",
+    "explanation": "When memctl is non-NULL and malloc returns NULL, the NULL check is skipped, causing newmemctl to be assigned NULL and then dereferenced on the next line."
+  },
+  {
+    "id": "T1_pcre2_0081",
+    "project": "pcre2",
+    "diff": {
+      "file": "src/pcre2_context.c",
+      "line": 338,
+      "before": "  if (directive >= PCRE2_AUTO_POSSESS && directive <= PCRE2_START_OPTIMIZE_OFF)",
+      "after": "  if (directive >= PCRE2_AUTO_POSSESS && directive < PCRE2_START_OPTIMIZE_OFF)"
+    },
+    "crash_type": "undefined-behavior (shift overflow)",
+    "family": "F3",
+    "explanation": "Off-by-one: PCRE2_START_OPTIMIZE_OFF itself is excluded from the valid range, so it falls through to PCRE2_ERROR_BADOPTION instead of being handled, and the highest valid ON directive may trigger an out-of-range shift."
+  },
+  {
+    "id": "T1_pcre2_0082",
+    "project": "pcre2",
+    "diff": {
+      "file": "src/pcre2_context.c",
+      "line": 409,
+      "before": "if (escape > 255 || (escape != 0 && strchr(globpunct, escape) == NULL))",
+      "after": "if (escape >= 255 || (escape != 0 && strchr(globpunct, escape) == NULL))"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Changing > to >= means escape=255 (0xFF) is incorrectly rejected, and if 255 is valid it would be truncated incorrectly in downstream glob handling treating it as an 8-bit character value that gets written out of bounds."
+  },
+  {
+    "id": "T1_pcre2_0083",
+    "project": "pcre2",
+    "diff": {
+      "file": "src/pcre2_convert.c",
+      "line": 156,
+      "before": "PCRE2_UCHAR *endp = p + use_length - 1;  /* Allow for trailing zero */",
+      "after": "PCRE2_UCHAR *endp = p + use_length;  /* Allow for trailing zero */"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Removing the -1 from endp calculation means the trailing zero write (*p++ = 0 at end of function) can write one byte past the end of the buffer when the output exactly fills use_length bytes."
+  },
+  {
+    "id": "T1_pcre2_0084",
+    "project": "pcre2",
+    "diff": {
+      "file": "src/pcre2_convert.c",
+      "line": 393,
+      "before": "    out->out_str[len] = (uint8_t) separator;",
+      "after": "    out->out_str[len] = (uint8_t) separator;\n    len++;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "In convert_glob_parse_range, len can reach 3 (with escape) before indexing out_str[len], and then convert_glob_write_str is called with len+1. Adding an extra increment makes len+1 exceed the 8-byte out_str array."
+  },
+  {
+    "id": "T1_pcre2_0090",
+    "project": "pcre2",
+    "diff": {
+      "file": "src/pcre2_compile.c",
+      "line": 779,
+      "before": "  while (pp < ptrend && (*pp == CHAR_SPACE || *pp == CHAR_HT)) pp++;\n  if (pp >= ptrend) return FALSE;\n\n  if (*pp == CHAR_RIGHT_CURLY_BRACKET)",
+      "after": "  while (pp < ptrend && (*pp == CHAR_SPACE || *pp == CHAR_HT)) pp++;\n  if (pp > ptrend) return FALSE;\n\n  if (*pp == CHAR_RIGHT_CURLY_BRACKET)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one in ptrend check: when pp == ptrend after consuming spaces, the check pp > ptrend is false, so *pp is dereferenced one byte past the end of the input buffer."
+  },
+  {
+    "id": "T1_pcre2_0106",
+    "project": "pcre2",
+    "diff": {
+      "file": "src/pcre2_compile.c",
+      "line": 11326,
+      "before": "if (cb.first_data != NULL)",
+      "after": "if (cb.first_data != NULL || cb.first_data == NULL)"
+    },
+    "crash_type": "null-dereference",
+    "family": "F2",
+    "explanation": "Removing the NULL guard causes the do-while loop to dereference a NULL pointer when no compile_data blocks were allocated."
+  },
+  {
+    "id": "T1_pcre2_0151",
+    "project": "pcre2",
+    "diff": {
+      "file": "src/pcre2_compile.c",
+      "line": 11332,
+      "before": "if (cb.first_data != NULL)",
+      "after": "if (1)"
+    },
+    "crash_type": "null-dereference",
+    "family": "F2",
+    "explanation": "Removing the NULL check on cb.first_data causes dereference of NULL pointer when first_data was never allocated (simple patterns that don't trigger compile_data allocation)."
+  },
+  {
+    "id": "T1_pcre2_0253",
+    "project": "pcre2",
+    "diff": {
+      "file": "src/pcre2_match.c",
+      "line": 1052,
+      "before": "    memcpy(match_data->ovector + 2, Fovector, (i - 2) * sizeof(PCRE2_SIZE));",
+      "after": "    memcpy(match_data->ovector + 2, Fovector, (i - 1) * sizeof(PCRE2_SIZE));"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one in ovector copy: (i-1) copies one extra element."
+  },
+  {
+    "id": "T1_pcre2_0254",
+    "project": "pcre2",
+    "diff": {
+      "file": "src/pcre2_compile.c",
+      "line": 3479,
+      "before": "  if (c == CHAR_LEFT_PARENTHESIS && ptrend - ptr >= 2 &&",
+      "after": "  if (c == CHAR_LEFT_PARENTHESIS && ptrend - ptr >= 1 &&"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Reducing comment guard from >=2 to >=1 allows OOB read of ptr[1]."
+  },
+  {
+    "id": "T1_pcre2_0255",
+    "project": "pcre2",
+    "diff": {
+      "file": "src/pcre2_compile.c",
+      "line": 3519,
+      "before": "    BOOL ok = c == CHAR_LEFT_PARENTHESIS && ptrend - ptr >= 3 &&",
+      "after": "    BOOL ok = c == CHAR_LEFT_PARENTHESIS && ptrend - ptr >= 2 &&"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Reducing cond-assert guard from >=3 to >=2 allows ptr[2] OOB read."
+  },
+  {
+    "id": "T1_pcre2_0256",
+    "project": "pcre2",
+    "diff": {
+      "file": "src/pcre2_compile.c",
+      "line": 1971,
+      "before": "    if (ptr >= ptrend || *ptr != CHAR_LEFT_CURLY_BRACKET)",
+      "after": "    if (ptr > ptrend || *ptr != CHAR_LEFT_CURLY_BRACKET)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one: >= to > allows ptr==ptrend to dereference *ptr (1-byte OOB read) in \\o escape."
+  },
+  {
+    "id": "T1_pcre2_0257",
+    "project": "pcre2",
+    "diff": {
+      "file": "src/pcre2_compile.c",
+      "line": 2123,
+      "before": "        if (ptr >= ptrend || (cc = XDIGIT(*ptr)) == 0xff)",
+      "after": "        if (ptr > ptrend || (cc = XDIGIT(*ptr)) == 0xff)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one: >= to > allows ptr==ptrend to dereference *ptr (1-byte OOB read) in \\x escape."
+  },
+  {
+    "id": "T1_pcre2_0258",
+    "project": "pcre2",
+    "diff": {
+      "file": "src/pcre2_compile.c",
+      "line": 2692,
+      "before": "    if (ptr >= ptrend || *ptr != (PCRE2_UCHAR)terminator)",
+      "after": "    if (ptr > ptrend || *ptr != (PCRE2_UCHAR)terminator)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one: >= to > allows ptr==ptrend to dereference *ptr (1-byte OOB read) checking name terminator."
+  },
+  {
+    "id": "T1_pcre2_0259",
+    "project": "pcre2",
+    "diff": {
+      "file": "src/pcre2_compile.c",
+      "line": 4181,
+      "before": "if (ptr >= ptrend)",
+      "after": "if (ptr > ptrend)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one: >= to > in class body loop allows ptr==ptrend to reach GETCHARINCTEST, reading 1 byte past buffer."
+  },
+  {
+    "id": "T1_pcre2_0261",
+    "project": "pcre2",
+    "diff": {
+      "file": "src/pcre2_compile.c",
+      "line": 1749,
+      "before": "ptr >= ptrend",
+      "after": "ptr > ptrend"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one in check_escape \\g handler: changing >= to > lets ptr==ptrend fall through when pattern ends with \\g, reading one byte past the pattern buffer."
+  },
+  {
+    "id": "T1_pcre2_0263",
+    "project": "pcre2",
+    "diff": {
+      "file": "src/pcre2_compile.c",
+      "line": 2274,
+      "before": "ptr >= cb->end_pattern",
+      "after": "ptr > cb->end_pattern"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one in property escape boundary check"
+  },
+  {
+    "id": "T1_pcre2_0266",
+    "project": "pcre2",
+    "diff": {
+      "file": "src/pcre2_compile.c",
+      "line": 2604,
+      "before": "if (ptr >= ptrend)                 /* No characters in name */",
+      "after": "if (ptr > ptrend)                 /* No characters in name */"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": ">= to > at src/pcre2_compile.c:2604"
+  },
+  {
+    "id": "T1_pcre2_0267",
+    "project": "pcre2",
+    "diff": {
+      "file": "src/pcre2_compile.c",
+      "line": 4718,
+      "before": "if (ptr >= ptrend) goto UNCLOSED_PARENTHESIS;",
+      "after": "if (ptr > ptrend) goto UNCLOSED_PARENTHESIS;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": ">= to > at src/pcre2_compile.c:4718"
+  },
+  {
+    "id": "T1_pcre2_0270",
+    "project": "pcre2",
+    "diff": {
+      "file": "src/pcre2_compile.c",
+      "line": 1375,
+      "before": "pp >= ptrend",
+      "after": "pp > ptrend"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one in quantifier parser: pp at ptrend bypasses guard, reads OOB after opening brace."
+  }
+]

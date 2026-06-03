@@ -1,0 +1,132 @@
+[
+  {
+    "id": "T1_stb_image_0001",
+    "project": "stb_image",
+    "diff": {
+      "file": "stb_image.h",
+      "line": 6850,
+      "before": "stbi__malloc(4 * pcount)",
+      "after": "stbi__malloc(3 * pcount)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "GIF output buffer allocated for 3 bytes/pixel instead of 4. The RGBA decode writes 4 bytes per pixel, overflowing by pcount bytes."
+  },
+  {
+    "id": "T1_stb_image_0002",
+    "project": "stb_image",
+    "diff": {
+      "file": "stb_image.h",
+      "line": 5582,
+      "before": "psize > 256",
+      "after": "psize > 512"
+    },
+    "crash_type": "stack-buffer-overflow",
+    "family": "",
+    "explanation": "pal[256][4] on stack, check weakened to 512. BMP with 300 colors overflows."
+  },
+  {
+    "id": "T1_stb_image_0003",
+    "project": "stb_image",
+    "diff": {
+      "file": "stb_image.h",
+      "line": 4730,
+      "before": "stbi__malloc_mad2(img_width_bytes, 2, 0)",
+      "after": "stbi__malloc_mad2(img_width_bytes, 1, 0)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "Filter buffer allocated for 1 row instead of 2. Second row overflows."
+  },
+  {
+    "id": "T1_stb_image_0004",
+    "project": "stb_image",
+    "diff": {
+      "file": "stb_image.h",
+      "line": 4909,
+      "before": "pixel_count = s->img_x * s->img_y;",
+      "after": "pixel_count = s->img_x * s->img_y + 1;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "pixel_count off-by-one processes one extra pixel past the image buffer."
+  },
+  {
+    "id": "T1_stb_image_0005",
+    "project": "stb_image",
+    "diff": {
+      "file": "stb_image.h",
+      "line": 3350,
+      "before": "stbi__malloc_mad2(w2, h2, 15)",
+      "after": "stbi__malloc_mad2(w2, h2 - 1, 15)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "Component raw_data one row short. Entropy decoder writes full h2 rows."
+  },
+  {
+    "id": "T1_stb_image_0006",
+    "project": "stb_image",
+    "diff": {
+      "file": "stb_image.h",
+      "line": 3904,
+      "before": "stbi__malloc(z->s->img_x + 3)",
+      "after": "stbi__malloc(z->s->img_x)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "JPEG line buffer padding reduced from +3 to +0. Upsampling reads past buffer end."
+  },
+  {
+    "id": "T1_stb_image_0008",
+    "project": "stb_image",
+    "diff": {
+      "file": "stb_image.h",
+      "line": 0,
+      "before": "   a->out = (stbi_uc *) stbi__malloc_mad3(x, y, output_bytes, 0); // extra bytes to write off the end into",
+      "after": "   a->out = (stbi_uc *) stbi__malloc_mad3(x, y / 2, output_bytes, 0); // extra bytes to write off the end into"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "PNG output buffer half height"
+  },
+  {
+    "id": "T1_stb_image_0010",
+    "project": "stb_image",
+    "diff": {
+      "file": "stb_image.h",
+      "line": 0,
+      "before": "   output = (stbi_uc *) stbi__malloc_mad3(n, z->s->img_x, z->s->img_y, 1);",
+      "after": "   output = (stbi_uc *) stbi__malloc_mad3(n, z->s->img_x, z->s->img_y / 2, 1);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "JPEG output buffer half height"
+  },
+  {
+    "id": "T1_stb_image_0011",
+    "project": "stb_image",
+    "diff": {
+      "file": "stb_image.h",
+      "line": 0,
+      "before": "   a->out = (stbi_uc *) stbi__malloc_mad3(x, y, output_bytes, 0); // extra bytes to write off the end into",
+      "after": "   a->out = (stbi_uc *) stbi__malloc_mad3(x, y, output_bytes / 2, 0); // extra bytes to write off the end into"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "PNG output buffer half output_bytes"
+  },
+  {
+    "id": "T1_stb_image_0012",
+    "project": "stb_image",
+    "diff": {
+      "file": "stb_image.h",
+      "line": 0,
+      "before": "   a->out = (stbi_uc *) stbi__malloc_mad3(x, y, output_bytes, 0); // extra bytes to write off the end into",
+      "after": "   a->out = (stbi_uc *) stbi__malloc_mad3(x, 1, output_bytes, 0); // extra bytes to write off the end into"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "PNG output buffer y=1 only"
+  }
+]

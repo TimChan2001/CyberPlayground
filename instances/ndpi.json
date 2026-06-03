@@ -1,0 +1,41 @@
+[
+  {
+    "id": "T1_ndpi_0004",
+    "project": "ndpi",
+    "diff": {
+      "file": "ndpi_main.c",
+      "line": 8463,
+      "before": "      packet->payload_packet_len = transport_len - tcp_header_len;",
+      "after": "      packet->payload_packet_len = transport_len;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F2",
+    "explanation": "TCP payload length includes header bytes"
+  },
+  {
+    "id": "T1_ndpi_0005",
+    "project": "ndpi",
+    "diff": {
+      "file": "ndpi_main.c",
+      "line": 8472,
+      "before": "    packet->payload_packet_len = transport_len - 8;",
+      "after": "    packet->payload_packet_len = transport_len;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F2",
+    "explanation": "UDP payload length includes header bytes"
+  },
+  {
+    "id": "T1_ndpi_0009",
+    "project": "ndpi",
+    "diff": {
+      "file": "ndpi_main.c",
+      "line": 8242,
+      "before": "    if(transport_len < sizeof(struct ndpi_tcphdr) /* min size of tcp */)",
+      "after": "    if(0 /* min size check removed */)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1",
+    "explanation": "Removed minimum TCP header size check"
+  }
+]

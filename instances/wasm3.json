@@ -1,0 +1,457 @@
+[
+  {
+    "id": "T1_wasm3_0001",
+    "project": "wasm3",
+    "diff": {
+      "file": "source/extensions/m3_extensions.c",
+      "line": 55,
+      "before": "        _throwif (\"function index out of bounds\", index >= i_module->numFunctions);",
+      "after": "        _throwif (\"function index out of bounds\", index > i_module->numFunctions);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one: flipping >= to > in the function index bounds check allows index == numFunctions, which accesses one element past the end of i_module->functions array, causing heap-buffer-overflow when dereferencing the out-of-bounds function slot."
+  },
+  {
+    "id": "T1_wasm3_0002",
+    "project": "wasm3",
+    "diff": {
+      "file": "source/extensions/m3_extensions.c",
+      "line": 84,
+      "before": "    size_t numBytes = end - i_wasmBytes;",
+      "after": "    int numBytes = end - i_wasmBytes;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F7",
+    "explanation": "Changing size_t to int causes signed truncation when the wasm body size encoded in the LEB128 is very large (e.g. close to INT_MAX). The truncated negative or small value is then used in m3_CopyMem and as pointer arithmetic for wasmEnd, causing heap-buffer-overflow or incorrect wasmEnd pointer."
+  },
+  {
+    "id": "T1_wasm3_0003",
+    "project": "wasm3",
+    "diff": {
+      "file": "source/extensions/m3_extensions.c",
+      "line": 44,
+      "before": "    bytes_t end = i_wasmBytes + 5;",
+      "after": "    bytes_t end = i_wasmBytes + 4;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1.g",
+    "explanation": "Reducing the initial end pointer from +5 to +4 bytes means ReadLEB_u32 has one fewer byte of valid range. For a 5-byte LEB128-encoded size value, ReadLEB_u32 will read one byte past the declared end boundary, causing a 1-byte out-of-bounds read on the i_wasmBytes buffer."
+  },
+  {
+    "id": "T1_wasm3_0004",
+    "project": "wasm3",
+    "diff": {
+      "file": "source/m3_api_tracer.c",
+      "line": 111,
+      "before": "    } else if (i_result == m3Err_functionLookupFailed) {\n        i_result = m3Err_none;\n    }",
+      "after": "    } else if (i_result == m3Err_functionLookupFailed) {\n        i_result = m3Err_none;\n        trace = fopen (\"wasm3_trace.csv\",\"w\");\n    }"
+    },
+    "crash_type": "null-pointer-dereference",
+    "family": "F2",
+    "explanation": "Moving fopen into the lookup-failure branch means trace is set when a function is NOT found, but remains NULL when functions ARE found, so subsequent fprintf(trace,...) calls dereference NULL"
+  },
+  {
+    "id": "T1_wasm3_0005",
+    "project": "wasm3",
+    "diff": {
+      "file": "source/m3_api_tracer.c",
+      "line": 123,
+      "before": "    M3Result result = m3Err_none;",
+      "after": "    M3Result result;"
+    },
+    "crash_type": "use-of-uninitialized-value",
+    "family": "F5",
+    "explanation": "Removing initializer of result leaves it uninitialized; if the very first _ macro call succeeds and jumps to _catch, the uninitialized result is returned and used by the caller, potentially causing mishandled error paths leading to memory corruption"
+  },
+  {
+    "id": "T1_wasm3_0006",
+    "project": "wasm3",
+    "diff": {
+      "file": "source/m3_api_uvwasi.c",
+      "line": 502,
+      "before": "    if (iovs_len > 128) m3ApiReturn(UVWASI_EINVAL);\n    uvwasi_iovec_t  iovs[iovs_len];",
+      "after": "    if (iovs_len > 1280) m3ApiReturn(UVWASI_EINVAL);\n    uvwasi_iovec_t  iovs[iovs_len];"
+    },
+    "crash_type": "stack-buffer-overflow",
+    "family": "F1",
+    "explanation": "Raising the iovs_len VLA limit from 128 to 1280 allows a large stack allocation via fd_read that can overflow the stack when a WASM module passes iovs_len close to 1280."
+  },
+  {
+    "id": "T1_wasm3_0007",
+    "project": "wasm3",
+    "diff": {
+      "file": "source/m3_api_uvwasi.c",
+      "line": 148,
+      "before": "        m3ApiCheckMem(argv_buf, len);",
+      "after": "        m3ApiCheckMem(argv_buf, len + 1);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Changing the check from len to len+1 is actually a fix, so inversely removing the +1 that should be there: the original code checks len bytes but writes len+1 (including null terminator), causing a 1-byte heap buffer overflow past the wasm memory check boundary."
+  },
+  {
+    "id": "T1_wasm3_0008",
+    "project": "wasm3",
+    "diff": {
+      "file": "source/m3_api_uvwasi.c",
+      "line": 541,
+      "before": "    if (iovs_len > 128) m3ApiReturn(UVWASI_EINVAL);\n    uvwasi_ciovec_t  iovs[iovs_len];",
+      "after": "    if (iovs_len > 1280) m3ApiReturn(UVWASI_EINVAL);\n    uvwasi_ciovec_t  iovs[iovs_len];"
+    },
+    "crash_type": "stack-buffer-overflow",
+    "family": "F1",
+    "explanation": "Raising the iovs_len VLA limit from 128 to 1280 in fd_write allows a massive stack allocation, causing stack overflow."
+  },
+  {
+    "id": "T1_wasm3_0009",
+    "project": "wasm3",
+    "diff": {
+      "file": "source/m3_api_uvwasi.c",
+      "line": 631,
+      "before": "        wasi_context = (m3_wasi_context_t*)malloc(sizeof(m3_wasi_context_t));\n        wasi_context->exit_code = 0;",
+      "after": "        wasi_context = (m3_wasi_context_t*)malloc(sizeof(m3_wasi_context_t));\n        if (!wasi_context) return m3Err_mallocFailed;\n        wasi_context->exit_code = 0;"
+    },
+    "crash_type": "null-dereference",
+    "family": "F2",
+    "explanation": "Removing the NULL check after malloc means if allocation fails, wasi_context->exit_code dereference is a null pointer dereference. Note: the original code is missing this check, so injecting the correct check as original and removing it as modified."
+  },
+  {
+    "id": "T1_wasm3_0011",
+    "project": "wasm3",
+    "diff": {
+      "file": "source/m3_api_uvwasi.c",
+      "line": 462,
+      "before": "    if (iovs_len > 32) m3ApiReturn(UVWASI_EINVAL);\n    uvwasi_iovec_t  iovs[32];",
+      "after": "    if (iovs_len >= 32) m3ApiReturn(UVWASI_EINVAL);\n    uvwasi_iovec_t  iovs[32];"
+    },
+    "crash_type": "stack-buffer-overflow",
+    "family": "F3",
+    "explanation": "Changing > to >= means iovs_len=32 is rejected but iovs_len=31 is allowed for array of 32; actually this tightens not loosens"
+  },
+  {
+    "id": "T1_wasm3_0012",
+    "project": "wasm3",
+    "diff": {
+      "file": "source/m3_api_uvwasi.c",
+      "line": 499,
+      "before": "    if (iovs_len > 128) m3ApiReturn(UVWASI_EINVAL);\n    uvwasi_iovec_t  iovs[iovs_len];",
+      "after": "    if (iovs_len > 128) m3ApiReturn(UVWASI_EINVAL);\n    uvwasi_iovec_t  iovs[iovs_len + 1];"
+    },
+    "crash_type": "stack-buffer-overflow",
+    "family": "F1",
+    "explanation": "Not impactful"
+  },
+  {
+    "id": "T1_wasm3_0013",
+    "project": "wasm3",
+    "diff": {
+      "file": "source/m3_api_uvwasi.c",
+      "line": 528,
+      "before": "    if (iovs_len > 128) m3ApiReturn(UVWASI_EINVAL);\n    uvwasi_ciovec_t  iovs[iovs_len];",
+      "after": "    if (iovs_len > 129) m3ApiReturn(UVWASI_EINVAL);\n    uvwasi_ciovec_t  iovs[iovs_len];"
+    },
+    "crash_type": "stack-buffer-overflow",
+    "family": "F1",
+    "explanation": "Raising the iovs_len limit from 128 to 129 allows writing past the stack-allocated fixed-size array (in MSVC path) since the array is sized 32 but now up to 33 entries can pass the check"
+  },
+  {
+    "id": "T1_wasm3_0014",
+    "project": "wasm3",
+    "diff": {
+      "file": "source/m3_bind.c",
+      "line": 68,
+      "before": "            _throwif (\"malformed signature; return count overflow\", funcType->numRets >= maxNumTypes);",
+      "after": "            _throwif (\"malformed signature; return count overflow\", funcType->numRets > maxNumTypes);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Flipping >= to > in the return count overflow check allows funcType->numRets to equal maxNumTypes before the throw, meaning one extra write via '*typelist++ = type' goes one byte past the end of the allocated types array in AllocFuncType."
+  },
+  {
+    "id": "T1_wasm3_0015",
+    "project": "wasm3",
+    "diff": {
+      "file": "source/m3_bind.c",
+      "line": 74,
+      "before": "            _throwif (\"malformed signature; arg count overflow\", (u32)(funcType->numRets) + funcType->numArgs >= maxNumTypes);",
+      "after": "            _throwif (\"malformed signature; arg count overflow\", (u32)(funcType->numRets) + funcType->numArgs > maxNumTypes);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Flipping >= to > in the arg count overflow check allows one extra argument type to be written past the end of the allocated types array. When total args+rets equals maxNumTypes, the check passes and '*typelist++ = type' writes one byte beyond the heap allocation."
+  },
+  {
+    "id": "T1_wasm3_0016",
+    "project": "wasm3",
+    "diff": {
+      "file": "source/m3_bind.c",
+      "line": 41,
+      "before": "    _throwif (m3Err_tooManyArgsRets, maxNumTypes > d_m3MaxSaneFunctionArgRetCount);",
+      "after": "    _throwif (m3Err_tooManyArgsRets, maxNumTypes >= d_m3MaxSaneFunctionArgRetCount);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Flipping > to >= in the sanity limit check causes the function to reject valid signatures that exactly equal d_m3MaxSaneFunctionArgRetCount args, which could cause linking failures for legitimate functions at the boundary, but more importantly could mask the actual boundary check."
+  },
+  {
+    "id": "T1_wasm3_0017",
+    "project": "wasm3",
+    "diff": {
+      "file": "source/m3_code.c",
+      "line": 87,
+      "before": "    d_m3Assert (i_page->info.lineIndex <= i_page->info.numLines);",
+      "after": "    d_m3Assert (i_page->info.lineIndex < i_page->info.numLines);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one in NumFreeLines: changing <= to < makes it return 0 one slot early, causing callers to allocate a new page when the current one has exactly 1 slot left, but more critically misreports free capacity."
+  },
+  {
+    "id": "T1_wasm3_0018",
+    "project": "wasm3",
+    "diff": {
+      "file": "source/m3_code.c",
+      "line": 93,
+      "before": "    d_m3Assert (i_page->info.lineIndex+1 <= i_page->info.numLines);\n    i_page->code [i_page->info.lineIndex++] = i_word;",
+      "after": "    d_m3Assert (i_page->info.lineIndex+1 <= i_page->info.numLines);\n    i_page->code [i_page->info.lineIndex] = i_word;\n    i_page->info.lineIndex++;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "This is not a real bug by itself; skipping this one."
+  },
+  {
+    "id": "T1_wasm3_0019",
+    "project": "wasm3",
+    "diff": {
+      "file": "source/m3_code.c",
+      "line": 155,
+      "before": "    IM3CodePage page = * i_list;\n    * i_list = page->info.next;\n    page->info.next = NULL;",
+      "after": "    IM3CodePage page = * i_list;\n    * i_list = page->info.next;"
+    },
+    "crash_type": "use-after-free",
+    "family": "F4",
+    "explanation": "Removing 'page->info.next = NULL' after popping from the list leaves the dangling next pointer intact. If the popped page is later freed or reused while the next pointer still points into the list, it can cause use-after-free when traversing."
+  },
+  {
+    "id": "T1_wasm3_0020",
+    "project": "wasm3",
+    "diff": {
+      "file": "source/m3_code.c",
+      "line": 38,
+      "before": "    page = (IM3CodePage)m3_Malloc (\"M3CodePage\", pageSize);\n\n    if (page)\n    {",
+      "after": "    page = (IM3CodePage)m3_Malloc (\"M3CodePage\", pageSize);\n\n    {\n"
+    },
+    "crash_type": "null-dereference",
+    "family": "F2",
+    "explanation": "Removing the NULL check after m3_Malloc causes a null dereference when allocation fails under memory pressure."
+  },
+  {
+    "id": "T1_wasm3_0021",
+    "project": "wasm3",
+    "diff": {
+      "file": "source/m3_compile.c",
+      "line": 5615,
+      "before": "    u16 numConstantSlots = o->slotMaxConstIndex - o->slotFirstConstIndex;",
+      "after": "    u16 numConstantSlots = o->slotFirstConstIndex - o->slotMaxConstIndex;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Swapping the subtraction operands for numConstantSlots causes an integer wraparound on u16, producing a huge slot count. This leads to m3_CopyMem copying a massive amount from the constants buffer, causing a heap-buffer-overflow read."
+  },
+  {
+    "id": "T1_wasm3_0022",
+    "project": "wasm3",
+    "diff": {
+      "file": "source/m3_compile.c",
+      "line": 5581,
+      "before": "    o->function->numLocalBytes = (maxSlot - o->slotFirstLocalIndex) * sizeof (m3slot_t);",
+      "after": "    o->function->numLocalBytes = (maxSlot - o->slotFirstDynamicIndex) * sizeof (m3slot_t);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Using slotFirstDynamicIndex instead of slotFirstLocalIndex in the numLocalBytes calculation. Since slotFirstDynamicIndex >= slotFirstLocalIndex, this underestimates the local bytes count, which later causes stack locals to be read/written out of allocated bounds."
+  },
+  {
+    "id": "T1_wasm3_0023",
+    "project": "wasm3",
+    "diff": {
+      "file": "source/m3_core.c",
+      "line": 263,
+      "before": "    if (ptr < i_end)\n    {\n        * o_value = * ptr;\n        * io_bytes = ptr + 1;\n\n        return m3Err_none;\n    }\n    else return m3Err_wasmUnderrun;",
+      "after": "    if (ptr <= i_end)\n    {\n        * o_value = * ptr;\n        * io_bytes = ptr + 1;\n\n        return m3Err_none;\n    }\n    else return m3Err_wasmUnderrun;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1.g",
+    "explanation": "Flipping `ptr < i_end` to `ptr <= i_end` in Read_u8 allows reading one byte past the end of the input buffer when ptr equals i_end exactly."
+  },
+  {
+    "id": "T1_wasm3_0026",
+    "project": "wasm3",
+    "diff": {
+      "file": "source/extensions/m3_extensions.c",
+      "line": 57,
+      "before": "    end = bytes + size;",
+      "after": "    end = i_wasmBytes + size;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F6",
+    "explanation": "Using i_wasmBytes instead of bytes (post-LEB advance) as the base for end causes end to point earlier than intended, so subsequent reads using end as the boundary may read past the actual buffer end, or numBytes calculation underflows."
+  },
+  {
+    "id": "T1_wasm3_0027",
+    "project": "wasm3",
+    "diff": {
+      "file": "source/m3_api_meta_wasi.c",
+      "line": 163,
+      "before": "        m3ApiCheckMem(argv_buf, len);",
+      "after": "        m3ApiCheckMem(argv_buf, len + 1);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "The check validates len bytes for argv_buf but the code then copies len bytes AND appends a null terminator (argv_buf++), so checking len+1 would be the correct bound. Changing it to len+1 exposes the off-by-one when len exactly reaches the end of the WASM memory page."
+  },
+  {
+    "id": "T1_wasm3_0028",
+    "project": "wasm3",
+    "diff": {
+      "file": "source/m3_api_meta_wasi.c",
+      "line": 594,
+      "before": "        wasi_context = (m3_wasi_context_t*)malloc(sizeof(m3_wasi_context_t));\n        wasi_context->exit_code = 0;\n        wasi_context->argc = 0;\n        wasi_context->argv = 0;",
+      "after": "        wasi_context = (m3_wasi_context_t*)malloc(sizeof(m3_wasi_context_t));\n        wasi_context->exit_code = 0;\n        wasi_context->argc = 0;"
+    },
+    "crash_type": "use-of-uninitialized-memory",
+    "family": "F5",
+    "explanation": "Removing the initialization of argv to 0 leaves wasi_context->argv as uninitialized pointer. Any call to args_get that iterates context->argv[i] would dereference garbage."
+  },
+  {
+    "id": "T1_wasm3_0029",
+    "project": "wasm3",
+    "diff": {
+      "file": "source/m3_api_meta_wasi.c",
+      "line": 456,
+      "before": "    __wasi_iovec_t iovs[iovs_len];",
+      "after": "    __wasi_iovec_t iovs[iovs_len + 1];"
+    },
+    "crash_type": "stack-buffer-overflow",
+    "family": "F3",
+    "explanation": "Allocating iovs_len+1 elements on the stack but only checking/copying iovs_len means if iovs_len is 0 we allocate 1 extra slot but that's benign. However the real issue is the check at line validates iovs_len*sizeof, so an attacker can pass a large iovs_len causing large VLA stack allocation."
+  },
+  {
+    "id": "T1_wasm3_0030",
+    "project": "wasm3",
+    "diff": {
+      "file": "source/m3_api_tracer.c",
+      "line": 115,
+      "before": "    } else if (i_result == m3Err_functionLookupFailed) {\n        i_result = m3Err_none;\n    }",
+      "after": "    } else if (i_result != m3Err_functionLookupFailed) {\n        i_result = m3Err_none;\n    }"
+    },
+    "crash_type": "null-dereference",
+    "family": "F6",
+    "explanation": "Flipping the condition means non-lookup errors are now suppressed while lookup failures propagate. This causes the `_` macro to early-exit on the first link attempt when the function exists, preventing subsequent trace functions from being linked. More critically, when the env module IS found and trace file opens, but a later link fails with a real error, it now propagates through SuppressLookupFailure unchanged \u2014 the inverted logic masks real errors as successes and vice versa, allowing execution to continue with NULL trace pointer and causing null-deref in fprintf."
+  },
+  {
+    "id": "T1_wasm3_0031",
+    "project": "wasm3",
+    "diff": {
+      "file": "source/m3_api_tracer.c",
+      "line": 110,
+      "before": "        if (!trace) {\n            trace = fopen (\"wasm3_trace.csv\",\"w\");\n        }",
+      "after": "        trace = fopen (\"wasm3_trace.csv\",\"w\");"
+    },
+    "crash_type": "null-dereference",
+    "family": "F2",
+    "explanation": "Removing the `if (!trace)` guard means fopen is called on every successful link. If the working directory is read-only (common in sandboxed fuzz environments), fopen returns NULL and overwrites the previously valid trace pointer with NULL. Subsequent fprintf(trace, ...) calls then dereference NULL, causing a crash."
+  },
+  {
+    "id": "T1_wasm3_0032",
+    "project": "wasm3",
+    "diff": {
+      "file": "source/m3_api_wasi.c",
+      "line": 237,
+      "before": "    if (path_len >= 512)\n        m3ApiReturn(__WASI_ERRNO_INVAL);",
+      "after": "    if (path_len > 512)\n        m3ApiReturn(__WASI_ERRNO_INVAL);"
+    },
+    "crash_type": "stack-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one: path_len==512 now passes the check, then host_path[path_len+1] is a 512-byte VLA but memcpy copies 512 bytes and host_path[512] = '\\0' writes one byte past the end."
+  },
+  {
+    "id": "T1_wasm3_0033",
+    "project": "wasm3",
+    "diff": {
+      "file": "source/m3_api_wasi.c",
+      "line": 209,
+      "before": "    m3ApiCheckMem(argv_buf, len);",
+      "after": "    m3ApiCheckMem(argv_buf, len+1);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "The check is expanded by 1 so it validates len+1 bytes, which for the last argument (with the null terminator write argv_buf[len]=0 after) makes the validation appear correct but the final null write at argv_buf += len; *argv_buf++ = 0 is now past what was checked."
+  },
+  {
+    "id": "T1_wasm3_0072",
+    "project": "wasm3",
+    "diff": {
+      "file": "source/m3_core.c",
+      "line": 274,
+      "before": "    char * utf8 = (char *)m3_Malloc (\"UTF8\", utf8Length + 1);",
+      "after": "    char * utf8 = (char *)m3_Malloc (\"UTF8\", utf8Length);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1",
+    "explanation": "Remove the +1 in the allocation size for UTF-8 strings. The memcpy copies utf8Length bytes correctly, but the null terminator write utf8[utf8Length] = 0 writes one byte past the end of the allocated buffer, causing a 1-byte heap-buffer-overflow. This triggers whenever any UTF-8 string (import name, export name, custom section name) is parsed from a wasm binary."
+  },
+  {
+    "id": "T1_wasm3_0140",
+    "project": "wasm3",
+    "diff": {
+      "file": "source/m3_env.h",
+      "line": 155,
+      "before": "    IM3FuncType             retFuncTypes [c_m3Type_unknown];    // these 'point' to elements in the linked list above.",
+      "after": "    IM3FuncType             retFuncTypes [c_m3Type_unknown - 1];    // these 'point' to elements in the linked list above."
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Reducing retFuncTypes array by 1 causes off-by-one OOB write when indexing with c_m3Type_unknown-1 (the last valid type index), corrupting adjacent memory in M3Environment struct."
+  },
+  {
+    "id": "T1_wasm3_0301",
+    "project": "wasm3",
+    "diff": {
+      "file": "source/m3_core.h",
+      "line": 264,
+      "before": "#define     m3_AllocArray(STRUCT, NUM)              (STRUCT *)m3_Malloc_Impl (sizeof (STRUCT) * (NUM))",
+      "after": "#define     m3_AllocArray(STRUCT, NUM)              (STRUCT *)m3_Malloc_Impl (sizeof (STRUCT) * (NUM) - 1)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one underallocation: subtracting 1 from the computed allocation size means that whenever NUM>=1, the allocated buffer is 1 byte short. Any write to the last element of the array overflows the heap buffer."
+  },
+  {
+    "id": "T1_wasm3_0316",
+    "project": "wasm3",
+    "diff": {
+      "file": "source/m3_module.c",
+      "line": 62,
+      "before": "    if (i_totalFunctions > io_module->allFunctions) {",
+      "after": "    if (i_totalFunctions > io_module->allFunctions + 1) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Adding +1 to allFunctions means that when numFunctions grows by exactly 1 beyond allFunctions, reallocation is skipped, causing a write one element past the end of the functions heap array."
+  },
+  {
+    "id": "T1_wasm3_0532",
+    "project": "wasm3",
+    "diff": {
+      "file": "source/m3_core.c",
+      "line": 295,
+      "before": "    while (ptr < i_end)\n    {\n        u64 byte = * (ptr++);\n\n        value |= ((byte & 0x7f) << shift);\n        shift += 7;\n\n        if ((byte & 0x80) == 0)\n        {\n            result = m3Err_none;\n            break;\n        }\n\n        if (shift >= i_maxNumBits)\n        {",
+      "after": "    while (ptr <= i_end)\n    {\n        u64 byte = * (ptr++);\n\n        value |= ((byte & 0x7f) << shift);\n        shift += 7;\n\n        if ((byte & 0x80) == 0)\n        {\n            result = m3Err_none;\n            break;\n        }\n\n        if (shift >= i_maxNumBits)\n        {"
+    },
+    "crash_type": "heap-buffer-overflow (1-byte OOB read)",
+    "family": "F1.g",
+    "explanation": "Flipping ptr < i_end to ptr <= i_end in ReadLebUnsigned allows reading one byte past the end of the wasm buffer when the last byte has the continuation bit set (0x80). Any LEB128 value at the very end of a section with no terminating byte will trigger a 1-byte OOB read."
+  }
+]

@@ -1,0 +1,1081 @@
+[
+  {
+    "id": "T1_expat_0001",
+    "project": "expat",
+    "diff": {
+      "file": "expat/lib/xmlparse.c",
+      "line": 8068,
+      "before": "*(pool->ptr)++ = 0;",
+      "after": "(pool->ptr)++;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "poolStoreString converts encoded XML data to the internal string pool and appends a null terminator. Removing the null-terminator write causes all pool-stored strings (element names, attribute names, entity names) to lack termination. Subsequent operations like lookup() use these strings as hash keys via strcmp-like comparisons, reading past the allocated buffer boundary into adjacent heap memory."
+  },
+  {
+    "id": "T1_expat_0002",
+    "project": "expat",
+    "diff": {
+      "file": "expat/lib/xmlparse.c",
+      "line": 3419,
+      "before": "(ICHAR *)tag->bufEnd - 1",
+      "after": "(ICHAR *)tag->bufEnd"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "In doContent's start tag processing, XmlConvert copies the tag name into a buffer. The original code limits the output to bufEnd-1 to reserve space for the null terminator. Removing the -1 allows XmlConvert to write up to bufEnd, and the subsequent *toPtr = XML_T('\\0') writes one byte past the allocated buffer."
+  },
+  {
+    "id": "T1_expat_0003",
+    "project": "expat",
+    "diff": {
+      "file": "expat/lib/xmlparse.c",
+      "line": 1339,
+      "before": "parser->m_dataBuf = MALLOC(parser, INIT_DATA_BUF_SIZE * sizeof(XML_Char));",
+      "after": "parser->m_dataBuf = MALLOC(parser, (INIT_DATA_BUF_SIZE - 1) * sizeof(XML_Char));"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "The data buffer m_dataBuf is allocated with INIT_DATA_BUF_SIZE-1 bytes (1023) but m_dataBufEnd is set to m_dataBuf + INIT_DATA_BUF_SIZE (1024 bytes offset). When XmlConvert processes character data using a non-native encoding (triggering MUST_CONVERT), it writes up to m_dataBufEnd, overflowing the allocated buffer by one byte."
+  },
+  {
+    "id": "T1_expat_0004",
+    "project": "expat",
+    "diff": {
+      "file": "expat/lib/xmlparse.c",
+      "line": 8194,
+      "before": "pool->end = tem->s + blockSize;",
+      "after": "pool->end = tem->s + blockSize + 64;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "In poolGrow's new-block allocation path (else branch), after allocating a new block of blockSize characters, pool->end is set 64 characters beyond the actual allocation. This creates a window of 64 XML_Char positions where pool writes go past the heap allocation boundary, triggering ASAN when the pool is filled past the actual block size."
+  },
+  {
+    "id": "T1_expat_0005",
+    "project": "expat",
+    "diff": {
+      "file": "expat/lib/xmlparse.c",
+      "line": 3808,
+      "before": "parser->m_attsSize = n + nDefaultAtts + INIT_ATTS_SIZE;",
+      "after": "parser->m_attsSize = n;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "When storeAtts reallocates the attribute array, the new size should include actual attributes (n), default attributes (nDefaultAtts), and padding (INIT_ATTS_SIZE). By allocating only n slots, the appAtts array (which aliases m_atts) overflows when default attributes from the DTD are appended beyond the n-th ATTRIBUTE struct boundary."
+  },
+  {
+    "id": "T1_expat_0006",
+    "project": "expat",
+    "diff": {
+      "file": "expat/lib/xmlparse.c",
+      "line": 8067,
+      "before": "*(pool->ptr)++ = 0;\n  return pool->start;",
+      "after": "*(pool->ptr)++ = 0;\n  *(pool->ptr)++ = 0;\n  return pool->start;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "poolStoreString writes a null terminator after the string data. The injected bug writes TWO null terminators. When the string fills the pool block to near its end, the second null-terminator write goes past the allocated block, causing a heap-buffer-overflow."
+  },
+  {
+    "id": "T1_expat_0007",
+    "project": "expat",
+    "diff": {
+      "file": "expat/lib/xmlparse.c",
+      "line": 1326,
+      "before": "parser->m_atts = MALLOC(parser, parser->m_attsSize * sizeof(ATTRIBUTE));",
+      "after": "parser->m_atts = MALLOC(parser, (parser->m_attsSize - 1) * sizeof(ATTRIBUTE));"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "The initial attribute array m_atts is underallocated by one ATTRIBUTE struct. m_attsSize is INIT_ATTS_SIZE (16), but only 15 ATTRIBUTEs worth of memory is allocated. XmlGetAttributes uses m_attsSize as the limit and writes up to 16 ATTRIBUTE entries, causing the 16th to overflow into the ASAN red zone."
+  },
+  {
+    "id": "T1_expat_0008",
+    "project": "expat",
+    "diff": {
+      "file": "expat/lib/xmlparse.c",
+      "line": 8156,
+      "before": "pool->end = pool->start + blockSize;",
+      "after": "pool->end = pool->start + blockSize + 1;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "In poolGrow's realloc branch (when the current block is being doubled in place), pool->end is set one character past the actual allocation. When blockSize is doubled from 1024 to 2048, the realloc allocates 2048 chars but pool->end points to 2049. The 2049th character write overflows the block."
+  },
+  {
+    "id": "T1_expat_0009",
+    "project": "expat",
+    "diff": {
+      "file": "expat/lib/xmlparse.c",
+      "line": 7115,
+      "before": "if (type->nDefaultAtts == type->allocDefaultAtts) {",
+      "after": "if (type->nDefaultAtts == type->allocDefaultAtts && type->allocDefaultAtts == 0) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "defineAttribute manages a dynamic array of default attributes. The growth condition should trigger whenever nDefaultAtts equals allocDefaultAtts (array full). With the added check '&& allocDefaultAtts == 0', growth only happens on the very first allocation (when allocDefaultAtts is 0). After the initial 8-slot allocation, the array never grows, so the 9th default attribute writes past the end."
+  },
+  {
+    "id": "T1_expat_0010",
+    "project": "expat",
+    "diff": {
+      "file": "expat/lib/xmlparse.c",
+      "line": 3399,
+      "before": "tag->buf.raw = MALLOC(parser, INIT_TAG_BUF_SIZE);",
+      "after": "tag->buf.raw = MALLOC(parser, 1);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "When processing a start tag, a new TAG is allocated with a buffer of INIT_TAG_BUF_SIZE (32) bytes for storing the tag name. The injected bug allocates only 1 byte instead, but bufEnd is still set to buf.raw + INIT_TAG_BUF_SIZE. XmlConvert then writes the tag name into the 1-byte buffer, overflowing it immediately for any element name longer than 0 characters."
+  },
+  {
+    "id": "T1_expat_0011",
+    "project": "expat",
+    "diff": {
+      "file": "expat/lib/xmlparse.c",
+      "line": 651,
+      "before": "(((pool)->ptr == (pool)->end && ! poolGrow(pool)) ? 0 : ((*((pool)->ptr)++ = c), 1))",
+      "after": "((*((pool)->ptr)++ = c), 1)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "poolAppendChar macro removes the pool growth check. Characters are written past pool block boundary without allocating a larger block."
+  },
+  {
+    "id": "T1_expat_0012",
+    "project": "expat",
+    "diff": {
+      "file": "expat/lib/xmlparse.c",
+      "line": 7996,
+      "before": "do { ... } while (*s++);",
+      "after": "while (*s) { ... s++; }"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "poolCopyString skips null terminator copy. Hash lookups on unterminated strings overread."
+  },
+  {
+    "id": "T1_expat_0013",
+    "project": "expat",
+    "diff": {
+      "file": "expat/lib/xmlparse.c",
+      "line": 651,
+      "before": "((pool)->ptr == (pool)->end && ! poolGrow(pool)) ? 0 : ...",
+      "after": "((pool)->ptr == (pool)->end) ? write : write (both branches write)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "poolAppendChar always writes even when pool block is full (both branches of ternary write). The pool never grows, causing heap overflow."
+  },
+  {
+    "id": "T1_expat_0014",
+    "project": "expat",
+    "diff": {
+      "file": "expat/lib/xmlparse.c",
+      "line": 8178,
+      "before": "bytesToAllocate = poolBytesToAllocateFor(blockSize);",
+      "after": "bytesToAllocate = poolBytesToAllocateFor(2);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "poolGrow allocates new blocks of only 2 XML_Chars instead of the needed size. Pool writes immediately overflow the tiny blocks."
+  },
+  {
+    "id": "T1_expat_0080",
+    "project": "expat",
+    "diff": {
+      "file": "expat/lib/xmlparse.c",
+      "line": 5874,
+      "before": "parser->m_groupConnector = MALLOC(parser, parser->m_groupSize = 32);",
+      "after": "parser->m_groupConnector = MALLOC(parser, 1); parser->m_groupSize = 32;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "The groupConnector buffer stores connector characters (comma/pipe) for DTD content model groups, indexed by prolog nesting level. Allocating only 1 byte instead of 32 while keeping m_groupSize=32 causes an immediate heap-buffer-overflow when the parser writes groupConnector[prologState.level] for any nesting level > 0."
+  },
+  {
+    "id": "T1_expat_0081",
+    "project": "expat",
+    "diff": {
+      "file": "expat/lib/xmlparse.c",
+      "line": 7851,
+      "before": "NAMED **newV = MALLOC(table->parser, tsize);",
+      "after": "NAMED **newV = MALLOC(table->parser, sizeof(NAMED *));"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "When the element/attribute hash table exceeds its load factor, lookup() rehashes into a larger array. The new array should be tsize = newSize * sizeof(NAMED*) bytes, but the bug allocates only sizeof(NAMED*) (8 bytes). The subsequent memset(newV, 0, tsize) writes tsize bytes (>>8) into the undersized buffer, causing immediate heap-buffer-overflow."
+  },
+  {
+    "id": "T1_expat_0082",
+    "project": "expat",
+    "diff": {
+      "file": "expat/lib/xmlparse.c",
+      "line": 3070,
+      "before": "char *temp = REALLOC(parser, tag->buf.raw, bufSize);",
+      "after": "char *temp = REALLOC(parser, tag->buf.raw, 1);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "When an element tag name exceeds the initial 32-byte tag buffer, storeRawNames reallocates tag->buf.raw to bufSize (nameLen + rawNameLen). The bug reallocates to only 1 byte. The subsequent memcpy of the raw tag name into this 1-byte buffer overflows immediately for any tag name longer than 1 character."
+  },
+  {
+    "id": "T1_expat_0083",
+    "project": "expat",
+    "diff": {
+      "file": "expat/lib/xmlparse.c",
+      "line": 7811,
+      "before": "table->v = MALLOC(table->parser, tsize);",
+      "after": "table->v = MALLOC(table->parser, sizeof(NAMED *));"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "When the hash table is first created in lookup(), it allocates table->v with tsize = table->size * sizeof(NAMED*) bytes (64 pointers = 512 bytes for INIT_POWER=6). The bug allocates only sizeof(NAMED*) (8 bytes). The immediate memset(table->v, 0, tsize) writes 512 bytes into an 8-byte buffer, causing heap-buffer-overflow. Any XML input triggers this since the first element name requires a hash table lookup."
+  },
+  {
+    "id": "T1_expat_0084",
+    "project": "expat",
+    "diff": {
+      "file": "expat/lib/xmlparse.c",
+      "line": 7880,
+      "before": "table->v[i] = MALLOC(table->parser, createSize);",
+      "after": "table->v[i] = MALLOC(table->parser, 1);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "When a new named entry (element type, attribute, etc.) is inserted into the hash table, lookup() allocates createSize bytes for the entry struct. The bug allocates only 1 byte. The immediate memset(table->v[i], 0, createSize) zeroes createSize bytes (typically 40-80 bytes for TAG_NAME or similar structs) into a 1-byte buffer, causing heap-buffer-overflow. Triggered by the first element in any XML input."
+  },
+  {
+    "id": "T1_expat_0090",
+    "project": "expat",
+    "diff": {
+      "file": "expat/lib/xmlparse.c",
+      "line": 3404,
+      "before": "tag->bufEnd = tag->buf.raw + INIT_TAG_BUF_SIZE;",
+      "after": "tag->bufEnd = tag->buf.raw + INIT_TAG_BUF_SIZE * 4;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "When a new TAG is allocated for a start element, its buffer is INIT_TAG_BUF_SIZE (32) bytes but bufEnd is set as if it were 128 bytes. XmlConvert uses bufEnd as the write limit, so it writes up to 128 bytes of converted tag name into a 32-byte buffer, causing immediate heap-buffer-overflow for element names longer than ~30 characters."
+  },
+  {
+    "id": "T1_expat_0091",
+    "project": "expat",
+    "diff": {
+      "file": "expat/lib/xmlparse.c",
+      "line": 7119,
+      "before": "= MALLOC(parser, type->allocDefaultAtts * sizeof(DEFAULT_ATTRIBUTE));",
+      "after": "= MALLOC(parser, sizeof(DEFAULT_ATTRIBUTE));"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "When defineAttribute first allocates the default attributes array for an element type, it should allocate 8 DEFAULT_ATTRIBUTE slots. The bug allocates only 1 slot but sets allocDefaultAtts to 8. When the 2nd default attribute is added, it writes to slot index 1, which is past the 1-slot allocation, causing heap-buffer-overflow."
+  },
+  {
+    "id": "T1_expat_0092",
+    "project": "expat",
+    "diff": {
+      "file": "expat/lib/xmlparse.c",
+      "line": 3437,
+      "before": "tag->bufEnd = temp + bufSize;",
+      "after": "tag->bufEnd = temp + bufSize * 2;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "When a tag name exceeds the current tag buffer during element name conversion in doContent, the buffer is doubled via REALLOC. After reallocating to bufSize bytes, bufEnd should be set to temp + bufSize. The bug sets bufEnd to temp + bufSize * 2, making the parser believe the buffer is twice its actual size. On the next conversion iteration, XmlConvert writes past the actual allocation boundary."
+  },
+  {
+    "id": "T1_expat_0098",
+    "project": "expat",
+    "diff": {
+      "file": "expat/lib/xmlparse.c",
+      "line": 3399,
+      "before": "tag->buf.raw = MALLOC(parser, INIT_TAG_BUF_SIZE);",
+      "after": "tag->buf.raw = MALLOC(parser, 4);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "When a new TAG is allocated for a start element, the raw buffer for storing the converted tag name is allocated at INIT_TAG_BUF_SIZE (32) bytes. The bug allocates only 4 bytes but leaves bufEnd at buf.raw + 32. XmlConvert uses bufEnd as the write limit, so it writes up to 31 bytes of converted element name into a 4-byte buffer, causing heap-buffer-overflow for any element name longer than about 3 characters."
+  },
+  {
+    "id": "T1_expat_0099",
+    "project": "expat",
+    "diff": {
+      "file": "expat/lib/xmlparse.c",
+      "line": 3815,
+      "before": "parser->m_attsSize * sizeof(ATTRIBUTE));",
+      "after": "sizeof(ATTRIBUTE));"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "When storeAtts encounters more attributes than the current m_atts array can hold, it REALLOCs to m_attsSize * sizeof(ATTRIBUTE). The bug allocates only sizeof(ATTRIBUTE) (1 slot) but sets m_attsSize to the new larger value. When attributes beyond the first are processed, writes to parser->m_atts[i] overflow the 1-slot allocation."
+  },
+  {
+    "id": "T1_expat_0100",
+    "project": "expat",
+    "diff": {
+      "file": "expat/lib/xmlparse.c",
+      "line": 8194,
+      "before": "pool->end = tem->s + blockSize;",
+      "after": "pool->end = tem->s + blockSize * 4;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "When poolGrow allocates a new block and copies existing data, it sets pool->end to mark the usable boundary. The bug multiplies blockSize by 4 when setting pool->end, making the pool believe it has 4x the available space. Subsequent poolAppendChar calls write past the actual allocation, causing heap-buffer-overflow when long strings or many attribute names are stored in the pool."
+  },
+  {
+    "id": "T1_expat_0101",
+    "project": "expat",
+    "diff": {
+      "file": "expat/lib/xmlparse.c",
+      "line": 3438,
+      "before": "toPtr = (XML_Char *)temp + convLen;",
+      "after": "/* toPtr update removed */"
+    },
+    "crash_type": "heap-use-after-free",
+    "family": "",
+    "explanation": "When a tag name exceeds the initial tag buffer during element name conversion in doContent, the buffer is reallocated to a larger size. After REALLOC, toPtr must be updated to point into the new buffer. The bug removes this update, leaving toPtr pointing into the old (now freed) buffer. The next XmlConvert iteration writes through the stale toPtr, causing use-after-free."
+  },
+  {
+    "id": "T1_expat_0102",
+    "project": "expat",
+    "diff": {
+      "file": "expat/lib/xmlparse.c",
+      "line": 1326,
+      "before": "parser->m_atts = MALLOC(parser, parser->m_attsSize * sizeof(ATTRIBUTE));",
+      "after": "parser->m_atts = MALLOC(parser, sizeof(ATTRIBUTE));"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "When a parser is created, the m_atts array is allocated to hold INIT_ATTS_SIZE (16) ATTRIBUTE slots. The bug allocates only sizeof(ATTRIBUTE) (1 slot) but sets m_attsSize to 16. When storeAtts is called with an element that has 2 or more attributes, XmlGetAttributes writes ATTRIBUTE structs to m_atts[1] and beyond, overflowing the 1-slot allocation."
+  },
+  {
+    "id": "T1_expat_0103",
+    "project": "expat",
+    "diff": {
+      "file": "expat/lib/xmlparse.c",
+      "line": 3433,
+      "before": "char *temp = REALLOC(parser, tag->buf.raw, bufSize);",
+      "after": "char *temp = REALLOC(parser, tag->buf.raw, 4);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "In doContent, when a start element tag name exceeds the initial 32-byte tag buffer, the conversion loop REALLOCs to 2x the current buffer size. The bug allocates only 4 bytes instead. The subsequent tag->bufEnd is set to temp + bufSize (the original 2x value), making XmlConvert believe the buffer is much larger. XmlConvert writes the tag name past the 4-byte allocation, causing heap-buffer-overflow."
+  },
+  {
+    "id": "T1_expat_0104",
+    "project": "expat",
+    "diff": {
+      "file": "expat/lib/xmlparse.c",
+      "line": 7850,
+      "before": "size_t tsize = newSize * sizeof(NAMED *);",
+      "after": "size_t tsize = sizeof(NAMED *);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "When the hash table in lookup() exceeds half capacity, it rehashes into a new table of 2x size. The bug allocates space for only 1 pointer slot instead of newSize slots. The rehash loop then writes old entries to newV[j] where j can be up to newSize-1, causing heap-buffer-overflow on the undersized allocation."
+  },
+  {
+    "id": "T1_expat_0105",
+    "project": "expat",
+    "diff": {
+      "file": "expat/lib/xmlparse.c",
+      "line": 7144,
+      "before": "(count * sizeof(DEFAULT_ATTRIBUTE)))",
+      "after": "(sizeof(DEFAULT_ATTRIBUTE)))"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "When defineAttribute needs to grow the defaultAtts array beyond 8 entries, it REALLOCs to count (= allocDefaultAtts * 2) entries. The bug allocates only 1 DEFAULT_ATTRIBUTE slot but sets allocDefaultAtts to count (16). Subsequent attribute definitions write to defaultAtts[8..15], overflowing the 1-slot allocation."
+  },
+  {
+    "id": "T1_expat_0106",
+    "project": "expat",
+    "diff": {
+      "file": "expat/lib/xmlparse.c",
+      "line": 5844,
+      "before": "parser, parser->m_groupConnector, parser->m_groupSize *= 2);",
+      "after": "parser, parser->m_groupConnector, 1);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "In doProlog, when a DTD content model group nesting exceeds the initial 32-level groupConnector buffer, the REALLOC should double the buffer. The bug allocates only 1 byte and does not update m_groupSize (the inline *= 2 is removed). At the next GROUP_OPEN with prologState.level >= 1, groupConnector[level] writes past the 1-byte allocation."
+  },
+  {
+    "id": "T1_expat_0107",
+    "project": "expat",
+    "diff": {
+      "file": "expat/lib/xmlparse.c",
+      "line": 8151,
+      "before": "pool->end = pool->start + blockSize;",
+      "after": "pool->end = pool->start + blockSize * 4;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "In poolGrow, when the current block is reallocated to 2x its size, pool->end is set to mark the usable boundary. The bug multiplies blockSize by 4 when setting pool->end, making the pool believe it has 4x the available space. Subsequent poolAppendChar calls write past the actual REALLOC allocation, causing heap-buffer-overflow."
+  },
+  {
+    "id": "T1_expat_0108",
+    "project": "expat",
+    "diff": {
+      "file": "expat/lib/xmlparse.c",
+      "line": 7882,
+      "before": "table->v[i] = MALLOC(table->parser, createSize);",
+      "after": "table->v[i] = MALLOC(table->parser, createSize / 2);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "In lookup(), when creating a new hash table entry, the allocation uses createSize/2 instead of createSize. The subsequent memset(table->v[i], 0, createSize) writes past the allocated buffer, causing heap-buffer-overflow."
+  },
+  {
+    "id": "T1_expat_0109",
+    "project": "expat",
+    "diff": {
+      "file": "expat/lib/xmlparse.c",
+      "line": 8182,
+      "before": "bytesToAllocate = poolBytesToAllocateFor(blockSize);",
+      "after": "bytesToAllocate = poolBytesToAllocateFor(blockSize / 4);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "In poolGrow, when allocating a new block (MALLOC branch), bytesToAllocate is computed for blockSize/4 instead of blockSize. The pool->end pointer is then set to tem->s + blockSize, believing the full size is available. Subsequent writes to the pool overflow the undersized allocation."
+  },
+  {
+    "id": "T1_expat_0110",
+    "project": "expat",
+    "diff": {
+      "file": "expat/lib/xmlparse.c",
+      "line": 7121,
+      "before": "MALLOC(parser, type->allocDefaultAtts * sizeof(DEFAULT_ATTRIBUTE))",
+      "after": "MALLOC(parser, 1 * sizeof(DEFAULT_ATTRIBUTE))"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "In defineAttribute, when first allocating the defaultAtts array, allocDefaultAtts is set to 8 but only 1 * sizeof(DEFAULT_ATTRIBUTE) bytes are allocated. Writing to slots 1-7 overflows the heap buffer."
+  },
+  {
+    "id": "T1_expat_0111",
+    "project": "expat",
+    "diff": {
+      "file": "expat/lib/xmlparse.c",
+      "line": 3823,
+      "before": "parser->m_attsSize * sizeof(ATTRIBUTE)",
+      "after": "(parser->m_attsSize / 4) * sizeof(ATTRIBUTE)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "In storeAtts, when the attribute array m_atts needs to grow to accommodate more attributes than INIT_ATTS_SIZE, the REALLOC allocates only 1/4 of the required size. m_attsSize records the full count, so subsequent accesses to parser->m_atts[i] for i >= attsSize/4 write past the allocation."
+  },
+  {
+    "id": "T1_expat_0112",
+    "project": "expat",
+    "diff": {
+      "file": "expat/lib/xmlparse.c",
+      "line": 7810,
+      "before": "tsize = table->size * sizeof(NAMED *);",
+      "after": "tsize = table->size;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "In lookup(), when initializing a new hash table, tsize is set to table->size (number of slots) instead of table->size * sizeof(NAMED *) (bytes needed for pointer array). On 64-bit systems this allocates 8x less memory. The subsequent memset and pointer stores overflow the undersized buffer."
+  },
+  {
+    "id": "T1_expat_0113",
+    "project": "expat",
+    "diff": {
+      "file": "expat/lib/xmlparse.c",
+      "line": 8185,
+      "before": "tem = MALLOC(pool->parser, bytesToAllocate);",
+      "after": "tem = MALLOC(pool->parser, 1);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "In poolGrow() MALLOC branch, the new pool block is allocated with only 1 byte instead of the computed bytesToAllocate. The subsequent memcpy of existing pool data and new writes overflow this undersized allocation."
+  },
+  {
+    "id": "T1_expat_0114",
+    "project": "expat",
+    "diff": {
+      "file": "expat/lib/xmlparse.c",
+      "line": 8144,
+      "before": "temp = REALLOC(pool->parser, pool->blocks, bytesToAllocate);",
+      "after": "temp = REALLOC(pool->parser, pool->blocks, 1);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "In poolGrow() REALLOC branch, the pool block is reallocated to only 1 byte instead of the computed bytesToAllocate. A long element name that fills the initial pool block triggers realloc, and subsequent writes to the pool overflow the undersized buffer."
+  },
+  {
+    "id": "T1_expat_0115",
+    "project": "expat",
+    "diff": {
+      "file": "expat/lib/xmlparse.c",
+      "line": 7882,
+      "before": "memset(table->v[i], 0, createSize);",
+      "after": "memset(table->v[i], 0, 1);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "In lookup(), new hash table entries are zeroed with only 1 byte instead of createSize. The remaining uninitialized fields of the NAMED struct (and its derived types) contain heap garbage, leading to corruption when the parser accesses name pointers and other fields."
+  },
+  {
+    "id": "T1_expat_0116",
+    "project": "expat",
+    "diff": {
+      "file": "expat/lib/xmlparse.c",
+      "line": 7815,
+      "before": "memset(table->v, 0, tsize);",
+      "after": "memset(table->v, 0, sizeof(NAMED *));"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "In lookup() when creating a new hash table, only sizeof(NAMED *) bytes are zeroed instead of the full tsize. The remaining slots contain heap garbage interpreted as valid NAMED pointers during probing, causing invalid memory access."
+  },
+  {
+    "id": "T1_expat_0117",
+    "project": "expat",
+    "diff": {
+      "file": "expat/lib/xmlparse.c",
+      "line": 3396,
+      "before": "tag = MALLOC(parser, sizeof(TAG));",
+      "after": "tag = MALLOC(parser, 1);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "In doContent(), the TAG struct is allocated with only 1 byte instead of sizeof(TAG). Writes to the TAG fields (buf, name, bindings, parent, rawName) overflow this undersized allocation."
+  },
+  {
+    "id": "T1_expat_0118",
+    "project": "expat",
+    "diff": {
+      "file": "expat/lib/xmlparse.c",
+      "line": 3433,
+      "before": "char *temp = REALLOC(parser, tag->buf.raw, bufSize);",
+      "after": "char *temp = REALLOC(parser, tag->buf.raw, 8);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "In doContent() tag name conversion loop, the tag buffer is reallocated to only 8 bytes instead of the required bufSize. When the element name is longer than 8 bytes, the conversion continues writing past the undersized buffer."
+  },
+  {
+    "id": "T1_expat_0119",
+    "project": "expat",
+    "diff": {
+      "file": "expat/lib/xmlparse.c",
+      "line": 8086,
+      "before": "const int stretchedBlockSize = blockSize * (int)stretch;",
+      "after": "const int stretchedBlockSize = blockSize / 4;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "In poolBytesToAllocateFor(), the block size stretch factor multiplication is replaced with division by 4, making pool block allocations approximately 4x too small. Pool writes that rely on the full blockSize overflow the undersized allocation."
+  },
+  {
+    "id": "T1_expat_0120",
+    "project": "expat",
+    "diff": {
+      "file": "expat/lib/xmlparse.c",
+      "line": 3401,
+      "before": "tag->bufEnd = tag->buf.raw + INIT_TAG_BUF_SIZE;",
+      "after": "tag->bufEnd = tag->buf.raw + INIT_TAG_BUF_SIZE * 256;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "In doContent(), after allocating a 32-byte tag buffer, bufEnd is set 8192 bytes past the start instead of 32. The tag name conversion loop uses bufEnd as its write limit, so element names longer than 32 bytes overflow the actual allocation before triggering a realloc."
+  },
+  {
+    "id": "T1_expat_0121",
+    "project": "expat",
+    "diff": {
+      "file": "expat/lib/xmlparse.c",
+      "line": 3803,
+      "before": "parser->m_attsSize = n + nDefaultAtts + INIT_ATTS_SIZE;",
+      "after": "parser->m_attsSize = 1;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "In storeAtts(), m_attsSize is set to 1 instead of the required n + nDefaultAtts + INIT_ATTS_SIZE before the REALLOC call. The subsequent REALLOC allocates space for only 1 ATTRIBUTE struct, but the code proceeds to fill n attribute slots, overflowing the undersized array."
+  },
+  {
+    "id": "T1_expat_0122",
+    "project": "expat",
+    "diff": {
+      "file": "expat/lib/xmlparse.c",
+      "line": 7851,
+      "before": "NAMED **newV = MALLOC(table->parser, tsize);",
+      "after": "NAMED **newV = MALLOC(table->parser, tsize / 8);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "In lookup() during hash table rehash, the new pointer array is allocated at tsize/8 bytes instead of tsize. On 64-bit systems where sizeof(NAMED *) is 8, this allocates space for only 1/8 of the required slots. The rehash loop and subsequent lookups write past the undersized array."
+  },
+  {
+    "id": "T1_expat_0123",
+    "project": "expat",
+    "diff": {
+      "file": "expat/lib/xmlparse.c",
+      "line": 3846,
+      "before": "  for (i = 0; i < n; i++) {",
+      "after": "  for (i = 0; i <= n; i++) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1g",
+    "explanation": ""
+  },
+  {
+    "id": "T1_expat_0124",
+    "project": "expat",
+    "diff": {
+      "file": "expat/lib/xmlparse.c",
+      "line": 3941,
+      "before": "  for (i = 0; i < nDefaultAtts; i++) {",
+      "after": "  for (i = 0; i <= nDefaultAtts; i++) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1g",
+    "explanation": ""
+  },
+  {
+    "id": "T1_expat_0125",
+    "project": "expat",
+    "diff": {
+      "file": "expat/lib/xmlparse.c",
+      "line": 7855,
+      "before": "      for (i = 0; i < table->size; i++)",
+      "after": "      for (i = 0; i <= table->size; i++)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1g",
+    "explanation": ""
+  },
+  {
+    "id": "T1_expat_0126",
+    "project": "expat",
+    "diff": {
+      "file": "expat/lib/xmlparse.c",
+      "line": 7902,
+      "before": "  for (i = 0; i < table->size; i++)",
+      "after": "  for (i = 0; i <= table->size; i++)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1g",
+    "explanation": ""
+  },
+  {
+    "id": "T1_expat_0127",
+    "project": "expat",
+    "diff": {
+      "file": "expat/lib/xmltok_impl.c",
+      "line": 344,
+      "before": "  for (i = 0; i < 6; i++, ptr += MINBPC(enc)) {",
+      "after": "  for (i = 0; i <= 6; i++, ptr += MINBPC(enc)) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1g",
+    "explanation": ""
+  },
+  {
+    "id": "T1_expat_0128",
+    "project": "expat",
+    "diff": {
+      "file": "expat/lib/xmlparse.c",
+      "line": 2365,
+      "before": "    memcpy(buff, s, len);",
+      "after": "    memcpy(buff, s, len + 64);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F5",
+    "explanation": ""
+  },
+  {
+    "id": "T1_expat_0129",
+    "project": "expat",
+    "diff": {
+      "file": "expat/lib/xmlparse.c",
+      "line": 1833,
+      "before": "      if (parser->m_freeInternalEntities == NULL)\n        break;",
+      "after": "      /* bounds check removed */\n      /* (was: break;) */"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1",
+    "explanation": ""
+  },
+  {
+    "id": "T1_expat_0130",
+    "project": "expat",
+    "diff": {
+      "file": "expat/lib/xmlparse.c",
+      "line": 7805,
+      "before": "    if (! createSize)\n      return NULL;",
+      "after": "    /* bounds check removed */\n    /* (was: return NULL;) */"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1",
+    "explanation": ""
+  },
+  {
+    "id": "T1_expat_0132",
+    "project": "expat",
+    "diff": {
+      "file": "expat/lib/xmlparse.c",
+      "line": 7997,
+      "before": "    if (! poolAppendChar(pool, *s))\n      return NULL;",
+      "after": "    /* bounds check removed */\n    /* (was: return NULL;) */"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1",
+    "explanation": ""
+  },
+  {
+    "id": "T1_expat_0135",
+    "project": "expat",
+    "diff": {
+      "file": "expat/lib/xmlparse.c",
+      "line": 8062,
+      "before": "  if (pool->ptr == pool->end && ! poolGrow(pool))\n    return NULL;",
+      "after": "  /* bounds check removed */\n  /* (was: return NULL;) */"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1",
+    "explanation": ""
+  },
+  {
+    "id": "T1_expat_0136",
+    "project": "expat",
+    "diff": {
+      "file": "expat/lib/xmlparse.c",
+      "line": 7805,
+      "before": "    if (! createSize)\n      return NULL;",
+      "after": "    /* NULL check removed */\n    /* (noop) */"
+    },
+    "crash_type": "SEGV",
+    "family": "F2",
+    "explanation": ""
+  },
+  {
+    "id": "T1_expat_0138",
+    "project": "expat",
+    "diff": {
+      "file": "expat/lib/xmltok.c",
+      "line": 1205,
+      "before": "    if (! name)\n      return 1;",
+      "after": "    /* NULL check removed */\n    /* (noop) */"
+    },
+    "crash_type": "SEGV",
+    "family": "F2",
+    "explanation": ""
+  },
+  {
+    "id": "T1_expat_0139",
+    "project": "expat",
+    "diff": {
+      "file": "expat/lib/xmltok.c",
+      "line": 1509,
+      "before": "  if (name == NULL)\n    return NO_ENC;",
+      "after": "  /* NULL check removed */\n  /* (noop) */"
+    },
+    "crash_type": "SEGV",
+    "family": "F2",
+    "explanation": ""
+  },
+  {
+    "id": "T1_expat_0140",
+    "project": "expat",
+    "diff": {
+      "file": "expat/lib/xmlparse.c",
+      "line": 1818,
+      "before": "        break;",
+      "after": "        /* break removed */"
+    },
+    "crash_type": "double-free",
+    "family": "F7",
+    "explanation": ""
+  },
+  {
+    "id": "T1_expat_0143",
+    "project": "expat",
+    "diff": {
+      "file": "expat/lib/xmlparse.c",
+      "line": 1547,
+      "before": "if (parser->m_freeTagList == NULL)",
+      "after": "if (parser->m_freeTagList == NULL)"
+    },
+    "crash_type": "double-free",
+    "family": "F7",
+    "explanation": ""
+  },
+  {
+    "id": "T1_expat_0144",
+    "project": "expat",
+    "diff": {
+      "file": "expat/lib/xmlparse.c",
+      "line": 1563,
+      "before": "if (parser->m_freeInternalEntities == NULL)",
+      "after": "if (parser->m_freeInternalEntities == NULL)"
+    },
+    "crash_type": "double-free",
+    "family": "F7",
+    "explanation": ""
+  },
+  {
+    "id": "T1_expat_0145",
+    "project": "expat",
+    "diff": {
+      "file": "expat/lib/xmlparse.c",
+      "line": 8226,
+      "before": "  if (dtd->scaffCount >= dtd->scaffSize) {",
+      "after": "  if (dtd->scaffCount > dtd->scaffSize) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3.a",
+    "explanation": "Off-by-one in scaffold array growth check: when scaffCount equals scaffSize, the array is not grown before writing, causing a 1-element OOB write"
+  },
+  {
+    "id": "T1_expat_0146",
+    "project": "expat",
+    "diff": {
+      "file": "expat/lib/xmlparse.c",
+      "line": 0,
+      "before": "    tsize = table->size * sizeof(NAMED *);\n    table->v = table->mem->malloc_fcn(tsize);",
+      "after": "    tsize = table->size * sizeof(NAMED *) / 2;\n    table->v = table->mem->malloc_fcn(tsize);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "lookup allocates half-size table, memset overflows."
+  },
+  {
+    "id": "T1_expat_0147",
+    "project": "expat",
+    "diff": {
+      "file": "expat/lib/xmlparse.c",
+      "line": 0,
+      "before": "  table->v[i] = table->mem->malloc_fcn(createSize);\n  if (! table->v[i])\n    return NULL;\n  memset(table->v[i], 0, createSize);",
+      "after": "  table->v[i] = table->mem->malloc_fcn(createSize > 8 ? createSize - 8 : 1);\n  if (! table->v[i])\n    return NULL;\n  memset(table->v[i], 0, createSize);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "lookup allocates entry 8 bytes short, memset overflows."
+  },
+  {
+    "id": "T1_expat_0148",
+    "project": "expat",
+    "diff": {
+      "file": "expat/lib/xmlparse.c",
+      "line": 0,
+      "before": "      size_t tsize = newSize * sizeof(NAMED *);\n      NAMED **newV = table->mem->malloc_fcn(tsize);",
+      "after": "      size_t tsize = newSize * sizeof(NAMED *) / 2;\n      NAMED **newV = table->mem->malloc_fcn(tsize);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "lookup rehash half-size, rehash writes past end."
+  },
+  {
+    "id": "T1_expat_0149",
+    "project": "expat",
+    "diff": {
+      "file": "expat/lib/xmlparse.c",
+      "line": 0,
+      "before": "    b->uri\n        = (XML_Char *)MALLOC(parser, sizeof(XML_Char) * (len + EXPAND_SPARE));",
+      "after": "    b->uri\n        = (XML_Char *)MALLOC(parser, sizeof(XML_Char) * 4);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "addBinding URI alloc 4 bytes, memcpy overflows."
+  },
+  {
+    "id": "T1_expat_0150",
+    "project": "expat",
+    "diff": {
+      "file": "expat/lib/xmlparse.c",
+      "line": 0,
+      "before": "    parser->m_attsSize = n + nDefaultAtts + INIT_ATTS_SIZE;",
+      "after": "    parser->m_attsSize = 1;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "storeAtts sets attsSize=1, REALLOC too small."
+  },
+  {
+    "id": "T1_expat_0151",
+    "project": "expat",
+    "diff": {
+      "file": "expat/lib/xmlparse.c",
+      "line": 7204,
+      "before": "malloc_fcn(tsize)",
+      "after": "malloc_fcn(tsize / 2)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "Hash table at half size. memset of full tsize overflows."
+  },
+  {
+    "id": "T1_expat_0153",
+    "project": "expat",
+    "diff": {
+      "file": "expat/lib/xmlparse.c",
+      "line": 7273,
+      "before": "malloc_fcn(createSize)",
+      "after": "malloc_fcn(createSize / 2)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "Entry at half size but full memset overflows."
+  },
+  {
+    "id": "T1_expat_0154",
+    "project": "expat",
+    "diff": {
+      "file": "expat/lib/xmlparse.c",
+      "line": 2998,
+      "before": "sizeof(TAG)",
+      "after": "sizeof(TAG) / 2"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "TAG struct at half size. Field init writes past allocation."
+  },
+  {
+    "id": "T1_expat_0155",
+    "project": "expat",
+    "diff": {
+      "file": "expat/lib/xmlparse.c",
+      "line": 0,
+      "before": "tem = MALLOC(pool->parser, bytesToAllocate);",
+      "after": "tem = MALLOC(pool->parser, bytesToAllocate > 64 ? bytesToAllocate / 2 : bytesToAllocate);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1",
+    "explanation": "poolGrow new-block path allocates half the required bytes but sets pool end to full size, causing subsequent pool writes to overflow"
+  },
+  {
+    "id": "T1_expat_0156",
+    "project": "expat",
+    "diff": {
+      "file": "expat/lib/xmlparse.c",
+      "line": 8194,
+      "before": "    pool->start = tem->s;\n    pool->end = tem->s + blockSize;",
+      "after": "    pool->start = tem->s;\n    pool->end = tem->s + blockSize + 16;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3a",
+    "explanation": ""
+  },
+  {
+    "id": "T1_expat_0157",
+    "project": "expat",
+    "diff": {
+      "file": "expat/lib/xmlparse.c",
+      "line": 0,
+      "before": "          parser->m_groupConnector\n              = (char *)MALLOC(parser, parser->m_groupSize = 32);",
+      "after": "          parser->m_groupConnector\n              = (char *)MALLOC(parser, parser->m_groupSize = 1);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "doProlog 1-byte groupConnector, element decl overflows."
+  },
+  {
+    "id": "T1_expat_0158",
+    "project": "expat",
+    "diff": {
+      "file": "expat/lib/xmlparse.c",
+      "line": 0,
+      "before": "      temp = (CONTENT_SCAFFOLD *)MALLOC(parser, INIT_SCAFFOLD_ELEMENTS\n                                                    * sizeof(CONTENT_SCAFFOLD));",
+      "after": "      temp = (CONTENT_SCAFFOLD *)MALLOC(parser, 1\n                                                    * sizeof(CONTENT_SCAFFOLD));"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "nextScaffoldPart 1 scaffold, multiple parts overflow."
+  },
+  {
+    "id": "T1_expat_0160",
+    "project": "expat",
+    "diff": {
+      "file": "expat/lib/xmlparse.c",
+      "line": 3038,
+      "before": "tag->bufEnd = temp + bufSize;",
+      "after": "tag->bufEnd = temp + bufSize + 64;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "After realloc, bufEnd 64 bytes past allocation. XmlConvert loop overflows."
+  },
+  {
+    "id": "T1_expat_0161",
+    "project": "expat",
+    "diff": {
+      "file": "expat/lib/xmlparse.c",
+      "line": 2031,
+      "before": "memcpy(buff, s, len);",
+      "after": "memcpy(buff, s, len + 32);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "Input copy inflated by 32. Reads past user buffer, writes past internal buffer."
+  },
+  {
+    "id": "T1_expat_0162",
+    "project": "expat",
+    "diff": {
+      "file": "expat/lib/xmlparse.c",
+      "line": 6553,
+      "before": "allocDefaultAtts * 2",
+      "after": "allocDefaultAtts"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "defaultAtts realloc keeps same size but allocDefaultAtts doubles. New entries overflow."
+  },
+  {
+    "id": "T1_expat_0164",
+    "project": "expat",
+    "diff": {
+      "file": "expat/lib/xmlparse.c",
+      "line": 0,
+      "before": "        tag->bufEnd = tag->buf + INIT_TAG_BUF_SIZE;",
+      "after": "        tag->bufEnd = tag->buf + INIT_TAG_BUF_SIZE + 256;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "doContent sets bufEnd 256 past allocation, XmlConvert overflows."
+  },
+  {
+    "id": "T1_expat_0165",
+    "project": "expat",
+    "diff": {
+      "file": "expat/lib/xmlparse.c",
+      "line": 0,
+      "before": "    temp = (ATTRIBUTE *)REALLOC(parser, (void *)parser->m_atts,\n                                parser->m_attsSize * sizeof(ATTRIBUTE));",
+      "after": "    temp = (ATTRIBUTE *)REALLOC(parser, (void *)parser->m_atts,\n                                2 * sizeof(ATTRIBUTE));"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "storeAtts REALLOC allocates space for only 2 ATTRIBUTEs while the code writes n+nDefaultAtts entries, causing heap overflow with many attributes."
+  },
+  {
+    "id": "T1_expat_0166",
+    "project": "expat",
+    "diff": {
+      "file": "expat/lib/xmltok.c",
+      "line": 1511,
+      "before": "  for (i = 0; i < (int)(sizeof(encodingNames) / sizeof(encodingNames[0])); i++)",
+      "after": "  for (i = 0; i <= (int)(sizeof(encodingNames) / sizeof(encodingNames[0])); i++)"
+    },
+    "crash_type": "global-buffer-overflow",
+    "family": "F1g",
+    "explanation": ""
+  },
+  {
+    "id": "T1_expat_0167",
+    "project": "expat",
+    "diff": {
+      "file": "expat/lib/xmlparse.c",
+      "line": 4134,
+      "before": "  for (; i < attIndex; i += 2)",
+      "after": "  for (; i <= attIndex; i += 2)"
+    },
+    "crash_type": "SEGV",
+    "family": "F1g",
+    "explanation": ""
+  }
+]

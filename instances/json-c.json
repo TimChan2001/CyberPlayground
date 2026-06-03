@@ -1,0 +1,80 @@
+[
+  {
+    "id": "T1_json-c_0001",
+    "project": "json-c",
+    "diff": {
+      "file": "json_object.c",
+      "line": 1476,
+      "before": "  objsize = (sizeof(*jso) - sizeof(jso->c_string)) + len + 1;",
+      "after": "  objsize = (sizeof(*jso) - sizeof(jso->c_string)) + len;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "Under-allocating by 1 byte causes the NUL terminator write at idata[len] to overflow the heap object."
+  },
+  {
+    "id": "T1_json-c_0002",
+    "project": "json-c",
+    "diff": {
+      "file": "printbuf.c",
+      "line": 46,
+      "before": "if (!(p->buf = (char *)malloc(p->size)))",
+      "after": "if (!(p->buf = (char *)malloc(p->size - 2)))"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "Allocating p->size-2 bytes while p->size remains at 32 causes the NUL terminator write to overflow when the buffer fills to 30 characters."
+  },
+  {
+    "id": "T1_json-c_0003",
+    "project": "json-c",
+    "diff": {
+      "file": "json_tokener.c",
+      "line": 1156,
+      "before": "if (tok->depth >= tok->max_depth - 1)",
+      "after": "if (tok->depth > tok->max_depth - 1)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "Flipping >= to > in the depth check allows tok->depth to reach max_depth, writing past the token stack array."
+  },
+  {
+    "id": "T1_json-c_0004",
+    "project": "json-c",
+    "diff": {
+      "file": "linkhash.c",
+      "line": 513,
+      "before": "calloc(size, sizeof(struct lh_entry))",
+      "after": "calloc(size - 1, sizeof(struct lh_entry))"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "Allocating size-1 entries while the hash probing uses indices 0 to size-1 causes writes past the allocation."
+  },
+  {
+    "id": "T1_json-c_0005",
+    "project": "json-c",
+    "diff": {
+      "file": "json_object.c",
+      "line": 461,
+      "before": "jso = (struct json_object *)malloc(alloc_size);",
+      "after": "jso = (struct json_object *)malloc(alloc_size - 8);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "Under-allocating by 8 bytes causes writes to type-specific fields at the end of the struct to overflow the heap object."
+  },
+  {
+    "id": "T1_json-c_0007",
+    "project": "json-c",
+    "diff": {
+      "file": "arraylist.c",
+      "line": 99,
+      "before": "realloc(arr->array, new_size * sizeof(void *))",
+      "after": "realloc(arr->array, (new_size - 1) * sizeof(void *))"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "Allocating (new_size-1)*sizeof(void*) instead of new_size*sizeof(void*) causes writes to the last array slot to overflow."
+  }
+]

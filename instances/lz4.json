@@ -1,0 +1,444 @@
+[
+  {
+    "id": "T1_lz4_0004",
+    "project": "lz4",
+    "diff": {
+      "file": "lib/lz4frame.c",
+      "line": 1304,
+      "before": "LZ4F_dctx* const dctx = (LZ4F_dctx*)LZ4F_calloc(sizeof(LZ4F_dctx), customMem);",
+      "after": "LZ4F_dctx* const dctx = (LZ4F_dctx*)LZ4F_calloc(sizeof(LZ4F_dctx) / 2, customMem);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Halve the LZ4F_dctx decompression context allocation. Struct fields in the second half of the context are written past the allocation boundary, causing heap-buffer-overflow when initializing the decompression state."
+  },
+  {
+    "id": "T1_lz4_0005",
+    "project": "lz4",
+    "diff": {
+      "file": "lib/lz4frame.c",
+      "line": 1304,
+      "before": "LZ4F_dctx* const dctx = (LZ4F_dctx*)LZ4F_calloc(sizeof(LZ4F_dctx), customMem);",
+      "after": "LZ4F_dctx* const dctx = (LZ4F_dctx*)LZ4F_calloc(sizeof(LZ4F_dctx) * 3 / 4, customMem);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Allocate only 3/4 of the LZ4F_dctx struct size. Fields in the last quarter of the context write past the allocation, triggering heap-buffer-overflow during frame header decode."
+  },
+  {
+    "id": "T1_lz4_0006",
+    "project": "lz4",
+    "diff": {
+      "file": "lib/lz4frame.c",
+      "line": 1304,
+      "before": "LZ4F_dctx* const dctx = (LZ4F_dctx*)LZ4F_calloc(sizeof(LZ4F_dctx), customMem);",
+      "after": "LZ4F_dctx* const dctx = (LZ4F_dctx*)LZ4F_calloc(sizeof(LZ4F_dctx) - 32, customMem);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F2",
+    "explanation": "Subtract 32 bytes from the LZ4F_dctx allocation. The last 32 bytes of struct writes land past the heap allocation boundary, causing heap-buffer-overflow."
+  },
+  {
+    "id": "T1_lz4_0007",
+    "project": "lz4",
+    "diff": {
+      "file": "lib/lz4.c",
+      "line": 2228,
+      "before": "&& likely((ip < shortiend) & (op <= shortoend)) ) {",
+      "after": "&& likely((ip < iend) & (op <= oend)) ) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F5",
+    "explanation": "Remove the shortcut safety margins in LZ4_decompress_generic safe decode loop. The shortcut copies 16 bytes for literals and 18 bytes for matches without further bounds checks. Without the 32-byte margin (shortiend/shortoend), these fixed-size copies can write past the output buffer end."
+  },
+  {
+    "id": "T1_lz4_0008",
+    "project": "lz4",
+    "diff": {
+      "file": "lib/lz4.c",
+      "line": 2083,
+      "before": "const BYTE* const shortiend = iend - 14 /*maxLL*/ - 2 /*offset*/;\n        const BYTE* const shortoend = oend - 14 /*maxLL*/ - 18 /*maxML*/;",
+      "after": "const BYTE* const shortiend = iend;\n        const BYTE* const shortoend = oend;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F5",
+    "explanation": "Set shortcut end pointers to the actual buffer ends instead of backing off by 16/32 bytes. The shortcut path does unconditional 16-byte literal copies and 18-byte match copies; without the safety margin, these overflow input/output buffers."
+  },
+  {
+    "id": "T1_lz4_0042",
+    "project": "lz4",
+    "diff": {
+      "file": "lib/lz4frame.c",
+      "line": 0,
+      "before": "LZ4F_calloc(sizeof(LZ4F_dctx), customMem)",
+      "after": "LZ4F_calloc(sizeof(LZ4F_dctx) - 48, customMem)"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "",
+    "explanation": "Reduced sizeof(LZ4F_dctx) by 48 in calloc, truncating the blockChecksum XXH32_state and part of the xxh content checksum state. Heap-buffer-overflow when LZ4F_decompress writes to the XXH32 state or processes frame header bytes into the truncated region."
+  },
+  {
+    "id": "T1_lz4_0043",
+    "project": "lz4",
+    "diff": {
+      "file": "lib/lz4frame.c",
+      "line": 0,
+      "before": "LZ4F_calloc(sizeof(LZ4F_dctx), customMem)",
+      "after": "LZ4F_calloc(sizeof(LZ4F_dctx) / 2, customMem)"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "",
+    "explanation": "Decompression context half-sized: sizeof(LZ4F_dctx) divided by 2 in LZ4F_calloc, allocating approximately half the required memory. Heap-buffer-overflow when LZ4F_decompress writes to struct fields in the second half of the context (tmpOutBuffer pointer, XXH32 state, header array)."
+  },
+  {
+    "id": "T1_lz4_0044",
+    "project": "lz4",
+    "diff": {
+      "file": "lib/lz4frame.c",
+      "line": 1304,
+      "before": "LZ4F_calloc(sizeof(LZ4F_dctx), customMem)",
+      "after": "LZ4F_calloc(sizeof(LZ4F_dctx) - 128, customMem)"
+    },
+    "crash_type": "heap-buffer-overflow READ",
+    "family": "",
+    "explanation": "Decompression context truncated by 128 bytes: sizeof(LZ4F_dctx) - 128 in LZ4F_calloc, cutting into the header[] array and XXH32 checksum state. Heap-buffer-overflow when LZ4F_decodeHeader writes frame header bytes or LZ4F_decompress initializes the XXH32 state past the allocated region."
+  },
+  {
+    "id": "T1_lz4_0045",
+    "project": "lz4",
+    "diff": {
+      "file": "lib/lz4frame.c",
+      "line": 1304,
+      "before": "LZ4F_calloc(sizeof(LZ4F_dctx), customMem)",
+      "after": "LZ4F_calloc(sizeof(LZ4F_dctx) - 96, customMem)"
+    },
+    "crash_type": "heap-buffer-overflow READ",
+    "family": "",
+    "explanation": "Decompression context truncated by 96 bytes: sizeof(LZ4F_dctx) - 96 in LZ4F_calloc, cutting into the blockChecksum XXH32_state and content checksum fields. Heap-buffer-overflow when LZ4F_decompress reads or writes checksum state and frame header fields past the truncated allocation."
+  },
+  {
+    "id": "T1_lz4_0046",
+    "project": "lz4",
+    "diff": {
+      "file": "lib/lz4frame.c",
+      "line": 1304,
+      "before": "LZ4F_calloc(sizeof(LZ4F_dctx), customMem)",
+      "after": "LZ4F_calloc(sizeof(LZ4F_dctx) - 56, customMem)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "Decompression context truncated by 56 bytes: sizeof(LZ4F_dctx) - 56 in LZ4F_calloc, cutting into the xxh XXH32_state and subsequent fields. Heap-buffer-overflow when LZ4F_decompress accesses checksum state past the truncated allocation."
+  },
+  {
+    "id": "T1_lz4_0047",
+    "project": "lz4",
+    "diff": {
+      "file": "lib/lz4frame.c",
+      "line": 1304,
+      "before": "LZ4F_calloc(sizeof(LZ4F_dctx), customMem)",
+      "after": "LZ4F_calloc(sizeof(LZ4F_dctx) - 64, customMem)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "Decompression context truncated by 64 bytes: sizeof(LZ4F_dctx) - 64 in LZ4F_calloc, cutting into the xxh XXH32_state field. Heap-buffer-overflow when LZ4F_decompress reads or writes checksum state past the truncated allocation."
+  },
+  {
+    "id": "T1_lz4_0048",
+    "project": "lz4",
+    "diff": {
+      "file": "lib/lz4frame.c",
+      "line": 1304,
+      "before": "LZ4F_calloc(sizeof(LZ4F_dctx), customMem)",
+      "after": "LZ4F_calloc(sizeof(LZ4F_dctx) - 80, customMem)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "Decompression context truncated by 80 bytes: sizeof(LZ4F_dctx) - 80 in LZ4F_calloc, cutting into the tmpOutStart and xxh fields. Heap-buffer-overflow when LZ4F_decompress accesses output tracking and checksum state past the truncated allocation."
+  },
+  {
+    "id": "T1_lz4_0049",
+    "project": "lz4",
+    "diff": {
+      "file": "lib/lz4frame.c",
+      "line": 1304,
+      "before": "LZ4F_calloc(sizeof(LZ4F_dctx), customMem)",
+      "after": "LZ4F_calloc(sizeof(LZ4F_dctx) - 24, customMem)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "Decompression context truncated by 24 bytes: sizeof(LZ4F_dctx) - 24 in LZ4F_calloc, cutting into the header array and skipChecksum fields. Heap-buffer-overflow when LZ4F_decompress reads frame header bytes past the truncated allocation."
+  },
+  {
+    "id": "T1_lz4_0050",
+    "project": "lz4",
+    "diff": {
+      "file": "lib/lz4frame.c",
+      "line": 1304,
+      "before": "LZ4F_calloc(sizeof(LZ4F_dctx), customMem)",
+      "after": "LZ4F_calloc(sizeof(LZ4F_dctx) - 40, customMem)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "Decompression context truncated by 40 bytes: sizeof(LZ4F_dctx) - 40 in LZ4F_calloc, cutting into the blockChecksum XXH32_state and header fields. Heap-buffer-overflow when LZ4F_decompress accesses checksum and header state past the truncated allocation."
+  },
+  {
+    "id": "T1_lz4_0051",
+    "project": "lz4",
+    "diff": {
+      "file": "lib/lz4frame.c",
+      "line": 0,
+      "before": "    LZ4F_dctx* const dctx = (LZ4F_dctx*)LZ4F_calloc(sizeof(LZ4F_dctx), customMem);",
+      "after": "    LZ4F_dctx* const dctx = (LZ4F_dctx*)LZ4F_calloc(sizeof(LZ4F_dctx) - 96, customMem);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "allocation-undersize",
+    "explanation": "LZ4 decompression context under-allocation"
+  },
+  {
+    "id": "T1_lz4_0052",
+    "project": "lz4",
+    "diff": {
+      "file": "lib/lz4frame.c",
+      "line": 0,
+      "before": "    LZ4F_dctx* const dctx = (LZ4F_dctx*)LZ4F_calloc(sizeof(LZ4F_dctx), customMem);",
+      "after": "    LZ4F_dctx* const dctx = (LZ4F_dctx*)LZ4F_calloc(sizeof(LZ4F_dctx) - 104, customMem);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "allocation-undersize",
+    "explanation": "LZ4 decompression context under-allocation"
+  },
+  {
+    "id": "T1_lz4_0053",
+    "project": "lz4",
+    "diff": {
+      "file": "lib/lz4frame.c",
+      "line": 0,
+      "before": "    LZ4F_dctx* const dctx = (LZ4F_dctx*)LZ4F_calloc(sizeof(LZ4F_dctx), customMem);",
+      "after": "    LZ4F_dctx* const dctx = (LZ4F_dctx*)LZ4F_calloc(sizeof(LZ4F_dctx) - 16, customMem);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "allocation-undersize",
+    "explanation": "LZ4 decompression context under-allocation"
+  },
+  {
+    "id": "T1_lz4_0054",
+    "project": "lz4",
+    "diff": {
+      "file": "lib/lz4frame.c",
+      "line": 0,
+      "before": "    LZ4F_dctx* const dctx = (LZ4F_dctx*)LZ4F_calloc(sizeof(LZ4F_dctx), customMem);",
+      "after": "    LZ4F_dctx* const dctx = (LZ4F_dctx*)LZ4F_calloc(sizeof(LZ4F_dctx) - 20, customMem);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "allocation-undersize",
+    "explanation": "LZ4 decompression context under-allocation"
+  },
+  {
+    "id": "T1_lz4_0055",
+    "project": "lz4",
+    "diff": {
+      "file": "lib/lz4frame.c",
+      "line": 0,
+      "before": "    LZ4F_dctx* const dctx = (LZ4F_dctx*)LZ4F_calloc(sizeof(LZ4F_dctx), customMem);",
+      "after": "    LZ4F_dctx* const dctx = (LZ4F_dctx*)LZ4F_calloc(sizeof(LZ4F_dctx) - 36, customMem);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "allocation-undersize",
+    "explanation": "LZ4 decompression context under-allocation"
+  },
+  {
+    "id": "T1_lz4_0056",
+    "project": "lz4",
+    "diff": {
+      "file": "lib/lz4frame.c",
+      "line": 0,
+      "before": "    LZ4F_dctx* const dctx = (LZ4F_dctx*)LZ4F_calloc(sizeof(LZ4F_dctx), customMem);",
+      "after": "    LZ4F_dctx* const dctx = (LZ4F_dctx*)LZ4F_calloc(sizeof(LZ4F_dctx) - 44, customMem);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "allocation-undersize",
+    "explanation": "LZ4 decompression context under-allocation"
+  },
+  {
+    "id": "T1_lz4_0057",
+    "project": "lz4",
+    "diff": {
+      "file": "lib/lz4frame.c",
+      "line": 0,
+      "before": "    LZ4F_dctx* const dctx = (LZ4F_dctx*)LZ4F_calloc(sizeof(LZ4F_dctx), customMem);",
+      "after": "    LZ4F_dctx* const dctx = (LZ4F_dctx*)LZ4F_calloc(sizeof(LZ4F_dctx) - 52, customMem);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "allocation-undersize",
+    "explanation": "LZ4 decompression context under-allocation"
+  },
+  {
+    "id": "T1_lz4_0058",
+    "project": "lz4",
+    "diff": {
+      "file": "lib/lz4frame.c",
+      "line": 0,
+      "before": "    LZ4F_dctx* const dctx = (LZ4F_dctx*)LZ4F_calloc(sizeof(LZ4F_dctx), customMem);",
+      "after": "    LZ4F_dctx* const dctx = (LZ4F_dctx*)LZ4F_calloc(sizeof(LZ4F_dctx) - 60, customMem);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "allocation-undersize",
+    "explanation": "LZ4 decompression context under-allocation"
+  },
+  {
+    "id": "T1_lz4_0059",
+    "project": "lz4",
+    "diff": {
+      "file": "lib/lz4frame.c",
+      "line": 0,
+      "before": "    LZ4F_dctx* const dctx = (LZ4F_dctx*)LZ4F_calloc(sizeof(LZ4F_dctx), customMem);",
+      "after": "    LZ4F_dctx* const dctx = (LZ4F_dctx*)LZ4F_calloc(sizeof(LZ4F_dctx) - 72, customMem);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "allocation-undersize",
+    "explanation": "LZ4 decompression context under-allocation"
+  },
+  {
+    "id": "T1_lz4_0060",
+    "project": "lz4",
+    "diff": {
+      "file": "lib/lz4frame.c",
+      "line": 0,
+      "before": "    LZ4F_dctx* const dctx = (LZ4F_dctx*)LZ4F_calloc(sizeof(LZ4F_dctx), customMem);",
+      "after": "    LZ4F_dctx* const dctx = (LZ4F_dctx*)LZ4F_calloc(sizeof(LZ4F_dctx) - 88, customMem);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "allocation-undersize",
+    "explanation": "LZ4 decompression context under-allocation"
+  },
+  {
+    "id": "T1_lz4_0061",
+    "project": "lz4",
+    "diff": {
+      "file": "lib/lz4frame.c",
+      "line": 0,
+      "before": "    LZ4F_dctx* const dctx = (LZ4F_dctx*)LZ4F_calloc(sizeof(LZ4F_dctx), customMem);",
+      "after": "    LZ4F_dctx* const dctx = (LZ4F_dctx*)LZ4F_calloc(sizeof(LZ4F_dctx) - 128, customMem);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "allocation-undersize",
+    "explanation": "LZ4 decompression context under-allocation"
+  },
+  {
+    "id": "T1_lz4_0062",
+    "project": "lz4",
+    "diff": {
+      "file": "lib/lz4.c",
+      "line": 0,
+      "before": "        BYTE* const oend = op + outputSize;",
+      "after": "        BYTE* const oend = op + outputSize + 32;"
+    },
+    "crash_type": "",
+    "family": "",
+    "explanation": "Output end pointer extended by 32 bytes past actual allocation in LZ4_decompress_generic, allowing writes past output buffer"
+  },
+  {
+    "id": "T1_lz4_0067",
+    "project": "lz4",
+    "diff": {
+      "file": "lib/lz4frame.c",
+      "line": 0,
+      "before": "                    dctx->tmpOutBuffer= (BYTE*)LZ4F_malloc(bufferNeeded, dctx->cmem);",
+      "after": "                    dctx->tmpOutBuffer= (BYTE*)LZ4F_malloc(bufferNeeded / 8 + 1, dctx->cmem);"
+    },
+    "crash_type": "",
+    "family": "",
+    "explanation": "tmpOutBuffer allocated at bufferNeeded/8 instead of bufferNeeded causing heap OOB write during LZ4 frame decompression"
+  },
+  {
+    "id": "T1_lz4_0068",
+    "project": "lz4",
+    "diff": {
+      "file": "lib/lz4frame.c",
+      "line": 0,
+      "before": "    LZ4F_dctx* const dctx = (LZ4F_dctx*)LZ4F_calloc(sizeof(LZ4F_dctx), customMem);",
+      "after": "    LZ4F_dctx* const dctx = (LZ4F_dctx*)LZ4F_calloc(sizeof(LZ4F_dctx) - 64, customMem);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "allocation-undersize",
+    "explanation": "LZ4 decompression context under-allocation"
+  },
+  {
+    "id": "T1_lz4_0069",
+    "project": "lz4",
+    "diff": {
+      "file": "lib/lz4frame.c",
+      "line": 0,
+      "before": "    LZ4F_dctx* const dctx = (LZ4F_dctx*)LZ4F_calloc(sizeof(LZ4F_dctx), customMem);",
+      "after": "    LZ4F_dctx* const dctx = (LZ4F_dctx*)LZ4F_calloc(sizeof(LZ4F_dctx) - 32, customMem);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "allocation-undersize",
+    "explanation": "LZ4 decompression context under-allocation"
+  },
+  {
+    "id": "T1_lz4_0073",
+    "project": "lz4",
+    "diff": {
+      "file": "lib/lz4frame.c",
+      "line": 1719,
+      "before": "dctx->tmpOutBuffer= (BYTE*)LZ4F_malloc(bufferNeeded, dctx->cmem);",
+      "after": "dctx->tmpOutBuffer= (BYTE*)LZ4F_malloc(bufferNeeded / 4, dctx->cmem);"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "F1",
+    "explanation": "Decompression output buffer allocated at quarter size causes overflow when decompressed block data is written to undersized tmpOutBuffer in block-linked mode"
+  },
+  {
+    "id": "T1_lz4_0074",
+    "project": "lz4",
+    "diff": {
+      "file": "lib/lz4.c",
+      "line": 2275,
+      "before": "if ((cpy>oend-MFLIMIT) || (ip+length>iend-(2+1+LASTLITERALS)))",
+      "after": "if (0)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1",
+    "explanation": "Removed literal copy safety check allows decompressor to write past output buffer"
+  },
+  {
+    "id": "T1_lz4_0076",
+    "project": "lz4",
+    "diff": {
+      "file": "lib/lz4frame.c",
+      "line": 1304,
+      "before": "LZ4F_calloc(sizeof(LZ4F_dctx), customMem)",
+      "after": "LZ4F_calloc(sizeof(LZ4F_dctx) - 72, customMem)"
+    },
+    "crash_type": "heap-buffer-overflow READ",
+    "family": "F1",
+    "explanation": "Undersized decompression context allocation by 72 bytes causes struct tail fields to overflow during frame header initialization"
+  },
+  {
+    "id": "T1_lz4_0077",
+    "project": "lz4",
+    "diff": {
+      "file": "lib/lz4.c",
+      "line": 2352,
+      "before": "if ((checkOffset) && (unlikely(match + dictSize < lowPrefix))) goto _output_error;   /* Error : offset outside buffers */",
+      "after": "/* offset validated during encoding */"
+    },
+    "crash_type": "heap-buffer-overflow READ",
+    "family": "F1",
+    "explanation": "Removing offset bounds check allows match pointer to reference memory outside valid buffer range"
+  },
+  {
+    "id": "T1_lz4_0079",
+    "project": "lz4",
+    "diff": {
+      "file": "lib/lz4.c",
+      "line": 0,
+      "before": "if ((ip+length != iend) || (cpy > oend)) {",
+      "after": "if (0) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1",
+    "explanation": "Removing final sequence validation allows corrupted blocks to write past the output buffer boundary"
+  }
+]

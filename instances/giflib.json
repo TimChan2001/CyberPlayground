@@ -1,0 +1,392 @@
+[
+  {
+    "id": "T1_giflib_0011",
+    "project": "giflib",
+    "diff": {
+      "file": "dgif_lib.c",
+      "line": 1222,
+      "before": "sp->RasterBits = (unsigned char *)reallocarray(\n\t\t\t    NULL, ImageSize, sizeof(GifPixelType));",
+      "after": "sp->RasterBits = (unsigned char *)reallocarray(\n\t\t\t    NULL, ImageSize / 2, sizeof(GifPixelType));"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Halve the RasterBits allocation in DGifSlurp. ImageSize = Width*Height pixels are allocated as ImageSize/2 bytes, so DGifGetLine writes Width*Height pixels into a buffer half that size, causing heap-buffer-overflow."
+  },
+  {
+    "id": "T1_giflib_0012",
+    "project": "giflib",
+    "diff": {
+      "file": "dgif_lib.c",
+      "line": 1222,
+      "before": "sp->RasterBits = (unsigned char *)reallocarray(\n\t\t\t    NULL, ImageSize, sizeof(GifPixelType));",
+      "after": "sp->RasterBits = (unsigned char *)reallocarray(\n\t\t\t    NULL, ImageSize / 4, sizeof(GifPixelType));"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Quarter the RasterBits allocation in DGifSlurp. DGifGetLine writes ImageSize pixels into a buffer that is only ImageSize/4 bytes, causing a 3/4-buffer-sized heap overflow."
+  },
+  {
+    "id": "T1_giflib_0013",
+    "project": "giflib",
+    "diff": {
+      "file": "dgif_lib.c",
+      "line": 1222,
+      "before": "sp->RasterBits = (unsigned char *)reallocarray(\n\t\t\t    NULL, ImageSize, sizeof(GifPixelType));",
+      "after": "sp->RasterBits = (unsigned char *)reallocarray(\n\t\t\t    NULL, ImageSize > 16 ? ImageSize - 16 : 1, sizeof(GifPixelType));"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F2",
+    "explanation": "Subtract 16 from the RasterBits allocation in DGifSlurp. For any image with more than 16 pixels, the last 16 pixel writes overflow the heap buffer by 16 bytes."
+  },
+  {
+    "id": "T1_giflib_0014",
+    "project": "giflib",
+    "diff": {
+      "file": "dgif_lib.c",
+      "line": 1222,
+      "before": "sp->RasterBits = (unsigned char *)reallocarray(\n\t\t\t    NULL, ImageSize, sizeof(GifPixelType));",
+      "after": "sp->RasterBits = (unsigned char *)reallocarray(\n\t\t\t    NULL, sp->ImageDesc.Width, sizeof(GifPixelType));"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Allocate only Width bytes instead of Width*Height for RasterBits in DGifSlurp. For multi-row images, decompression writes Height*Width pixels into a Width-byte buffer, overflowing by (Height-1)*Width bytes."
+  },
+  {
+    "id": "T1_giflib_0015",
+    "project": "giflib",
+    "diff": {
+      "file": "gifalloc.c",
+      "line": 58,
+      "before": "(GifColorType *)calloc(ColorCount, sizeof(GifColorType));",
+      "after": "(GifColorType *)calloc(ColorCount / 2 + 1, sizeof(GifColorType));"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Halve the color map allocation in GifMakeMapObject. When the GIF has a Global Color Table, the reader fills ColorCount entries but only ColorCount/2+1 are allocated, causing writes past the color map buffer."
+  },
+  {
+    "id": "T1_giflib_0026",
+    "project": "giflib",
+    "diff": {
+      "file": "gifalloc.c",
+      "line": 0,
+      "before": "\tObject->Colors =\n\t    (GifColorType *)calloc(ColorCount, sizeof(GifColorType));",
+      "after": "\tObject->Colors =\n\t    (GifColorType *)calloc(ColorCount / 2, sizeof(GifColorType));"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "Halving color map allocation causes memcpy of full ColorCount entries to overflow."
+  },
+  {
+    "id": "T1_giflib_0030",
+    "project": "giflib",
+    "diff": {
+      "file": "gifalloc.c",
+      "line": 0,
+      "before": "\tObject->Colors =\n\t    (GifColorType *)calloc(ColorCount, sizeof(GifColorType));",
+      "after": "\tObject->Colors =\n\t    (GifColorType *)calloc(1, sizeof(GifColorType));"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "GifMakeMapObject allocates 1 color entry instead of ColorCount"
+  },
+  {
+    "id": "T1_giflib_0033",
+    "project": "giflib",
+    "diff": {
+      "file": "dgif_lib.c",
+      "line": 0,
+      "before": "\t\t\tsp->RasterBits = (unsigned char *)reallocarray(\n\t\t\t    NULL, ImageSize, sizeof(GifPixelType));",
+      "after": "\t\t\tsp->RasterBits = (unsigned char *)reallocarray(\n\t\t\t    NULL, ImageSize > 8 ? ImageSize - 8 : 1, sizeof(GifPixelType));"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "DGifSlurp RasterBits undersized by 8 bytes"
+  },
+  {
+    "id": "T1_giflib_0034",
+    "project": "giflib",
+    "diff": {
+      "file": "dgif_lib.c",
+      "line": 0,
+      "before": "\t\t\tsp->RasterBits = (unsigned char *)reallocarray(\n\t\t\t    NULL, ImageSize, sizeof(GifPixelType));",
+      "after": "\t\t\tsp->RasterBits = (unsigned char *)reallocarray(\n\t\t\t    NULL, ImageSize / 3, sizeof(GifPixelType));"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "DGifSlurp RasterBits allocation divided by 3"
+  },
+  {
+    "id": "T1_giflib_0035",
+    "project": "giflib",
+    "diff": {
+      "file": "dgif_lib.c",
+      "line": 0,
+      "before": "\t\t\tsp->RasterBits = (unsigned char *)reallocarray(\n\t\t\t    NULL, ImageSize, sizeof(GifPixelType));",
+      "after": "\t\t\tsp->RasterBits = (unsigned char *)reallocarray(\n\t\t\t    NULL, ImageSize / 8, sizeof(GifPixelType));"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "DGifSlurp RasterBits allocation divided by 8"
+  },
+  {
+    "id": "T1_giflib_0036",
+    "project": "giflib",
+    "diff": {
+      "file": "dgif_lib.c",
+      "line": 0,
+      "before": "\t\t\tsp->RasterBits = (unsigned char *)reallocarray(\n\t\t\t    NULL, ImageSize, sizeof(GifPixelType));",
+      "after": "\t\t\tsp->RasterBits = (unsigned char *)reallocarray(\n\t\t\t    NULL, 2, sizeof(GifPixelType));"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "DGifSlurp RasterBits fixed allocation of 2 bytes"
+  },
+  {
+    "id": "T1_giflib_0037",
+    "project": "giflib",
+    "diff": {
+      "file": "dgif_lib.c",
+      "line": 0,
+      "before": "\t\t\tsp->RasterBits = (unsigned char *)reallocarray(\n\t\t\t    NULL, ImageSize, sizeof(GifPixelType));",
+      "after": "\t\t\tsp->RasterBits = (unsigned char *)reallocarray(\n\t\t\t    NULL, sp->ImageDesc.Width, sizeof(GifPixelType));"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "DGifSlurp allocates Width instead of Width*Height pixels"
+  },
+  {
+    "id": "T1_giflib_0047",
+    "project": "giflib",
+    "diff": {
+      "file": "gifalloc.c",
+      "line": 251,
+      "before": "ep->Bytes = (GifByteType *)malloc(ep->ByteCount);",
+      "after": "ep->Bytes = (GifByteType *)malloc(ep->ByteCount > 1 ? ep->ByteCount - 1 : 1);"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "",
+    "explanation": "Extension block byte buffer undersized by 1 in GifAddExtensionBlock: memcpy writes Len bytes into a (Len-1)-byte allocation"
+  },
+  {
+    "id": "T1_giflib_0048",
+    "project": "giflib",
+    "diff": {
+      "file": "dgif_lib.c",
+      "line": 288,
+      "before": "for (i = 0; i < GifFile->SColorMap->ColorCount; i++) {",
+      "after": "for (i = 0; i <= GifFile->SColorMap->ColorCount; i++) {"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "",
+    "explanation": "Off-by-one in global color table read loop: i <= ColorCount instead of i < ColorCount writes one extra entry past the heap-allocated color map"
+  },
+  {
+    "id": "T1_giflib_0049",
+    "project": "giflib",
+    "diff": {
+      "file": "dgif_lib.c",
+      "line": 404,
+      "before": "for (i = 0; i < GifFile->Image.ColorMap->ColorCount; i++) {",
+      "after": "for (i = 0; i <= GifFile->Image.ColorMap->ColorCount; i++) {"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "",
+    "explanation": "Off-by-one in local color table read loop: i <= ColorCount instead of i < ColorCount writes one extra entry past the heap-allocated local color map"
+  },
+  {
+    "id": "T1_giflib_0050",
+    "project": "giflib",
+    "diff": {
+      "file": "gifalloc.c",
+      "line": 268,
+      "before": "memcpy(ep->Bytes, ExtData, Len);",
+      "after": "memcpy(ep->Bytes, ExtData, Len + 1);"
+    },
+    "crash_type": "heap-buffer-overflow READ",
+    "family": "",
+    "explanation": "Off-by-one in extension block data copy: memcpy uses Len+1 instead of Len, reading one byte past the source ExtData buffer"
+  },
+  {
+    "id": "T1_giflib_0051",
+    "project": "giflib",
+    "diff": {
+      "file": "dgif_lib.c",
+      "line": 1242,
+      "before": "j < sp->ImageDesc.Height;",
+      "after": "j <= sp->ImageDesc.Height;"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "",
+    "explanation": "Off-by-one in interlaced image row loop: j <= Height instead of j < Height writes one extra row past the heap-allocated raster buffer"
+  },
+  {
+    "id": "T1_giflib_0052",
+    "project": "giflib",
+    "diff": {
+      "file": "gifalloc.c",
+      "line": 68,
+      "before": "ColorCount * sizeof(GifColorType));",
+      "after": "(ColorCount + 1) * sizeof(GifColorType));"
+    },
+    "crash_type": "heap-buffer-overflow READ",
+    "family": "",
+    "explanation": "Off-by-one in color map copy: memcpy copies (ColorCount+1)*sizeof(GifColorType) bytes from source ColorMap, reading one GifColorType entry past the source array"
+  },
+  {
+    "id": "T1_giflib_0053",
+    "project": "giflib",
+    "diff": {
+      "file": "dgif_lib.c",
+      "line": 266,
+      "before": "if (InternalRead(GifFile, Buf, 3) != 3) {",
+      "after": "if (InternalRead(GifFile, Buf, 4) != 4) {"
+    },
+    "crash_type": "stack-buffer-overflow WRITE",
+    "family": "",
+    "explanation": "Stack buffer overflow in screen descriptor packed-field read: InternalRead writes 4 bytes into 3-byte stack buffer Buf[3]"
+  },
+  {
+    "id": "T1_giflib_0054",
+    "project": "giflib",
+    "diff": {
+      "file": "gifalloc.c",
+      "line": 280,
+      "before": "ep < (*ExtensionBlocks + *ExtensionBlockCount); ep++)",
+      "after": "ep < (*ExtensionBlocks + *ExtensionBlockCount + 1); ep++)"
+    },
+    "crash_type": "heap-buffer-overflow READ",
+    "family": "",
+    "explanation": "Off-by-one in extension block free loop: iterates ExtensionBlockCount+1 entries instead of ExtensionBlockCount, reading and freeing one entry past the heap-allocated array"
+  },
+  {
+    "id": "T1_giflib_0055",
+    "project": "giflib",
+    "diff": {
+      "file": "dgif_lib.c",
+      "line": 846,
+      "before": "for (i = 0; i <= LZ_MAX_CODE; i++) {",
+      "after": "for (i = 0; i <= LZ_MAX_CODE + 128; i++) {"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "",
+    "explanation": "LZW prefix table initialization writes 128 entries past array"
+  },
+  {
+    "id": "T1_giflib_0056",
+    "project": "giflib",
+    "diff": {
+      "file": "gifalloc.c",
+      "line": 58,
+      "before": "(GifColorType *)calloc(ColorCount, sizeof(GifColorType));",
+      "after": "(GifColorType *)calloc(ColorCount / 2, sizeof(GifColorType));"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "",
+    "explanation": "Color map allocation halved causing read overflow"
+  },
+  {
+    "id": "T1_giflib_0057",
+    "project": "giflib",
+    "diff": {
+      "file": "gifalloc.c",
+      "line": 434,
+      "before": "sp < GifFile->SavedImages + GifFile->ImageCount; sp++)",
+      "after": "sp < GifFile->SavedImages + GifFile->ImageCount + 1; sp++)"
+    },
+    "crash_type": "heap-buffer-overflow READ",
+    "family": "",
+    "explanation": "SavedImages free loop reads one entry past array"
+  },
+  {
+    "id": "T1_giflib_0058",
+    "project": "giflib",
+    "diff": {
+      "file": "dgif_lib.c",
+      "line": 288,
+      "before": "for (i = 0; i < GifFile->SColorMap->ColorCount; i++) {",
+      "after": "for (i = 0; i < GifFile->SColorMap->ColorCount + 1; i++) {"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "",
+    "explanation": "Global color map read writes one entry past allocated array"
+  },
+  {
+    "id": "T1_giflib_0059",
+    "project": "giflib",
+    "diff": {
+      "file": "dgif_lib.c",
+      "line": 404,
+      "before": "for (i = 0; i < GifFile->Image.ColorMap->ColorCount; i++) {",
+      "after": "for (i = 0; i < GifFile->Image.ColorMap->ColorCount + 1; i++) {"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "",
+    "explanation": "Local color map read writes one entry past allocated array"
+  },
+  {
+    "id": "T1_giflib_0060",
+    "project": "giflib",
+    "diff": {
+      "file": "gifalloc.c",
+      "line": 251,
+      "before": "ep->Bytes = (GifByteType *)malloc(ep->ByteCount);",
+      "after": "ep->Bytes = (GifByteType *)malloc(ep->ByteCount > 0 ? ep->ByteCount - 1 : 0);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1",
+    "explanation": "Under-allocation of extension block data: allocating ByteCount-1 bytes instead of ByteCount causes the subsequent memcpy of Len bytes to write one byte past the allocation when processing GIF extension blocks."
+  },
+  {
+    "id": "T1_giflib_0061",
+    "project": "giflib",
+    "diff": {
+      "file": "gifalloc.c",
+      "line": 58,
+      "before": "calloc(ColorCount, sizeof(GifColorType))",
+      "after": "calloc(ColorCount / 2 > 0 ? ColorCount / 2 : 1, sizeof(GifColorType))"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1",
+    "explanation": "Under-allocation of color map: allocating ColorCount/2 entries instead of ColorCount causes the memcpy of the full color table to overflow when a GIF with a Global Color Table is parsed."
+  },
+  {
+    "id": "T1_giflib_0062",
+    "project": "giflib",
+    "diff": {
+      "file": "gifalloc.c",
+      "line": 0,
+      "before": "calloc(ColorCount, sizeof(GifColorType))",
+      "after": "calloc(ColorCount > 1 ? ColorCount - 1 : 1, sizeof(GifColorType))"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "F1",
+    "explanation": "A vulnerability in the color map allocator creates a color array one entry smaller than declared, causing writes past the buffer when populating colors."
+  },
+  {
+    "id": "T1_giflib_0064",
+    "project": "giflib",
+    "diff": {
+      "file": "dgif_lib.c",
+      "line": 172,
+      "before": "malloc(sizeof(GifFileType))",
+      "after": "malloc(sizeof(GifFileType) - 16)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1",
+    "explanation": "Under-allocation of GifFileType structure: allocating 16 bytes less than sizeof(GifFileType) causes the subsequent memset to write past the allocation, corrupting heap metadata."
+  },
+  {
+    "id": "T1_giflib_0065",
+    "project": "giflib",
+    "diff": {
+      "file": "dgif_lib.c",
+      "line": 0,
+      "before": "\t\t         (SavedImage *)malloc(sizeof(SavedImage))) == NULL)",
+      "after": "\t\t         (SavedImage *)malloc(sizeof(SavedImage) / 2)) == NULL)"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "",
+    "explanation": "The first SavedImage allocation in DGifGetImageDesc is halved, causing overflow when the image descriptor is copied into the undersized buffer."
+  }
+]

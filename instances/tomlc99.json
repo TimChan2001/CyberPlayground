@@ -1,0 +1,197 @@
+[
+  {
+    "id": "T1_tomlc99_0001",
+    "project": "tomlc99",
+    "diff": {
+      "file": "toml.c",
+      "line": 416,
+      "before": "memcpy(s, p, sz);",
+      "after": "memcpy(s, p, sz + sizeof(void*));"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "expand() copies sz+sizeof(void*) bytes, reading 8 bytes past old buffer."
+  },
+  {
+    "id": "T1_tomlc99_0002",
+    "project": "tomlc99",
+    "diff": {
+      "file": "toml.c",
+      "line": 756,
+      "before": "CALLOC(1, sizeof(*base[n]))",
+      "after": "CALLOC(1, sizeof(*base[n]) / 2)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "toml_keyval_t struct allocated at half size. Setting key and val fields writes past the undersized allocation."
+  },
+  {
+    "id": "T1_tomlc99_0003",
+    "project": "tomlc99",
+    "diff": {
+      "file": "toml.c",
+      "line": 763,
+      "before": "CALLOC(1, sizeof(*base[n]))",
+      "after": "CALLOC(1, 1)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "create_keyval_in_table allocates 1 byte instead of sizeof(toml_keyval_t). Writing the key pointer to dest->key overflows the 1-byte allocation."
+  },
+  {
+    "id": "T1_tomlc99_0004",
+    "project": "tomlc99",
+    "diff": {
+      "file": "toml.c",
+      "line": 423,
+      "before": "(n + 1) * sizeof(void *)",
+      "after": "n * sizeof(void *)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "expand_ptrarr allocates space for n pointers instead of n+1. The sentinel write s[n]=0 overflows by sizeof(void*)."
+  },
+  {
+    "id": "T1_tomlc99_0005",
+    "project": "tomlc99",
+    "diff": {
+      "file": "toml.c",
+      "line": 438,
+      "before": "memset(&pp[n], 0, sizeof(pp[n]));",
+      "after": "memset(&pp[n], 0, sizeof(pp[n]) + sizeof(pp[0]));"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "expand_arritem zeroes double the item size, writing past buffer into adjacent heap."
+  },
+  {
+    "id": "T1_tomlc99_0006",
+    "project": "tomlc99",
+    "diff": {
+      "file": "toml.c",
+      "line": 0,
+      "before": "    memcpy(s, p, sz);",
+      "after": "    memcpy(s, p, sz + 8);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "expand() copies sz+8 bytes from old buffer (of size sz) into new buffer, reading 8 bytes past old allocation."
+  },
+  {
+    "id": "T1_tomlc99_0007",
+    "project": "tomlc99",
+    "diff": {
+      "file": "toml.c",
+      "line": 0,
+      "before": "    memcpy(s, p, n * sizeof(void *));",
+      "after": "    memcpy(s, p, (n + 2) * sizeof(void *));"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "expand_ptrarr copies (n+2)*sizeof(void*) from a buffer that only has n entries, reading 2 pointers past the allocation."
+  },
+  {
+    "id": "T1_tomlc99_0015",
+    "project": "tomlc99",
+    "diff": {
+      "file": "toml.c",
+      "line": 0,
+      "before": "  if (0 == (base = (toml_keyval_t **)expand_ptrarr((void **)tab->kval, n))) {",
+      "after": "  if (0 == (base = (toml_keyval_t **)expand_ptrarr((void **)tab->kval, n > 0 ? n - 1 : 0))) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "Passing n-1 to expand_ptrarr under-allocates by one slot, causing OOB write for the nth entry."
+  },
+  {
+    "id": "T1_tomlc99_0016",
+    "project": "tomlc99",
+    "diff": {
+      "file": "toml.c",
+      "line": 0,
+      "before": "  toml_arritem_t *pp = expand(p, n * sizeof(*p), (n + 1) * sizeof(*p));",
+      "after": "  toml_arritem_t *pp = expand(p, n * sizeof(*p), n * sizeof(*p));"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "expand_arritem allocates same size (n) instead of n+1, so writing to pp[n] overflows."
+  },
+  {
+    "id": "T1_tomlc99_0020",
+    "project": "tomlc99",
+    "diff": {
+      "file": "toml.c",
+      "line": 416,
+      "before": "memcpy(s, p, sz);",
+      "after": "memcpy(s, p, newsz);"
+    },
+    "crash_type": "heap-buffer-overflow READ",
+    "family": "",
+    "explanation": "In expand(), memcpy copies newsz bytes from old buffer of sz bytes, reading past the old allocation when growing"
+  },
+  {
+    "id": "T1_tomlc99_0022",
+    "project": "tomlc99",
+    "diff": {
+      "file": "toml.c",
+      "line": 71,
+      "before": "char *p = MALLOC(len + 1);",
+      "after": "char *p = MALLOC(len);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1",
+    "explanation": "A vulnerability in STRDUP where the allocation is one byte short for the null terminator."
+  },
+  {
+    "id": "T1_tomlc99_0024",
+    "project": "tomlc99",
+    "diff": {
+      "file": "toml.c",
+      "line": 423,
+      "before": "void **s = MALLOC((n + 1) * sizeof(void *));",
+      "after": "void **s = MALLOC(n * sizeof(void *));"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1",
+    "explanation": "A vulnerability in expand_ptrarr where the pointer array is one element short."
+  },
+  {
+    "id": "T1_tomlc99_0025",
+    "project": "tomlc99",
+    "diff": {
+      "file": "toml.c",
+      "line": 1214,
+      "before": "    if (ctx->tpath.top >= 10)\n      return e_syntax(ctx, lineno,",
+      "after": "    if (ctx->tpath.top > 10)\n      return e_syntax(ctx, lineno,"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3.a",
+    "explanation": "Off-by-one in table path depth limit allows writing one element past the fixed-size tpath array"
+  },
+  {
+    "id": "T1_tomlc99_0026",
+    "project": "tomlc99",
+    "diff": {
+      "file": "toml.c",
+      "line": 411,
+      "before": "void *s = MALLOC(newsz);",
+      "after": "void *s = MALLOC(newsz - 1);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1",
+    "explanation": "A vulnerability in expand where the reallocation is one byte short."
+  },
+  {
+    "id": "T1_tomlc99_0031",
+    "project": "tomlc99",
+    "diff": {
+      "file": "toml.c",
+      "line": 60,
+      "before": "memset(p, 0, nb);",
+      "after": "memset(p, 0, nb + 8);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Over-write in CALLOC: memset clears nb+8 bytes instead of nb, writing 8 bytes past the allocation when zero-initializing newly allocated structures like toml_table_t."
+  }
+]

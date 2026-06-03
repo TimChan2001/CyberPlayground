@@ -1,0 +1,418 @@
+[
+  {
+    "id": "T1_libxml2_0001",
+    "project": "libxml2",
+    "diff": {
+      "file": "HTMLparser.c",
+      "line": 148,
+      "before": "    if (ctxt->nameNr >= ctxt->nameMax) {",
+      "after": "    if (ctxt->nameNr > ctxt->nameMax) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one: when nameNr == nameMax, the check `> nameMax` fails to trigger reallocation, allowing write at nameTab[nameMax] which is one past the end of the allocated array."
+  },
+  {
+    "id": "T1_libxml2_0002",
+    "project": "libxml2",
+    "diff": {
+      "file": "HTMLparser.c",
+      "line": 447,
+      "before": "        if (len < 2)\n            goto incomplete;",
+      "after": "        if (len <= 2)\n            goto incomplete;"
+    },
+    "crash_type": "heap-buffer-over-read",
+    "family": "F3",
+    "explanation": "Flipping len < 2 to len <= 2 causes the parser to treat 2-byte sequences as incomplete, but for 3-byte sequences: changing the 3-byte boundary check to <= 3 means a valid 3-byte sequence at end of buffer will be rejected while a 4-byte sequence check with len<=4 causes OOB read of str[3] when only 4 bytes available."
+  },
+  {
+    "id": "T1_libxml2_0004",
+    "project": "libxml2",
+    "diff": {
+      "file": "HTMLparser.c",
+      "line": 2120,
+      "before": "    if (outend - out < len + 2)",
+      "after": "    if (outend - out < len + 1)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one in htmlEncodeEntities: writing '&', len bytes, ';' requires len+2 space, but guard checks len+1 only"
+  },
+  {
+    "id": "T1_libxml2_0005",
+    "project": "libxml2",
+    "diff": {
+      "file": "HTMLparser.c",
+      "line": 2490,
+      "before": "    if (slen < 2)",
+      "after": "    if (slen < 1)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Reducing the minimum slen check from 2 to 1 allows single-char strings into the binary search; code accesses string[soff] where soff=1, reading one byte past the end of a 1-char string"
+  },
+  {
+    "id": "T1_libxml2_0006",
+    "project": "libxml2",
+    "diff": {
+      "file": "HTMLparser.c",
+      "line": 2328,
+      "before": "        buffer_size = 500;",
+      "after": "        buffer_size = 0;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F5",
+    "explanation": "Setting initial buffer_size to 0 causes the realloc growth calculation (used + extraSize)*2 to underflow/be too small relative to buffer_size check, allowing writes past allocated buffer"
+  },
+  {
+    "id": "T1_libxml2_0007",
+    "project": "libxml2",
+    "diff": {
+      "file": "HTMLparser.c",
+      "line": 2363,
+      "before": "            if (extraSize > buffer_size - used) {",
+      "after": "            if (extraSize >= buffer_size - used) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Flipping > to >= causes reallocation one iteration too early but the null terminator write ret[used]=0 can still go OOB in edge cases where extraSize == buffer_size - used exactly"
+  },
+  {
+    "id": "T1_libxml2_0008",
+    "project": "libxml2",
+    "diff": {
+      "file": "HTMLparser.c",
+      "line": 4626,
+      "before": "    if (index > LONG_MAX) {",
+      "after": "    if (index > INT_MAX) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Changing LONG_MAX to INT_MAX in the overflow guard causes checkIndex to be set to 0 prematurely on 64-bit systems when index is between INT_MAX and LONG_MAX, but more critically it truncates the stored index value leading to incorrect rescanning position and potential OOB read."
+  },
+  {
+    "id": "T1_libxml2_0009",
+    "project": "libxml2",
+    "diff": {
+      "file": "HTMLparser.c",
+      "line": 4568,
+      "before": "    if (ctxt->checkIndex == 0)\n        cur = ctxt->input->cur + 2; /* Skip '<a' or '</' */\n    else\n        cur = ctxt->input->cur + ctxt->checkIndex;",
+      "after": "    if (ctxt->checkIndex == 0)\n        cur = ctxt->input->cur + 1; /* Skip '<a' or '</' */\n    else\n        cur = ctxt->input->cur + ctxt->checkIndex;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one: skipping only 1 byte instead of 2 means the '<' itself is re-examined as part of tag name/attribute scanning, causing state machine to misparse and potentially read one byte before intended buffer region in edge cases."
+  },
+  {
+    "id": "T1_libxml2_0010",
+    "project": "libxml2",
+    "diff": {
+      "file": "HTMLparser.c",
+      "line": 4670,
+      "before": "    rescan = strLen + extraLen - 1;",
+      "after": "    rescan = strLen + extraLen;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one in rescan calculation: using strLen+extraLen instead of strLen+extraLen-1 causes end to be decremented one byte too far, making checkIndex one byte smaller than correct, so on the next call cur starts one byte too early potentially reading before the buffer or causing incorrect string matching leading to OOB."
+  },
+  {
+    "id": "T1_libxml2_0011",
+    "project": "libxml2",
+    "diff": {
+      "file": "HTMLparser.c",
+      "line": 4452,
+      "before": "    ctxt->inputMax = 1;",
+      "after": "    ctxt->inputMax = 0;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Setting inputMax to 0 while allocating a 1-element inputTab means the grow check (inputNr >= inputMax) triggers immediately on first push, causing realloc to a larger buffer but the initial state is inconsistent, leading to off-by-one in capacity tracking and potential OOB write."
+  },
+  {
+    "id": "T1_libxml2_0014",
+    "project": "libxml2",
+    "diff": {
+      "file": "HTMLparser.c",
+      "line": 183,
+      "before": "    if (ctxt->nodeInfoNr >= ctxt->nodeInfoMax) {",
+      "after": "    if (ctxt->nodeInfoNr > ctxt->nodeInfoMax) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one in nodeInfoNr growth check: changing >= to > allows writing one element past the end of nodeInfoTab when the count exactly equals the current max capacity."
+  },
+  {
+    "id": "T1_libxml2_0015",
+    "project": "libxml2",
+    "diff": {
+      "file": "parser.c",
+      "line": 2154,
+      "before": "    if (ctxt->spaceNr >= ctxt->spaceMax) {",
+      "after": "    if (ctxt->spaceNr > ctxt->spaceMax) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one in spacePush: when spaceNr == spaceMax, the > check fails to trigger reallocation, allowing write to spaceTab[spaceMax] which is one past the allocated array."
+  },
+  {
+    "id": "T1_libxml2_0016",
+    "project": "libxml2",
+    "diff": {
+      "file": "parser.c",
+      "line": 1992,
+      "before": "if (ctxt->nodeNr >= ctxt->nodeMax) {",
+      "after": "if (ctxt->nodeNr > ctxt->nodeMax) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one in nodePush: when nodeNr == nodeMax the > check skips reallocation, causing OOB write to nodeTab[nodeMax]."
+  },
+  {
+    "id": "T1_libxml2_0017",
+    "project": "libxml2",
+    "diff": {
+      "file": "parser.c",
+      "line": 2064,
+      "before": "if (ctxt->nameNr >= ctxt->nameMax) {",
+      "after": "if (ctxt->nameNr > ctxt->nameMax) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one in namePush: when nameNr == nameMax the > check skips reallocation, causing OOB write to nameTab[nameMax] and pushTab[nameMax]."
+  },
+  {
+    "id": "T1_libxml2_0018",
+    "project": "libxml2",
+    "diff": {
+      "file": "parser.c",
+      "line": 1901,
+      "before": "if (ctxt->inputNr >= ctxt->inputMax) {",
+      "after": "if (ctxt->inputNr > ctxt->inputMax) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one in inputPush: when inputNr == inputMax the > check skips reallocation, causing OOB write to inputTab[inputMax]."
+  },
+  {
+    "id": "T1_libxml2_0019",
+    "project": "libxml2",
+    "diff": {
+      "file": "parser.c",
+      "line": 2007,
+      "before": "tmp = xmlRealloc(ctxt->nodeTab, newSize * sizeof(tmp[0]));",
+      "after": "tmp = xmlRealloc(ctxt->nodeTab, (newSize / 2) * sizeof(tmp[0]));"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Under-alloc in nodePush realloc: halving size causes OOB."
+  },
+  {
+    "id": "T1_libxml2_0020",
+    "project": "libxml2",
+    "diff": {
+      "file": "xmlstring.c",
+      "line": 54,
+      "before": "ret = xmlMalloc((size_t) len + 1);",
+      "after": "ret = xmlMalloc((size_t) len);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one in xmlStrndup: allocating len instead of len+1 means the NUL terminator at ret[len] is written 1 byte past the allocation."
+  },
+  {
+    "id": "T1_libxml2_0021",
+    "project": "libxml2",
+    "diff": {
+      "file": "parser.c",
+      "line": 1675,
+      "before": "if ((ctxt->nsNr >= ctxt->nsMax) && (xmlParserNsGrow(ctxt) < 0)) {",
+      "after": "if ((ctxt->nsNr > ctxt->nsMax) && (xmlParserNsGrow(ctxt) < 0)) {"
+    },
+    "crash_type": "SEGV",
+    "family": "F3",
+    "explanation": "Off-by-one in ns push: > skips grow."
+  },
+  {
+    "id": "T1_libxml2_0022",
+    "project": "libxml2",
+    "diff": {
+      "file": "parser.c",
+      "line": 2075,
+      "before": "tmp = xmlRealloc(ctxt->nameTab, newSize * sizeof(tmp[0]));",
+      "after": "tmp = xmlRealloc(ctxt->nameTab, (newSize / 2) * sizeof(tmp[0]));"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Under-alloc in namePush realloc."
+  },
+  {
+    "id": "T1_libxml2_0023",
+    "project": "libxml2",
+    "diff": {
+      "file": "parser.c",
+      "line": 2165,
+      "before": "tmp = xmlRealloc(ctxt->spaceTab, newSize * sizeof(tmp[0]));",
+      "after": "tmp = xmlRealloc(ctxt->spaceTab, (newSize / 2) * sizeof(tmp[0]));"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Under-alloc in spacePush realloc."
+  },
+  {
+    "id": "T1_libxml2_0024",
+    "project": "libxml2",
+    "diff": {
+      "file": "parser.c",
+      "line": 2080,
+      "before": "tmp2 = xmlRealloc(ctxt->pushTab, newSize * sizeof(tmp2[0]));",
+      "after": "tmp2 = xmlRealloc(ctxt->pushTab, (newSize / 2) * sizeof(tmp2[0]));"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Under-alloc in namePush pushTab realloc."
+  },
+  {
+    "id": "T1_libxml2_0025",
+    "project": "libxml2",
+    "diff": {
+      "file": "parser.c",
+      "line": 1635,
+      "before": "table = xmlRealloc(ctxt->nsTab, 2 * newSize * sizeof(table[0]));",
+      "after": "table = xmlRealloc(ctxt->nsTab, newSize * sizeof(table[0]));"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Under-alloc in nsTab: missing 2x for prefix+URI pairs."
+  },
+  {
+    "id": "T1_libxml2_0026",
+    "project": "libxml2",
+    "diff": {
+      "file": "parser.c",
+      "line": 1863,
+      "before": "atts = xmlRealloc(ctxt->atts, newSize * sizeof(atts[0]) * 5);",
+      "after": "atts = xmlRealloc(ctxt->atts, newSize * sizeof(atts[0]) * 4);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Under-alloc in atts: *4 vs *5."
+  },
+  {
+    "id": "T1_libxml2_0027",
+    "project": "libxml2",
+    "diff": {
+      "file": "parser.c",
+      "line": 2013,
+      "before": "\tctxt->nodeMax = newSize;",
+      "after": "\tctxt->nodeMax = newSize / 2;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Under-reporting nodeMax causes premature OOB."
+  },
+  {
+    "id": "T1_libxml2_0028",
+    "project": "libxml2",
+    "diff": {
+      "file": "parser.c",
+      "line": 2085,
+      "before": "        ctxt->nameMax = newSize;",
+      "after": "        ctxt->nameMax = newSize / 2;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Under-reporting nameMax causes OOB."
+  },
+  {
+    "id": "T1_libxml2_0029",
+    "project": "libxml2",
+    "diff": {
+      "file": "parser.c",
+      "line": 2172,
+      "before": "        ctxt->spaceMax = newSize;",
+      "after": "        ctxt->spaceMax = newSize / 2;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Under-reporting spaceMax causes OOB."
+  },
+  {
+    "id": "T1_libxml2_0030",
+    "project": "libxml2",
+    "diff": {
+      "file": "SAX2.c",
+      "line": 2543,
+      "before": "if (newSize >= capacity) {",
+      "after": "if (newSize > capacity) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one in xmlSAX2Text capacity."
+  },
+  {
+    "id": "T1_libxml2_0031",
+    "project": "libxml2",
+    "diff": {
+      "file": "parser.c",
+      "line": 1874,
+      "before": "    ctxt->maxatts = newSize * 5;",
+      "after": "    ctxt->maxatts = newSize * 3;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Under-reporting maxatts: *3 instead of *5 causes capacity check to allow more attrs than allocated."
+  },
+  {
+    "id": "T1_libxml2_0032",
+    "project": "libxml2",
+    "diff": {
+      "file": "parser.c",
+      "line": 1645,
+      "before": "    ctxt->nsMax = newSize;",
+      "after": "    ctxt->nsMax = newSize / 2;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Under-reporting nsMax causes OOB."
+  },
+  {
+    "id": "T1_libxml2_0033",
+    "project": "libxml2",
+    "diff": {
+      "file": "parser.c",
+      "line": 1868,
+      "before": "attallocs = xmlRealloc(ctxt->attallocs,\n                           newSize * sizeof(attallocs[0]));",
+      "after": "attallocs = xmlRealloc(ctxt->attallocs,\n                           (newSize / 2) * sizeof(attallocs[0]));"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Under-alloc attallocs: halving size."
+  },
+  {
+    "id": "T1_libxml2_0034",
+    "project": "libxml2",
+    "diff": {
+      "file": "parser.c",
+      "line": 1640,
+      "before": "    extra = xmlRealloc(ctxt->nsdb->extra, newSize * sizeof(extra[0]));",
+      "after": "    extra = xmlRealloc(ctxt->nsdb->extra, (newSize / 2) * sizeof(extra[0]));"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Under-alloc in nsdb extra array: halving size causes OOB when storing ns metadata."
+  },
+  {
+    "id": "T1_libxml2_0569",
+    "project": "libxml2",
+    "diff": {
+      "file": "SAX2.c",
+      "line": 0,
+      "before": "ret = (xmlNodePtr) xmlMalloc(sizeof(xmlNode));",
+      "after": "ret = (xmlNodePtr) xmlMalloc(sizeof(xmlNode) - 16);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "xmlSAX2TextNode under-allocates xmlNode struct by 16 bytes, subsequent memset overflows"
+  }
+]

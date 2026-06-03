@@ -1,0 +1,327 @@
+[
+  {
+    "id": "T1_zstd_0063",
+    "project": "zstd",
+    "diff": {
+      "file": "lib/decompress/zstd_decompress.c",
+      "line": 900,
+      "before": "RETURN_ERROR_IF(srcSize > dstCapacity, dstSize_tooSmall, \"\")",
+      "after": "RETURN_ERROR_IF(srcSize > dstCapacity + 2, dstSize_tooSmall, \"\")"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "F3",
+    "explanation": "Weakened bounds check in ZSTD_copyRawBlock allows raw block copy to exceed destination buffer by up to 2 bytes"
+  },
+  {
+    "id": "T1_zstd_0064",
+    "project": "zstd",
+    "diff": {
+      "file": "lib/decompress/zstd_decompress.c",
+      "line": 995,
+      "before": "RETURN_ERROR_IF(cBlockSize > remainingSrcSize, srcSize_wrong, \"\")",
+      "after": "RETURN_ERROR_IF(cBlockSize > remainingSrcSize + 2, srcSize_wrong, \"\")"
+    },
+    "crash_type": "heap-buffer-overflow READ",
+    "family": "F3",
+    "explanation": "Weakened remaining source size check in ZSTD_decompressFrame allows block decode to read 2 bytes past source buffer"
+  },
+  {
+    "id": "T1_zstd_0065",
+    "project": "zstd",
+    "diff": {
+      "file": "lib/decompress/zstd_decompress.c",
+      "line": 905,
+      "before": "ZSTD_memmove(dst, src, srcSize)",
+      "after": "ZSTD_memmove(dst, src, srcSize + 2)"
+    },
+    "crash_type": "heap-buffer-overflow READ",
+    "family": "F3",
+    "explanation": "Off-by-two in ZSTD_copyRawBlock memmove size causes 2-byte heap buffer overflow during raw block copy"
+  },
+  {
+    "id": "T1_zstd_0066",
+    "project": "zstd",
+    "diff": {
+      "file": "lib/decompress/zstd_decompress.c",
+      "line": 913,
+      "before": "RETURN_ERROR_IF(regenSize > dstCapacity, dstSize_tooSmall, \"\")",
+      "after": "RETURN_ERROR_IF(regenSize > dstCapacity + 1, dstSize_tooSmall, \"\")"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "",
+    "explanation": "Off-by-one in ZSTD_setRleBlock bounds check allows 1-byte heap buffer overflow write via RLE block with origSize == dstCapacity+1"
+  },
+  {
+    "id": "T1_zstd_0067",
+    "project": "zstd",
+    "diff": {
+      "file": "lib/decompress/zstd_decompress_block.c",
+      "line": 275,
+      "before": "RETURN_ERROR_IF(litSize+lhSize > srcSize, corruption_detected, \"\")",
+      "after": "RETURN_ERROR_IF(litSize > srcSize, corruption_detected, \"\")"
+    },
+    "crash_type": "heap-buffer-overflow READ",
+    "family": "",
+    "explanation": "Missing lhSize in raw-literals bounds check allows memcpy to read lhSize bytes past the compressed block boundary"
+  },
+  {
+    "id": "T1_zstd_0068",
+    "project": "zstd",
+    "diff": {
+      "file": "lib/decompress/zstd_decompress.c",
+      "line": 995,
+      "before": "RETURN_ERROR_IF(cBlockSize > remainingSrcSize, srcSize_wrong, \"\")",
+      "after": "RETURN_ERROR_IF(cBlockSize > remainingSrcSize + 3, srcSize_wrong, \"\")"
+    },
+    "crash_type": "heap-buffer-overflow READ",
+    "family": "",
+    "explanation": "Weakened block-size bounds check in ZSTD_decompressFrame allows raw block with cBlockSize up to 3 bytes past remaining input, causing OOB read in ZSTD_copyRawBlock memmove"
+  },
+  {
+    "id": "T1_zstd_0069",
+    "project": "zstd",
+    "diff": {
+      "file": "lib/decompress/zstd_decompress_block.c",
+      "line": 714,
+      "before": "RETURN_ERROR_IF(ip >= iend, srcSize_wrong, \"\");",
+      "after": "RETURN_ERROR_IF(ip > iend, srcSize_wrong, \"\");"
+    },
+    "crash_type": "",
+    "family": "",
+    "explanation": "Operator flip >= to > in sequence header length check allows 1-byte OOB read when input is exactly at boundary."
+  },
+  {
+    "id": "T1_zstd_0086",
+    "project": "zstd",
+    "diff": {
+      "file": "zstd/lib/decompress/zstd_decompress_block.c",
+      "line": 926,
+      "before": "sequenceLength > (size_t)(oend - op)",
+      "after": "sequenceLength > (size_t)(oend - op) + 1"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1a",
+    "explanation": ""
+  },
+  {
+    "id": "T1_zstd_0087",
+    "project": "zstd",
+    "diff": {
+      "file": "zstd/lib/decompress/zstd_decompress.c",
+      "line": 905,
+      "before": "ZSTD_memmove(dst, src, srcSize)",
+      "after": "ZSTD_memmove(dst, src, srcSize + 1)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F2a",
+    "explanation": ""
+  },
+  {
+    "id": "T1_zstd_0088",
+    "project": "zstd",
+    "diff": {
+      "file": "zstd/lib/decompress/zstd_decompress_block.c",
+      "line": 1784,
+      "before": "ZSTD_memcpy(op, litPtr, lastLLSize)",
+      "after": "ZSTD_memcpy(op, litPtr, lastLLSize + 1)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F2b",
+    "explanation": ""
+  },
+  {
+    "id": "T1_zstd_0089",
+    "project": "zstd",
+    "diff": {
+      "file": "zstd/lib/decompress/zstd_decompress.c",
+      "line": 900,
+      "before": "RETURN_ERROR_IF(srcSize > dstCapacity",
+      "after": "RETURN_ERROR_IF(srcSize > dstCapacity + 1"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1c",
+    "explanation": ""
+  },
+  {
+    "id": "T1_zstd_0090",
+    "project": "zstd",
+    "diff": {
+      "file": "zstd/lib/decompress/zstd_decompress_block.c",
+      "line": 1722,
+      "before": "(ptrdiff_t)maxDstSize)",
+      "after": "(ptrdiff_t)(maxDstSize + 1))"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F5b",
+    "explanation": ""
+  },
+  {
+    "id": "T1_zstd_0091",
+    "project": "zstd",
+    "diff": {
+      "file": "zstd/lib/decompress/zstd_decompress_block.c",
+      "line": 953,
+      "before": "ZSTD_safecopy(op, oend_w, match, sequence.matchLength, ZSTD_overlap_src_before_dst)",
+      "after": "ZSTD_safecopy(op, oend_w, match, sequence.matchLength + 1, ZSTD_overlap_src_before_dst)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F4b",
+    "explanation": ""
+  },
+  {
+    "id": "T1_zstd_0092",
+    "project": "zstd",
+    "diff": {
+      "file": "zstd/lib/decompress/zstd_decompress_block.c",
+      "line": 923,
+      "before": "BYTE* const oend_w = oend - WILDCOPY_OVERLENGTH",
+      "after": "BYTE* const oend_w = oend"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1f",
+    "explanation": ""
+  },
+  {
+    "id": "T1_zstd_0093",
+    "project": "zstd",
+    "diff": {
+      "file": "zstd/lib/decompress/zstd_decompress.c",
+      "line": 918,
+      "before": "ZSTD_memset(dst, b, regenSize)",
+      "after": "ZSTD_memset(dst, b, regenSize + 8)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F2h",
+    "explanation": ""
+  },
+  {
+    "id": "T1_zstd_0094",
+    "project": "zstd",
+    "diff": {
+      "file": "zstd/lib/decompress/zstd_decompress_block.c",
+      "line": 1034,
+      "before": "oMatchEnd > oend_w",
+      "after": "oMatchEnd > oend_w + WILDCOPY_OVERLENGTH"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1h",
+    "explanation": ""
+  },
+  {
+    "id": "T1_zstd_0095",
+    "project": "zstd",
+    "diff": {
+      "file": "zstd/lib/decompress/zstd_decompress.c",
+      "line": 913,
+      "before": "RETURN_ERROR_IF(regenSize > dstCapacity",
+      "after": "RETURN_ERROR_IF(regenSize > dstCapacity + 1"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1i",
+    "explanation": ""
+  },
+  {
+    "id": "T1_zstd_0102",
+    "project": "zstd",
+    "diff": {
+      "file": "lib/decompress/zstd_decompress.c",
+      "line": 0,
+      "before": "            ZSTD_memcpy(hbuf, src, toCopy);",
+      "after": "            ZSTD_memcpy(hbuf, src, toCopy + 4);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "memcpy-inflation",
+    "explanation": "zstd decompression buffer overflow"
+  },
+  {
+    "id": "T1_zstd_0103",
+    "project": "zstd",
+    "diff": {
+      "file": "lib/decompress/zstd_decompress.c",
+      "line": 0,
+      "before": "    ZSTD_memmove(dst, src, srcSize);",
+      "after": "    ZSTD_memmove(dst, src, srcSize + 4);"
+    },
+    "crash_type": "",
+    "family": "",
+    "explanation": "ZSTD_memmove copies srcSize+4 bytes instead of srcSize, causing 4-byte heap buffer overflow on raw block decompression"
+  },
+  {
+    "id": "T1_zstd_0104",
+    "project": "zstd",
+    "diff": {
+      "file": "lib/decompress/zstd_decompress.c",
+      "line": 0,
+      "before": "    ZSTD_memset(dst, b, regenSize);",
+      "after": "    ZSTD_memset(dst, b, regenSize + 8);"
+    },
+    "crash_type": "",
+    "family": "",
+    "explanation": "ZSTD_memset writes regenSize+8 instead of regenSize, causing 8-byte heap buffer overflow on RLE block"
+  },
+  {
+    "id": "T1_zstd_0105",
+    "project": "zstd",
+    "diff": {
+      "file": "lib/decompress/zstd_decompress_block.c",
+      "line": 0,
+      "before": "                        ZSTD_memcpy(dctx->litBuffer, istart + lhSize, litSize);",
+      "after": "                        ZSTD_memcpy(dctx->litBuffer, istart + lhSize, litSize + 32);"
+    },
+    "crash_type": "",
+    "family": "",
+    "explanation": "Basic literal memcpy copies litSize+32 bytes, causing 32-byte heap OOB write past literal buffer"
+  },
+  {
+    "id": "T1_zstd_0106",
+    "project": "zstd",
+    "diff": {
+      "file": "lib/compress/zstd_compress.c",
+      "line": 0,
+      "before": "    ZSTD_memcpy(seqStorePtr->lit, anchor, lastLLSize);",
+      "after": "    ZSTD_memcpy(seqStorePtr->lit, anchor, lastLLSize + 32);"
+    },
+    "crash_type": "",
+    "family": "",
+    "explanation": "ZSTD_memcpy for last literals copies lastLLSize+32 bytes causing heap OOB write past sequence store literal buffer during compression"
+  },
+  {
+    "id": "T1_zstd_0107",
+    "project": "zstd",
+    "diff": {
+      "file": "lib/decompress/zstd_decompress.c",
+      "line": 0,
+      "before": "    ZSTD_memcpy(dctx->entropy.rep, repStartValue, sizeof(repStartValue));  /* initial repcodes */",
+      "after": "    ZSTD_memcpy(dctx->entropy.rep, repStartValue, sizeof(repStartValue) + 32);  /* initial repcodes */"
+    },
+    "crash_type": "",
+    "family": "",
+    "explanation": "entropy.rep memcpy copies extra 32 bytes past structure"
+  },
+  {
+    "id": "T1_zstd_0108",
+    "project": "zstd",
+    "diff": {
+      "file": "unknown",
+      "line": 900,
+      "before": "    ZSTD_memset(cctx, 0, sizeof(*cctx));",
+      "after": "    ZSTD_memset(cctx, 0, sizeof(*cctx) + 32);"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "",
+    "explanation": "Weakened bounds check in ZSTD_copyRawBlock: allows srcSize up to dstCapacity+8, causing up to 8-byte heap overflow when copying raw blocks."
+  },
+  {
+    "id": "T1_zstd_0109",
+    "project": "zstd",
+    "diff": {
+      "file": "lib/decompress/zstd_decompress.c",
+      "line": 297,
+      "before": "ZSTD_customMalloc(sizeof(*dctx), customMem)",
+      "after": "ZSTD_customMalloc(sizeof(*dctx) - 64, customMem)"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "F1",
+    "explanation": "Undersized decompression context allocation causes struct initialization to overflow past the heap allocation boundary"
+  }
+]

@@ -1,0 +1,327 @@
+[
+  {
+    "id": "T1_libwebp_0043",
+    "project": "libwebp",
+    "diff": {
+      "file": "src/dec/vp8l_dec.c",
+      "line": 1645,
+      "before": "num_pixels + cache_top_pixels + cache_pixels + accumulated_rgb_pixels",
+      "after": "num_pixels + cache_top_pixels + accumulated_rgb_pixels"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "",
+    "explanation": "Pixel buffer undersize: omitted cache_pixels from total_num_pixels, causing heap-buffer-overflow when writing to argb_cache scratch buffer"
+  },
+  {
+    "id": "T1_libwebp_0044",
+    "project": "libwebp",
+    "diff": {
+      "file": "src/dec/vp8l_dec.c",
+      "line": 1647,
+      "before": "WebPSafeMalloc(total_num_pixels, sizeof(uint32_t))",
+      "after": "WebPSafeMalloc(total_num_pixels, sizeof(uint8_t))"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "",
+    "explanation": "Pixel buffer allocated with sizeof(uint8_t) instead of sizeof(uint32_t), allocating one quarter of the required memory for the lossless decode pixel buffer"
+  },
+  {
+    "id": "T1_libwebp_0045",
+    "project": "libwebp",
+    "diff": {
+      "file": "src/dec/vp8l_dec.c",
+      "line": 1645,
+      "before": "num_pixels + cache_top_pixels + cache_pixels + accumulated_rgb_pixels",
+      "after": "cache_top_pixels + cache_pixels + accumulated_rgb_pixels"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "",
+    "explanation": "Pixel buffer undersize: dropped num_pixels from total_num_pixels, allocating only cache scratch space without room for the actual decoded pixel data"
+  },
+  {
+    "id": "T1_libwebp_0047",
+    "project": "libwebp",
+    "diff": {
+      "file": "src/dec/buffer_dec.c",
+      "line": 0,
+      "before": "total_size = size + 2 * uv_size + a_size;",
+      "after": "total_size = size + 2 * uv_size + a_size - stride;"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "",
+    "explanation": "Output buffer short by one stride: stride subtracted from total_size in AllocateBuffer. buf->size stores the full value so CheckDecBuffer passes, but allocation is one stride short causing heap-buffer-overflow when writing the last row of decoded RGBA output."
+  },
+  {
+    "id": "T1_libwebp_0048",
+    "project": "libwebp",
+    "diff": {
+      "file": "src/dec/vp8l_dec.c",
+      "line": 0,
+      "before": "WebPSafeMalloc(total_num_pixels, sizeof(uint32_t))",
+      "after": "WebPSafeMalloc(total_num_pixels, sizeof(uint16_t))"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "",
+    "explanation": "Pixel buffer half-sized: sizeof(uint16_t) used instead of sizeof(uint32_t) in WebPSafeMalloc, allocating 2 bytes per pixel instead of 4. Heap-buffer-overflow when DecodeImageData writes 32-bit BGRA pixels to the undersized buffer."
+  },
+  {
+    "id": "T1_libwebp_0049",
+    "project": "libwebp",
+    "diff": {
+      "file": "src/utils/huffman_utils.c",
+      "line": 0,
+      "before": "WebPSafeMalloc(num_htree_groups, sizeof(*htree_groups))",
+      "after": "WebPSafeMalloc(num_htree_groups, sizeof(*htree_groups) / 2)"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "",
+    "explanation": "Huffman tree group array half-sized: sizeof(*htree_groups) divided by 2 in VP8LHtreeGroupsNew allocation. When ReadHuffmanCodesHelper fills htree group entries, it writes past the undersized buffer causing heap-buffer-overflow in AccumulateHCode."
+  },
+  {
+    "id": "T1_libwebp_0050",
+    "project": "libwebp",
+    "diff": {
+      "file": "src/dec/vp8l_dec.c",
+      "line": 1596,
+      "before": "data = (uint32_t*)WebPSafeMalloc(total_size, sizeof(*data));",
+      "after": "data = (uint32_t*)WebPSafeMalloc(total_size, sizeof(*data) / 2);"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "",
+    "explanation": "Sub-level image data buffer half-sized: sizeof(*data) / 2 in WebPSafeMalloc, allocating 2 bytes per pixel instead of 4. Heap-buffer-overflow when DecodeImageData writes 32-bit pixel values into the undersized buffer during sub-level Huffman image decode."
+  },
+  {
+    "id": "T1_libwebp_0051",
+    "project": "libwebp",
+    "diff": {
+      "file": "src/dec/vp8l_dec.c",
+      "line": 468,
+      "before": "(int*)WebPSafeCalloc((uint64_t)max_alphabet_size, sizeof(*code_lengths));",
+      "after": "(int*)WebPSafeCalloc((uint64_t)max_alphabet_size / 2, sizeof(*code_lengths));"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "",
+    "explanation": "Code lengths array half-sized: max_alphabet_size / 2 in WebPSafeCalloc, allocating half the required entries. Heap-buffer-overflow when ReadHuffmanCodes writes code length values past the end of the truncated array while decoding Huffman tables."
+  },
+  {
+    "id": "T1_libwebp_0052",
+    "project": "libwebp",
+    "diff": {
+      "file": "src/dec/vp8l_dec.c",
+      "line": 1394,
+      "before": "(uint64_t)final_num_colors, sizeof(*new_color_map)",
+      "after": "(uint64_t)final_num_colors / 2, sizeof(*new_color_map)"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "",
+    "explanation": "Color map buffer half-sized: final_num_colors / 2 in WebPSafeMalloc, allocating half the required color entries. Heap-buffer-overflow when ExpandColorMap writes delta-decoded color values past the undersized new_color_map buffer."
+  },
+  {
+    "id": "T1_libwebp_0053",
+    "project": "libwebp",
+    "diff": {
+      "file": "src/dec/vp8l_dec.c",
+      "line": 1596,
+      "before": "data = (uint32_t*)WebPSafeMalloc(total_size, sizeof(*data));",
+      "after": "data = (uint32_t*)WebPSafeMalloc(total_size / 4, sizeof(*data));"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "",
+    "explanation": "Transform data buffer at 1/4 size, heap overflow in DecodeImageData"
+  },
+  {
+    "id": "T1_libwebp_0054",
+    "project": "libwebp",
+    "diff": {
+      "file": "src/dec/vp8l_dec.c",
+      "line": 1404,
+      "before": "for (; i < 4 * final_num_colors; ++i) {",
+      "after": "for (; i < 4 * final_num_colors + 32; ++i) {"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "",
+    "explanation": "Black tail zeroing writes 32 extra bytes past new_color_map allocation"
+  },
+  {
+    "id": "T1_libwebp_0055",
+    "project": "libwebp",
+    "diff": {
+      "file": "src/dec/vp8l_dec.c",
+      "line": 1639,
+      "before": "const uint64_t cache_pixels = (uint64_t)final_width * NUM_ARGB_CACHE_ROWS;",
+      "after": "const uint64_t cache_pixels = (uint64_t)final_width;"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "",
+    "explanation": "ARGB cache sized for 1 row instead of NUM_ARGB_CACHE_ROWS rows"
+  },
+  {
+    "id": "T1_libwebp_0056",
+    "project": "libwebp",
+    "diff": {
+      "file": "src/utils/huffman_utils.c",
+      "line": 33,
+      "before": "WebPSafeMalloc(num_htree_groups, sizeof(*htree_groups));",
+      "after": "WebPSafeMalloc(num_htree_groups, sizeof(*htree_groups) / 4);"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "",
+    "explanation": "HTreeGroup array at 1/4 element size, overflow filling group entries"
+  },
+  {
+    "id": "T1_libwebp_0057",
+    "project": "libwebp",
+    "diff": {
+      "file": "src/utils/color_cache_utils.c",
+      "line": 31,
+      "before": "uint32_t* colors = (uint32_t*)WebPSafeCalloc((uint64_t)hash_size,",
+      "after": "uint32_t* colors = (uint32_t*)WebPSafeCalloc((uint64_t)hash_size / 2,"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "",
+    "explanation": "Color cache hash table allocated at half size, overflow when inserting colors during decode"
+  },
+  {
+    "id": "T1_libwebp_0058",
+    "project": "libwebp",
+    "diff": {
+      "file": "src/dec/vp8l_dec.c",
+      "line": 468,
+      "before": "(int*)WebPSafeCalloc((uint64_t)max_alphabet_size, sizeof(*code_lengths));",
+      "after": "(int*)WebPSafeCalloc((uint64_t)max_alphabet_size / 4, sizeof(*code_lengths));"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "",
+    "explanation": "Code lengths buffer at 1/4 size, overflow reading huffman code lengths"
+  },
+  {
+    "id": "T1_libwebp_0059",
+    "project": "libwebp",
+    "diff": {
+      "file": "src/dec/vp8l_dec.c",
+      "line": 1493,
+      "before": "VP8LDecoder* const dec = (VP8LDecoder*)WebPSafeCalloc(1ULL, sizeof(*dec));",
+      "after": "VP8LDecoder* const dec = (VP8LDecoder*)WebPSafeCalloc(1ULL, sizeof(*dec) - 64);"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "",
+    "explanation": "VP8L decoder struct allocated 64 bytes short, overflow initializing trailing fields"
+  },
+  {
+    "id": "T1_libwebp_0060",
+    "project": "libwebp",
+    "diff": {
+      "file": "src/dec/vp8l_dec.c",
+      "line": 1493,
+      "before": "VP8LDecoder* const dec = (VP8LDecoder*)WebPSafeCalloc(1ULL, sizeof(*dec));",
+      "after": "VP8LDecoder* const dec = (VP8LDecoder*)WebPSafeCalloc(1ULL, sizeof(*dec) / 2);"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "",
+    "explanation": "VP8L decoder struct allocated at half size, overflow when initializing decoder fields"
+  },
+  {
+    "id": "T1_libwebp_0061",
+    "project": "libwebp",
+    "diff": {
+      "file": "src/dec/io_dec.c",
+      "line": 602,
+      "before": "p->memory = WebPSafeMalloc(1ULL, (size_t)(io->mb_w + 2 * uv_width));",
+      "after": "p->memory = WebPSafeMalloc(1ULL, (size_t)(io->mb_w));"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "",
+    "explanation": "Upsampling scratch buffer misses UV width components, overflow writing UV samples"
+  },
+  {
+    "id": "T1_libwebp_0062",
+    "project": "libwebp",
+    "diff": {
+      "file": "src/utils/huffman_utils.c",
+      "line": 307,
+      "before": "(HuffmanCode*)WebPSafeMalloc(size, sizeof(*root->start));",
+      "after": "(HuffmanCode*)WebPSafeMalloc(size / 2, sizeof(*root->start));"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "",
+    "explanation": "Root huffman table allocated at half size, overflow building code entries"
+  },
+  {
+    "id": "T1_libwebp_0068",
+    "project": "libwebp",
+    "diff": {
+      "file": "src/dec/vp8_dec.c",
+      "line": 72,
+      "before": "VP8Decoder* const dec = (VP8Decoder*)WebPSafeCalloc(1ULL, sizeof(*dec));",
+      "after": "VP8Decoder* const dec = (VP8Decoder*)WebPSafeCalloc(1ULL, sizeof(*dec) / 2);"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "F1",
+    "explanation": "A vulnerability exists in VP8New where the decoder structure is allocated at half size, causing a heap overflow when decoder fields are initialized."
+  },
+  {
+    "id": "T1_libwebp_0069",
+    "project": "libwebp",
+    "diff": {
+      "file": "src/dec/frame_dec.c",
+      "line": 714,
+      "before": "(16 * num_caches + kFilterExtraRows[dec->filter_type]) * 3 / 2;",
+      "after": "(16 * num_caches + kFilterExtraRows[dec->filter_type]) * 3 / 4;"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "F1",
+    "explanation": "A vulnerability exists in AllocateMemory where the cache height is computed at half the required size, causing a heap overflow when VP8 row cache is written during decoding."
+  },
+  {
+    "id": "T1_libwebp_0070",
+    "project": "libwebp",
+    "diff": {
+      "file": "src/dec/vp8l_dec.c",
+      "line": 393,
+      "before": "if (group >= num_htree_groups_max) {",
+      "after": "if (group > num_htree_groups_max) {"
+    },
+    "crash_type": "assertion-failure / heap-buffer-overflow READ",
+    "family": "",
+    "explanation": "A vulnerability in lossless image decoding where a huffman group index boundary check allows an out-of-bounds access during image decompression."
+  },
+  {
+    "id": "T1_libwebp_0071",
+    "project": "libwebp",
+    "diff": {
+      "file": "src/utils/color_cache_utils.c",
+      "line": 31,
+      "before": "(uint32_t*)WebPSafeCalloc((uint64_t)hash_size,",
+      "after": "(uint32_t*)WebPSafeCalloc((uint64_t)hash_size / 2,"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "",
+    "explanation": "Color cache hash table allocation halved causing lookup write overflow"
+  },
+  {
+    "id": "T1_libwebp_0072",
+    "project": "libwebp",
+    "diff": {
+      "file": "src/dec/buffer_dec.c",
+      "line": 125,
+      "before": "(uint8_t*)WebPSafeMalloc(total_size, sizeof(*output));",
+      "after": "(uint8_t*)WebPSafeMalloc(total_size / 2, sizeof(*output));"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "",
+    "explanation": "RGBA output buffer allocation halved causing decode write overflow"
+  },
+  {
+    "id": "T1_libwebp_0073",
+    "project": "libwebp",
+    "diff": {
+      "file": "src/dec/vp8l_dec.c",
+      "line": 1596,
+      "before": "(uint32_t*)WebPSafeMalloc(total_size, sizeof(*data));",
+      "after": "(uint32_t*)WebPSafeMalloc(total_size / 2, sizeof(*data));"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "",
+    "explanation": "Transform image data allocation halved causing LZ77 decode overflow"
+  }
+]

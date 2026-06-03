@@ -1,0 +1,132 @@
+[
+  {
+    "id": "T1_libxslt_0001",
+    "project": "libxslt",
+    "diff": {
+      "file": "attrvt.c",
+      "line": 154,
+      "before": "if (avt->nb_seg >= avt->max_seg) {",
+      "after": "if (avt->nb_seg > avt->max_seg) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one in xsltSetAttrVTsegment: >= changed to >, when nb_seg == max_seg (10) the realloc is skipped, writing past AVT segments array."
+  },
+  {
+    "id": "T1_libxslt_0002",
+    "project": "libxslt",
+    "diff": {
+      "file": "pattern.c",
+      "line": 304,
+      "before": "if (comp->nbStep >= comp->maxStep) {",
+      "after": "if (comp->nbStep > comp->maxStep) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one in xsltCompMatchAdd: >= changed to >, when nbStep == maxStep the realloc is skipped, writing past the steps array."
+  },
+  {
+    "id": "T1_libxslt_0003",
+    "project": "libxslt",
+    "diff": {
+      "file": "pattern.c",
+      "line": 487,
+      "before": "if (states->maxstates <= states->nbstates) {",
+      "after": "if (states->maxstates < states->nbstates) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one in xsltPatPushState: <= changed to <, when maxstates == nbstates the realloc is skipped, writing past the states array."
+  },
+  {
+    "id": "T1_libxslt_0004",
+    "project": "libxslt",
+    "diff": {
+      "file": "variables.c",
+      "line": 756,
+      "before": "if (ctxt->varsNr >= ctxt->varsMax) {",
+      "after": "if (ctxt->varsNr > ctxt->varsMax) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one in xsltAddStackElem: >= changed to >, when varsNr == varsMax the realloc is skipped, writing past varsTab."
+  },
+  {
+    "id": "T1_libxslt_0005",
+    "project": "libxslt",
+    "diff": {
+      "file": "xsltutils.c",
+      "line": 263,
+      "before": "if (*len < 2)\n\t    goto error;",
+      "after": "/* bounds check removed */"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1",
+    "explanation": "Removed *len < 2 check in xsltGetUTF8Char: allows reading utf[1] past buffer when only 1 byte available for multi-byte sequence."
+  },
+  {
+    "id": "T1_libxslt_0006",
+    "project": "libxslt",
+    "diff": {
+      "file": "xslt.c",
+      "line": 1152,
+      "before": "                    if (nbns >= maxns) {",
+      "after": "                    if (nbns > maxns) {"
+    },
+    "crash_type": "SEGV",
+    "family": "F3",
+    "explanation": "Off-by-one in xsltGetInheritedNsList: >= changed to >, when the first namespace is encountered (nbns==0, maxns==0), the initial allocation is skipped since 0 > 0 is false, causing a write to the NULL ret pointer."
+  },
+  {
+    "id": "T1_libxslt_0007",
+    "project": "libxslt",
+    "diff": {
+      "file": "pattern.c",
+      "line": 157,
+      "before": "cur-> steps = (xsltStepOpPtr) xmlMalloc(sizeof(xsltStepOp) *\n                                            cur->maxStep);",
+      "after": "cur-> steps = (xsltStepOpPtr) xmlMalloc(sizeof(xsltStepOp) *\n                                            2);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F2",
+    "explanation": "Size mismatch in xsltNewCompMatch: steps array allocated for 2 elements but maxStep is 10, so xsltCompMatchAdd allows writing up to 10 steps into a 2-slot buffer."
+  },
+  {
+    "id": "T1_libxslt_0008",
+    "project": "libxslt",
+    "diff": {
+      "file": "xslt.c",
+      "line": 169,
+      "before": "    if (style->exclPrefixNr >= style->exclPrefixMax) {",
+      "after": "    if (style->exclPrefixNr > style->exclPrefixMax) {"
+    },
+    "crash_type": "SEGV",
+    "family": "F3",
+    "explanation": "Off-by-one in exclPrefixPush: >= changed to >, when exclPrefixNr == exclPrefixMax (initially 0), the allocation is skipped, writing to unallocated memory (NULL exclPrefixTab pointer)."
+  },
+  {
+    "id": "T1_libxslt_0009",
+    "project": "libxslt",
+    "diff": {
+      "file": "attrvt.c",
+      "line": 249,
+      "before": "                avt = tmp;",
+      "after": "                /* avt = tmp; -- stale pointer, use-after-free */"
+    },
+    "crash_type": "heap-use-after-free",
+    "family": "F4",
+    "explanation": "Stale pointer in xsltCompileAttr: after xsltSetAttrVTsegment may realloc the avt structure, the old avt pointer is not updated. Subsequent accesses to avt->nb_seg and avt->segments use the freed old allocation."
+  },
+  {
+    "id": "T1_libxslt_0010",
+    "project": "libxslt",
+    "diff": {
+      "file": "attributes.c",
+      "line": 168,
+      "before": "if (attr == NULL)\n\treturn(list);",
+      "after": "/* null check removed */"
+    },
+    "crash_type": "null-deref",
+    "family": "F1",
+    "explanation": "Removed null check on attr in xsltAddAttrElemList, causing null dereference when attr is NULL."
+  }
+]

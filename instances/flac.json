@@ -1,0 +1,145 @@
+[
+  {
+    "id": "T1_flac_0001",
+    "project": "flac",
+    "diff": {
+      "file": "src/libFLAC/cpu.c",
+      "line": 186,
+      "before": "\tmemset(info, 0, sizeof(*info));",
+      "after": "\tif (!info) return;"
+    },
+    "crash_type": "use-of-uninitialized-value",
+    "family": "F5",
+    "explanation": "Replacing memset with a trivial NULL guard removes zero-initialization of the CPUInfo struct. Callers that rely on fields being zero-initialized (e.g. checking info->x86.sse) will read uninitialized stack memory, causing undefined behavior / MSan findings."
+  },
+  {
+    "id": "T1_flac_0002",
+    "project": "flac",
+    "diff": {
+      "file": "src/libFLAC/cpu.c",
+      "line": 143,
+      "before": "\t*eax = *ebx = *ecx = *edx = 0;",
+      "after": "\t*eax = *ebx = *ecx = 0;"
+    },
+    "crash_type": "use-of-uninitialized-value",
+    "family": "F5",
+    "explanation": "Omitting the zeroing of *edx in the fallback path of cpuinfo_x86 leaves edx uninitialized when CPUID is unavailable or the requested level is unsupported. Downstream code reads flags_edx to set SSE/SSE2/CMov/MMX fields, reading garbage stack data."
+  },
+  {
+    "id": "T1_flac_0003",
+    "project": "flac",
+    "diff": {
+      "file": "src/libFLAC/deduplication/lpc_compute_autocorrelation_intrin_neon.c",
+      "line": 22,
+      "before": "\tFLAC__ASSERT(lag <= MAX_LAG);",
+      "after": "\tFLAC__ASSERT(lag < MAX_LAG);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Changing <= to < in the lag bounds assertion means lag==MAX_LAG passes the assert but the subsequent vst1q_f64 stores (e.g. autoc+12 writing 2 doubles) write past an autoc buffer sized for MAX_LAG elements, causing OOB write."
+  },
+  {
+    "id": "T1_flac_0004",
+    "project": "flac",
+    "diff": {
+      "file": "src/libFLAC/include/private/bitmath.h",
+      "line": 161,
+      "before": "\t\treturn DEBRUIJN_IDX64[v*FLAC__U64L(0x218A392CD3D5DBF)>>58&0x3F];",
+      "after": "\t\treturn DEBRUIJN_IDX64[v*FLAC__U64L(0x218A392CD3D5DBF)>>57&0x3F];"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Changing >>58 to >>57 doubles the index range from 0-63 to 0-127 for the 64-entry DEBRUIJN_IDX64 array, causing out-of-bounds reads when the upper bits of the de Bruijn hash select indices 64-127."
+  },
+  {
+    "id": "T1_flac_0005",
+    "project": "flac",
+    "diff": {
+      "file": "src/libFLAC/lpc_intrin_avx2.c",
+      "line": 79,
+      "before": "\t\t\t\t\tfor(i = 0; i < (int)data_len-7; i+=8) {",
+      "after": "\t\t\t\t\tfor(i = 0; i < (int)data_len-6; i+=8) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1.g",
+    "explanation": "Off-by-one in SIMD loop bound: changing data_len-7 to data_len-6 allows one extra 8-element iteration when data_len is a multiple of 8, causing _mm256_storeu_si256 to write 32 bytes past the end of the residual buffer."
+  },
+  {
+    "id": "T1_flac_0006",
+    "project": "flac",
+    "diff": {
+      "file": "src/libFLAC/lpc_intrin_avx2.c",
+      "line": 590,
+      "before": "\t\t\t\t\tfor(i = 0; i < (int)data_len-3; i+=4) {",
+      "after": "\t\t\t\t\tfor(i = 0; i < (int)data_len-2; i+=4) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1.g",
+    "explanation": "Off-by-one in wide SIMD loop bound for order==12: changing data_len-3 to data_len-2 allows one extra 4-element iteration when data_len is a multiple of 4, causing _mm_storeu_si128 to write 16 bytes past the end of the residual buffer."
+  },
+  {
+    "id": "T1_flac_0008",
+    "project": "flac",
+    "diff": {
+      "file": "src/libFLAC/lpc_intrin_neon.c",
+      "line": 1070,
+      "before": "                    for (i = 0; i < (int)data_len - 11; i += 12)",
+      "after": "                    for (i = 0; i < (int)data_len - 10; i += 12)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one in the order==4 NEON loop bound: changing -11 to -10 allows one extra iteration where vld1q_s32(data + i + 7) reads 4 int32s past data_len - 11, causing an out-of-bounds read of up to 4 bytes beyond the allocated buffer."
+  },
+  {
+    "id": "T1_flac_0010",
+    "project": "flac",
+    "diff": {
+      "file": "src/libFLAC/lpc_intrin_neon.c",
+      "line": 1164,
+      "before": "            sum = 0;",
+      "after": "            sum = 0;\n            (void)sum;"
+    },
+    "crash_type": "use-of-uninitialized-value",
+    "family": "F5",
+    "explanation": "Removing the sum=0 initialization before the switch-case scalar fallback causes use of uninitialized memory when computing residual, potentially leaking stack data into output."
+  },
+  {
+    "id": "T1_flac_0011",
+    "project": "flac",
+    "diff": {
+      "file": "src/libFLAC/lpc_intrin_sse41.c",
+      "line": 407,
+      "before": "\t\t\t\t\tfor(i = 0; i < (int)data_len-3; i+=4) {",
+      "after": "\t\t\t\t\tfor(i = 0; i < (int)data_len-1; i+=4) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one in SIMD loop bound: changing data_len-3 to data_len-1 allows _mm_storeu_si128 to write 4 int32s (16 bytes) into residual when only 1-2 elements remain, causing a heap-buffer-overflow of up to 2 elements past the end of residual[]."
+  },
+  {
+    "id": "T1_flac_0012",
+    "project": "flac",
+    "diff": {
+      "file": "src/libFLAC/stream_decoder.c",
+      "line": 2006,
+      "before": "for(i = 0; i < decoder->private_->seek_table.data.seek_table.num_points; i++) {",
+      "after": "for(i = 0; i <= decoder->private_->seek_table.data.seek_table.num_points; i++) {"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "",
+    "explanation": "Off-by-one in seektable read loop: i <= num_points instead of i < num_points writes one extra SeekPoint entry past the heap-allocated array"
+  },
+  {
+    "id": "T1_flac_0013",
+    "project": "flac",
+    "diff": {
+      "file": "src/libFLAC/stream_decoder.c",
+      "line": 1612,
+      "before": "tmp = safe_malloc_muladd2_(sizeof(FLAC__int32), /*times (*/size, /*+*/4/*)*/);",
+      "after": "tmp = safe_malloc_muladd2_(sizeof(FLAC__int32), /*times (*/size, /*+*/0/*)*/);"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "",
+    "explanation": "Removed 4-element guard padding from output buffer allocation: safe_malloc_muladd2_ allocates size+0 instead of size+4 elements, but output pointer is still offset by +4, causing all subsequent sample writes to land 16 bytes before the allocation"
+  }
+]

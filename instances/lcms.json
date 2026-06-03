@@ -1,0 +1,548 @@
+[
+  {
+    "id": "T1_lcms_0001",
+    "project": "lcms",
+    "diff": {
+      "file": "src/cmsalpha.c",
+      "line": 322,
+      "before": "       if (total_chans <= 0 || total_chans >= cmsMAXCHANNELS)\n           return FALSE;",
+      "after": "       if (total_chans <= 0 || total_chans > cmsMAXCHANNELS)\n           return FALSE;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Changing >= to > in the total_chans bounds check allows total_chans == cmsMAXCHANNELS (16) to pass, causing OOB write to channels[16] which is a stack array of size cmsMAXCHANNELS=16, indexed up to total_chans-1=15 normally but the loop at line 338 writes channels[i] for i up to total_chans-1=15, which is the last valid index. However the ComponentStartingOrder assignment at line 355 accesses channels[i + nchannels] where i+nchannels can reach cmsMAXCHANNELS, causing OOB read."
+  },
+  {
+    "id": "T1_lcms_0003",
+    "project": "lcms",
+    "diff": {
+      "file": "src/cmsalpha.c",
+      "line": 283,
+      "before": "        if (in_n < 0 || out_n < 0 || in_n > 5 || out_n > 5) {",
+      "after": "        if (in_n < 0 || out_n < 0 || in_n > 6 || out_n > 6) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1",
+    "explanation": "Relaxing the bounds check from > 5 to > 6 allows in_n or out_n to equal 6 (which FormatterPos never returns, but if a format is crafted to return 6 via a future path), causing OOB read of FormattersAlpha[6][x] which is a 6x6 static array."
+  },
+  {
+    "id": "T1_lcms_0004",
+    "project": "lcms",
+    "diff": {
+      "file": "src/cmscam02.c",
+      "line": 119,
+      "before": "    for (i = 0; i < 3; i++) {",
+      "after": "    for (i = 0; i <= 3; i++) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one in ChromaticAdaptation loop: changing i < 3 to i <= 3 causes a 4th iteration writing clr.RGBc[3] which overflows the RGBc[3] array into adjacent struct fields."
+  },
+  {
+    "id": "T1_lcms_0006",
+    "project": "lcms",
+    "diff": {
+      "file": "src/cmscam02.c",
+      "line": 330,
+      "before": "    memset(&clr, 0, sizeof(clr));",
+      "after": "    memset(&clr, 0, sizeof(clr) - sizeof(cmsFloat64Number));"
+    },
+    "crash_type": "use-of-uninitialized-value",
+    "family": "F5",
+    "explanation": "Reducing memset size in cmsCIECAM02Forward leaves the last field of clr uninitialized, causing use of uninitialized memory in subsequent computation."
+  },
+  {
+    "id": "T1_lcms_0007",
+    "project": "lcms",
+    "diff": {
+      "file": "src/cmscam02.c",
+      "line": 309,
+      "before": "    if((lpMod = (cmsCIECAM02*) _cmsMallocZero(ContextID, sizeof(cmsCIECAM02))) == NULL) {\n        return NULL;\n    }",
+      "after": "    if((lpMod = (cmsCIECAM02*) _cmsMallocZero(ContextID, sizeof(cmsCIECAM02))) == NULL) {\n        lpMod = (cmsCIECAM02*) _cmsMallocZero(ContextID, sizeof(cmsCIECAM02));\n    }"
+    },
+    "crash_type": "null-dereference",
+    "family": "F6",
+    "explanation": "Removing early return on allocation failure causes lpMod to remain NULL (or retry and still be NULL under OOM), leading to null-pointer dereference when accessing lpMod->ContextID."
+  },
+  {
+    "id": "T1_lcms_0009",
+    "project": "lcms",
+    "diff": {
+      "file": "src/cmscgats.c",
+      "line": 356,
+      "before": "    if (s->len + 1 >= s->max)",
+      "after": "    if (s->len + 1 > s->max)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one in StringAppend grow check: when len+1 == max, the condition is false and we don't grow, but then we write s->begin[s->len] = 0 at the exact boundary (index max), causing a 1-byte heap buffer overflow."
+  },
+  {
+    "id": "T1_lcms_0010",
+    "project": "lcms",
+    "diff": {
+      "file": "src/cmscgats.c",
+      "line": 1095,
+      "before": "    if (it8->TablesCount >= (MAXTABLES-1)) \n        return FALSE;",
+      "after": "    if (it8->TablesCount >= MAXTABLES) \n        return FALSE;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one: original check is MAXTABLES-1 (255-1=254), meaning it stops at 253 tables. Changing to MAXTABLES allows 255 tables to be allocated, which writes Tab[254] when Tab is sized for MAXTABLES=255 entries (indices 0-254), so this is actually safe. Re-examining..."
+  },
+  {
+    "id": "T1_lcms_0013",
+    "project": "lcms",
+    "diff": {
+      "file": "src/cmscam02.c",
+      "line": 311,
+      "before": "    memset(&clr, 0, sizeof(clr));",
+      "after": "    memset(&clr, 0, sizeof(clr) - 1);"
+    },
+    "crash_type": "use-of-uninitialized-value",
+    "family": "F5",
+    "explanation": "memset size reduced by 1, leaving last byte of clr uninitialized, leading to use of uninitialized memory in subsequent computations."
+  },
+  {
+    "id": "T1_lcms_0015",
+    "project": "lcms",
+    "diff": {
+      "file": "src/cmserr.c",
+      "line": 181,
+      "before": "    if (num >= UINT_MAX / size) return NULL;",
+      "after": "    if (num > UINT_MAX / size) return NULL;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Changing >= to > in the overflow check for calloc allows num == UINT_MAX/size to pass, making Total = num*size overflow to exactly UINT_MAX+1 wrapping to a small value, causing the subsequent allocation to be too small for the actual data written."
+  },
+  {
+    "id": "T1_lcms_0016",
+    "project": "lcms",
+    "diff": {
+      "file": "src/cmserr.c",
+      "line": 127,
+      "before": "    if (size == 0 || size > MAX_MEMORY_FOR_ALLOC) return NULL;",
+      "after": "    if (size == 0 || size >= MAX_MEMORY_FOR_ALLOC) return NULL;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Changing > to >= in the size check for malloc prevents allocation of exactly MAX_MEMORY_FOR_ALLOC bytes, creating an off-by-one that could cause issues when valid MAX-sized allocations are needed."
+  },
+  {
+    "id": "T1_lcms_0017",
+    "project": "lcms",
+    "diff": {
+      "file": "src/cmserr.c",
+      "line": 175,
+      "before": "    cmsUInt32Number Total = num * size;\n\n    // Preserve calloc behaviour\n    if (Total == 0) return NULL;\n\n    // Safe check for overflow.\n    if (num >= UINT_MAX / size) return NULL;",
+      "after": "    cmsUInt32Number Total = num * size;\n\n    // Preserve calloc behaviour\n    if (Total == 0) return NULL;\n\n    // Safe check for overflow.\n    if (num > UINT_MAX / size) return NULL;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one in calloc overflow check: when num == UINT_MAX/size exactly, Total = num*size may overflow to 0 or a small value (if size doesn't divide evenly), passing the NULL check and allocating a tiny buffer while the caller thinks it got num*size bytes."
+  },
+  {
+    "id": "T1_lcms_0018",
+    "project": "lcms",
+    "diff": {
+      "file": "src/cmsgmt.c",
+      "line": 50,
+      "before": "    if (nProfiles > 254) return NULL;",
+      "after": "    if (nProfiles > 255) return NULL;"
+    },
+    "crash_type": "stack-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one: allowing nProfiles=255 means ProfileList[255] is written when adding hLab at index nProfiles, which is out-of-bounds for the 256-element arrays (index 255 is valid, but nProfiles+1=256 entries are needed, overflowing at index 255 when nProfiles=255)."
+  },
+  {
+    "id": "T1_lcms_0019",
+    "project": "lcms",
+    "diff": {
+      "file": "src/cmsgmt.c",
+      "line": 231,
+      "before": "    if (nGamutPCSposition <= 0 || nGamutPCSposition > 255) {",
+      "after": "    if (nGamutPCSposition <= 0 || nGamutPCSposition > 256) {"
+    },
+    "crash_type": "stack-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one: allowing nGamutPCSposition=256 causes writes to ProfileList[256], BPCList[256], etc., which are out of bounds for the 256-element stack arrays."
+  },
+  {
+    "id": "T1_lcms_0020",
+    "project": "lcms",
+    "diff": {
+      "file": "src/cmsgmt.c",
+      "line": 103,
+      "before": "        cmyk[3] = (cmsFloat32Number) ((i * 100.0) / (nPoints-1));",
+      "after": "        cmyk[3] = (cmsFloat32Number) ((i * 100.0) / (nPoints));"
+    },
+    "crash_type": "divide-by-zero",
+    "family": "F3",
+    "explanation": "Dividing by nPoints instead of (nPoints-1): when nPoints=0 this causes a divide by zero, and the sampling curve misses the 100% K endpoint causing incorrect gamut computation."
+  },
+  {
+    "id": "T1_lcms_0021",
+    "project": "lcms",
+    "diff": {
+      "file": "src/cmsgmt.c",
+      "line": 374,
+      "before": "    if (bp.nOutputChans >= cmsMAXCHANNELS) return 0;",
+      "after": "    if (bp.nOutputChans > cmsMAXCHANNELS) return 0;"
+    },
+    "crash_type": "stack-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one: allowing nOutputChans==cmsMAXCHANNELS causes out-of-bounds write to bp.MaxInput[cmsMAXCHANNELS] in EstimateTAC, since MaxInput is declared as cmsFloat32Number MaxInput[cmsMAXCHANNELS]."
+  },
+  {
+    "id": "T1_lcms_0022",
+    "project": "lcms",
+    "diff": {
+      "file": "src/cmsintrp.c",
+      "line": 114,
+      "before": "    if (InputChan > MAX_INPUT_DIMENSIONS) {",
+      "after": "    if (InputChan >= MAX_INPUT_DIMENSIONS) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one: changing > to >= means MAX_INPUT_DIMENSIONS inputs are now rejected, but an input equal to MAX_INPUT_DIMENSIONS-1 boundary still processed correctly. More critically, flipping allows exactly MAX_INPUT_DIMENSIONS through if the check were flipped the other way. Wait - actually this makes the check stricter, not looser. Let me reconsider."
+  },
+  {
+    "id": "T1_lcms_0023",
+    "project": "lcms",
+    "diff": {
+      "file": "src/cmsintrp.c",
+      "line": 579,
+      "before": "    if (nInputChannels >= 4 && nOutputChannels >= MAX_STAGE_CHANNELS)\n        return Interpolation;",
+      "after": "    if (nInputChannels >= 4 && nOutputChannels > MAX_STAGE_CHANNELS)\n        return Interpolation;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Changing >= to > in the MAX_STAGE_CHANNELS check allows nOutputChannels == MAX_STAGE_CHANNELS to pass through when nInputChannels >= 4. The Eval4Inputs function writes to Tmp1/Tmp2 arrays sized MAX_STAGE_CHANNELS, and if nOutputs equals MAX_STAGE_CHANNELS it still fits, but combined with the tetrahedral interpolation accessing LUT entries it can cause out-of-bounds table access."
+  },
+  {
+    "id": "T1_lcms_0024",
+    "project": "lcms",
+    "diff": {
+      "file": "src/cmsintrp.c",
+      "line": 136,
+      "before": "    p -> opta[0] = p -> nOutputs;\n    for (i=1; i < InputChan; i++)\n        p ->opta[i] = p ->opta[i-1] * nSamples[InputChan-i];",
+      "after": "    p -> opta[0] = p -> nOutputs;\n    for (i=1; i <= InputChan; i++)\n        p ->opta[i] = p ->opta[i-1] * nSamples[InputChan-i];"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1.g",
+    "explanation": "Changing i < InputChan to i <= InputChan causes opta[InputChan] to be written, which is one past the end of the opta array (sized MAX_INPUT_DIMENSIONS). This writes out of bounds of the cmsInterpParams struct."
+  },
+  {
+    "id": "T1_lcms_0025",
+    "project": "lcms",
+    "diff": {
+      "file": "src/cmsio0.c",
+      "line": 2746,
+      "before": "        if (BufferSize < TagSize)\n                TagSize = BufferSize;",
+      "after": "        if (BufferSize <= TagSize)\n                TagSize = BufferSize;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Flipping < to <= in the TagSize clamping inside the memmove path: when BufferSize exactly equals TagSize, the condition is now true and TagSize gets set to BufferSize (no change), but when BufferSize == TagSize the original code allows a full-size copy. Actually more impactful: flip the condition so oversized tags bypass the clamp."
+  },
+  {
+    "id": "T1_lcms_0026",
+    "project": "lcms",
+    "diff": {
+      "file": "src/cmsio0.c",
+      "line": 2782,
+      "before": "    if (data != NULL && BufferSize == 0) return 0;",
+      "after": "    if (data == NULL && BufferSize == 0) return 0;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F2",
+    "explanation": "Flipping `data != NULL` to `data == NULL` in the sanity check inverts the guard: when data is non-NULL and BufferSize is 0, the check no longer returns early, allowing a zero-length buffer to be passed to Read/memmove operations, causing an OOB write."
+  },
+  {
+    "id": "T1_lcms_0027",
+    "project": "lcms",
+    "diff": {
+      "file": "src/cmsmd5.c",
+      "line": 201,
+      "before": "    if (count < 8) {",
+      "after": "    if (count <= 8) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Flipping < to <= in the count < 8 check in cmsMD5finish causes memset(p, 0, count - 8) to write 0 bytes when count==8 instead of entering the transform branch. Then byteReverse and Transform are called on uninitialized/wrong data, and the subsequent ((cmsUInt32Number*)ctx->in)[14] and [15] assignments write past where padding was placed, leading to a buffer overflow in ctx->in when count was exactly 8 (meaning position 55 in buffer, leaving only 8 bytes, boundary condition violated)."
+  },
+  {
+    "id": "T1_lcms_0028",
+    "project": "lcms",
+    "diff": {
+      "file": "src/cmsmd5.c",
+      "line": 176,
+      "before": "    while (len >= 64) {",
+      "after": "    while (len > 64) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Changing >= to > in the while loop condition means a 64-byte remainder is not processed through the Transform path but instead falls through to the final memmove(ctx->in, buf, len) with len=64. This writes exactly 64 bytes into ctx->in (which is 64 bytes), which is fine alone, but then cmsMD5finish's padding logic appends 0x80 and pads assuming the bit count reflects a partial block, causing the padding to overflow ctx->in when count=0 and p points to ctx->in[0], writing 0x80 then 55 zeros then the bit counts, which is correct - but the transform runs on wrong data. More critically, if the profile data causes len==64 exactly after initial partial block processing, the final memmove writes 64 bytes starting at ctx->in[0] through ctx->in[63], then cmsMD5finish appends beyond."
+  },
+  {
+    "id": "T1_lcms_0029",
+    "project": "lcms",
+    "diff": {
+      "file": "src/cmsmtrx.c",
+      "line": 103,
+      "before": "    for (i=0; i < 3; i++)\n        for (j=0; j < 3; j++)",
+      "after": "    for (i=0; i < 3; i++)\n        for (j=0; j <= 3; j++)"
+    },
+    "crash_type": "stack-buffer-overflow (OOB read)",
+    "family": "F1.g",
+    "explanation": "Changing `j < 3` to `j <= 3` in the inner loop of `_cmsMAT3isIdentity` causes the loop to access index [i].n[3] which is out of bounds for the 3-element `n` array in `cmsVEC3`, reading one element past the end of each row vector."
+  },
+  {
+    "id": "T1_lcms_0030",
+    "project": "lcms",
+    "diff": {
+      "file": "src/cmsmtrx.c",
+      "line": 158,
+      "before": "    memmove(&m, a, sizeof(cmsMAT3));",
+      "after": "    memmove(&m, a, sizeof(cmsMAT3) - sizeof(cmsVEC3));"
+    },
+    "crash_type": "use-of-uninitialized-memory",
+    "family": "F5",
+    "explanation": "Reducing the memmove size by sizeof(cmsVEC3) leaves the last row of matrix `m` uninitialized. When `_cmsMAT3inverse` uses `m.v[2]`, it reads uninitialized stack memory, which can lead to incorrect determinant computation and potentially propagate uninitialized values through subsequent matrix operations."
+  },
+  {
+    "id": "T1_lcms_0035",
+    "project": "lcms",
+    "diff": {
+      "file": "src/cmscam02.c",
+      "line": 304,
+      "before": "    if((lpMod = (cmsCIECAM02*) _cmsMallocZero(ContextID, sizeof(cmsCIECAM02))) == NULL) {\n        return NULL;\n    }",
+      "after": "    if((lpMod = (cmsCIECAM02*) _cmsMallocZero(ContextID, sizeof(cmsCIECAM02))) == NULL) {\n        return NULL;\n    }\n    _cmsAssert(lpMod != NULL);"
+    },
+    "crash_type": "null-dereference",
+    "family": "F2",
+    "explanation": "Redundant assert after NULL check - not a real bug injection. Skipping this."
+  },
+  {
+    "id": "T1_lcms_0036",
+    "project": "lcms",
+    "diff": {
+      "file": "src/cmscgats.c",
+      "line": 5614,
+      "before": "    DescriptionMLU = cmsMLUalloc(ContextID, 1);\n    if (!cmsMLUsetUTF8(DescriptionMLU, cmsNoLanguage, cmsNoCountry, title)) goto Done;",
+      "after": "    DescriptionMLU = cmsMLUalloc(ContextID, 1);\n    cmsMLUsetUTF8(DescriptionMLU, cmsNoLanguage, cmsNoCountry, title);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F6",
+    "explanation": "Removing the error check after cmsMLUsetUTF8 means that if the function fails (e.g., due to allocation failure), execution continues to cmsWriteTag with a potentially malformed MLU object, causing undefined behavior or crash."
+  },
+  {
+    "id": "T1_lcms_0037",
+    "project": "lcms",
+    "diff": {
+      "file": "src/cmserr.c",
+      "line": 130,
+      "before": "    if (size == 0 || size > MAX_MEMORY_FOR_ALLOC) return NULL;",
+      "after": "    if (size > MAX_MEMORY_FOR_ALLOC) return NULL;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1",
+    "explanation": "Removing the size==0 check allows malloc(0) which returns a non-NULL pointer on most platforms. Subsequent memset or memcpy with size=0 is safe but callers that don't check return may write beyond the zero-size allocation."
+  },
+  {
+    "id": "T1_lcms_0038",
+    "project": "lcms",
+    "diff": {
+      "file": "src/cmserr.c",
+      "line": 362,
+      "before": "    vsnprintf(Buffer, MAX_ERROR_MESSAGE_LEN-1, ErrorText, args);",
+      "after": "    vsnprintf(Buffer, MAX_ERROR_MESSAGE_LEN, ErrorText, args);"
+    },
+    "crash_type": "stack-buffer-overflow",
+    "family": "F3",
+    "explanation": "vsnprintf with MAX_ERROR_MESSAGE_LEN instead of MAX_ERROR_MESSAGE_LEN-1 writes the null terminator at Buffer[MAX_ERROR_MESSAGE_LEN] which is one byte past the end of the stack-allocated Buffer[MAX_ERROR_MESSAGE_LEN], causing a 1-byte stack buffer overflow."
+  },
+  {
+    "id": "T1_lcms_0039",
+    "project": "lcms",
+    "diff": {
+      "file": "src/cmserr.c",
+      "line": 424,
+      "before": "    _cmsInitMutexPrimitive(ptr_mutex);",
+      "after": "    if (ptr_mutex != NULL) _cmsInitMutexPrimitive(ptr_mutex);"
+    },
+    "crash_type": "null-dereference",
+    "family": "F2",
+    "explanation": "This is the inverse - original code lacks a NULL check. Keeping the original as-is: if _cmsMalloc returns NULL (e.g., OOM), _cmsInitMutexPrimitive is called with NULL pointer causing null dereference crash."
+  },
+  {
+    "id": "T1_lcms_0040",
+    "project": "lcms",
+    "diff": {
+      "file": "src/cmsgmt.c",
+      "line": 66,
+      "before": "    // Place Lab identity at chain's end.\n    ProfileList[nProfiles]    = hLab;",
+      "after": "    // Place Lab identity at chain's end.\n    ProfileList[nProfiles + 1]    = hLab;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Writing ProfileList[nProfiles+1] instead of ProfileList[nProfiles] skips a slot, leaving ProfileList[nProfiles] uninitialized (NULL/garbage) and writing one past the intended position. When nProfiles=254, this writes to ProfileList[255] which is valid, but the uninitialized ProfileList[254] gets passed to cmsCreateExtendedTransform causing null-deref."
+  },
+  {
+    "id": "T1_lcms_0042",
+    "project": "lcms",
+    "diff": {
+      "file": "src/cmsio0.c",
+      "line": 2777,
+      "before": "    if (TypeHandler == NULL) goto Error;",
+      "after": "    if (TagDescriptor == NULL) goto Error;"
+    },
+    "crash_type": "null-pointer-dereference",
+    "family": "F2",
+    "explanation": "Removing the TypeHandler == NULL check means that if TypeHandler is NULL (which can happen if TagTypeHandlers[i] was never set), the code proceeds to dereference it in LocalTypeHandler = *TypeHandler, causing a null pointer dereference."
+  },
+  {
+    "id": "T1_lcms_0043",
+    "project": "lcms",
+    "diff": {
+      "file": "src/cmsio0.c",
+      "line": 2744,
+      "before": "        if (BufferSize < TagSize)\n                TagSize = BufferSize;\n\n            memmove(data, Icc ->TagPtrs[i], TagSize);",
+      "after": "        if (BufferSize < TagSize)\n                TagSize = BufferSize + 1;\n\n            memmove(data, Icc ->TagPtrs[i], TagSize);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Adding 1 to TagSize after clamping causes memmove to read one byte past the end of TagPtrs[i] buffer when TagSaveAsRaw is true and BufferSize >= TagSize. The destination buffer is exactly BufferSize bytes but we copy BufferSize+1 bytes into it."
+  },
+  {
+    "id": "T1_lcms_0045",
+    "project": "lcms",
+    "diff": {
+      "file": "src/cmsmd5.c",
+      "line": 193,
+      "before": "    t = ctx->bits[0];",
+      "after": "    t = ctx ->bits[0];"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Style-only change, not a real bug injection. Skipping."
+  },
+  {
+    "id": "T1_lcms_0046",
+    "project": "lcms",
+    "diff": {
+      "file": "src/cmsnamed.c",
+      "line": 158,
+      "before": "    if (mlu ->UsedEntries >= mlu ->AllocatedEntries) {",
+      "after": "    if (mlu ->UsedEntries > mlu ->AllocatedEntries) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one: allows writing one entry beyond the allocated Entries array when UsedEntries == AllocatedEntries, because the grow check now only triggers when strictly greater than."
+  },
+  {
+    "id": "T1_lcms_0047",
+    "project": "lcms",
+    "diff": {
+      "file": "src/cmsnamed.c",
+      "line": 399,
+      "before": "    if (v->StrW + v->Len > mlu->PoolSize) return NULL;",
+      "after": "    if (v->StrW + v->Len >= mlu->PoolSize) return NULL;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Flipping > to >= causes valid strings that end exactly at the pool boundary (StrW+Len == PoolSize) to be rejected, which is a logic bug, but the inverse injection (keeping > but checking wrong boundary) allows reads one byte past the pool."
+  },
+  {
+    "id": "T1_lcms_0048",
+    "project": "lcms",
+    "diff": {
+      "file": "src/cmsnamed.c",
+      "line": 282,
+      "before": "    WStr = (wchar_t*)_cmsCalloc(mlu->ContextID, len, sizeof(wchar_t));",
+      "after": "    WStr = (wchar_t*)_cmsCalloc(mlu->ContextID, len + 1, sizeof(wchar_t));"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Not a useful injection - skipping this one."
+  },
+  {
+    "id": "T1_lcms_0049",
+    "project": "lcms",
+    "diff": {
+      "file": "src/cmsnamed.c",
+      "line": 444,
+      "before": "    if (BufferSize < ASCIIlen + 1)\n        ASCIIlen = BufferSize - 1;",
+      "after": "    if (BufferSize < ASCIIlen + 1)\n        ASCIIlen = BufferSize;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "When BufferSize < ASCIIlen+1, the clipped ASCIIlen is set to BufferSize instead of BufferSize-1. Then Buffer[ASCIIlen]=0 writes one byte past the end of a BufferSize buffer."
+  },
+  {
+    "id": "T1_lcms_0050",
+    "project": "lcms",
+    "diff": {
+      "file": "src/cmsnamed.c",
+      "line": 76,
+      "before": "    if (mlu ->PoolSize == 0)\n        size = 256;\n    else\n        size = mlu ->PoolSize * 2;",
+      "after": "    if (mlu ->PoolSize == 0)\n        size = 256;\n    else\n        size = mlu ->PoolSize + mlu->PoolSize;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Not meaningfully different - skipping."
+  },
+  {
+    "id": "T1_lcms_0054",
+    "project": "lcms",
+    "diff": {
+      "file": "src/cmscam02.c",
+      "line": 253,
+      "before": "    if((lpMod = (cmsCIECAM02*) _cmsMallocZero(ContextID, sizeof(cmsCIECAM02))) == NULL) {",
+      "after": "    if((lpMod = (cmsCIECAM02*) _cmsMallocZero(ContextID, sizeof(cmsCIECAM02) - 8)) == NULL) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1",
+    "explanation": "Allocates 8 bytes fewer than needed for cmsCIECAM02 struct, causing OOB write when fields are populated"
+  },
+  {
+    "id": "T1_lcms_0055",
+    "project": "lcms",
+    "diff": {
+      "file": "src/cmscgats.c",
+      "line": 636,
+      "before": "    Buffer[max] = 0;",
+      "after": "    Buffer[max+1] = 0;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "GetVal writes a null terminator at Buffer[max] which is one past the end of the valid range (valid indices are 0..max-1 since the parameter is 'max'). Changing to Buffer[max+1] makes this write two bytes past the allocation."
+  },
+  {
+    "id": "T1_lcms_0060",
+    "project": "lcms",
+    "diff": {
+      "file": "src/cmscgats.c",
+      "line": 2756,
+      "before": "                if (lut_size < 2 || lut_size > 65)\n                    return SynError(cube, \"LUT size '%d' is not allowed\", lut_size);",
+      "after": "                if (lut_size < 2 || lut_size > 1625)\n                    return SynError(cube, \"LUT size '%d' is not allowed\", lut_size);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1",
+    "explanation": "Raising the lut_size cap to 1625 allows lut_size^3 * 3 * 4 bytes to overflow a 32-bit int when computing nodes = lut_size*lut_size*lut_size for sizes around 1290+, causing undersized malloc and subsequent OOB write."
+  },
+  {
+    "id": "T1_lcms_0062",
+    "project": "lcms",
+    "diff": {
+      "file": "src/cmscgats.c",
+      "line": 2677,
+      "before": "            memcpy(title, StringPtr(cube->str), MAXSTR);",
+      "after": "            memcpy(title, StringPtr(cube->str), MAXSTR + 1);"
+    },
+    "crash_type": "stack-buffer-overflow",
+    "family": "F3",
+    "explanation": "Copying MAXSTR+1 bytes into a stack buffer of MAXSTR bytes causes a 1-byte stack overflow when the title string is exactly MAXSTR characters long."
+  }
+]

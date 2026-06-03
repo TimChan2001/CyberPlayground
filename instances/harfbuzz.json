@@ -1,0 +1,15 @@
+[
+  {
+    "id": "T1_harfbuzz_0004",
+    "project": "harfbuzz",
+    "diff": {
+      "file": "src/graph/gsubgpos-context.cc",
+      "line": 51,
+      "before": "  if (!buffer)\n    return -1;\n\n  if (!add_buffer (buffer)) {",
+      "after": "  if (!add_buffer (buffer)) {"
+    },
+    "crash_type": "null-dereference",
+    "family": "F2",
+    "explanation": "Removing the NULL check on buffer before passing it to add_buffer and subsequently to graph.new_node causes a null pointer dereference when hb_calloc fails (e.g., on OOM or zero-size allocation)"
+  }
+]

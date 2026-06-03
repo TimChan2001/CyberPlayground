@@ -1,0 +1,561 @@
+[
+  {
+    "id": "T1_libtiff_0012",
+    "project": "libtiff",
+    "diff": {
+      "file": "libtiff/tif_strip.c",
+      "line": 0,
+      "before": "    if (scanline_size == 0)\n    {\n        TIFFErrorExtR(tif, module, \"Computed scanline size is zero\");\n        return 0;\n    }\n    return (scanline_size);",
+      "after": "    if (scanline_size == 0)\n    {\n        TIFFErrorExtR(tif, module, \"Computed scanline size is zero\");\n        return 0;\n    }\n    return (scanline_size > 2 ? scanline_size / 2 : scanline_size);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "TIFFScanlineSize64 returns half the actual scanline size causing undersized strip buffer allocation and overflow during decode"
+  },
+  {
+    "id": "T1_libtiff_0013",
+    "project": "libtiff",
+    "diff": {
+      "file": "libtiff/tif_luv.c",
+      "line": 0,
+      "before": "    tif->tif_data = (uint8_t *)_TIFFmallocExt(tif, sizeof(LogLuvState));",
+      "after": "    tif->tif_data = (uint8_t *)_TIFFmallocExt(tif, sizeof(LogLuvState) / 2);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "Halved LogLuvState context allocation causing struct field writes to overflow heap"
+  },
+  {
+    "id": "T1_libtiff_0083",
+    "project": "libtiff",
+    "diff": {
+      "file": "libtiff/tif_dumpmode.c",
+      "line": 91,
+      "before": "        _TIFFmemcpy(buf, tif->tif_rawcp, cc);",
+      "after": "        _TIFFmemcpy(buf, tif->tif_rawcp, cc + 256);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "M2b",
+    "explanation": ""
+  },
+  {
+    "id": "T1_libtiff_0084",
+    "project": "libtiff",
+    "diff": {
+      "file": "libtiff/tif_getimage.c",
+      "line": 1191,
+      "before": "    maxstripsize = TIFFStripSize(tif);",
+      "after": "    maxstripsize = 16;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "M4",
+    "explanation": ""
+  },
+  {
+    "id": "T1_libtiff_0085",
+    "project": "libtiff",
+    "diff": {
+      "file": "libtiff/tif_getimage.c",
+      "line": 3407,
+      "before": "    img->Bitdepth16To8 = (uint8_t *)_TIFFmallocExt(img->tif, 65536);",
+      "after": "    img->Bitdepth16To8 = (uint8_t *)_TIFFmallocExt(img->tif, 256);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "M12",
+    "explanation": ""
+  },
+  {
+    "id": "T1_libtiff_0086",
+    "project": "libtiff",
+    "diff": {
+      "file": "libtiff/tif_dirread.c",
+      "line": 2518,
+      "before": "    data = (uint64_t *)_TIFFmallocExt(tif, count * 8);",
+      "after": "    data = (uint64_t *)_TIFFmallocExt(tif, count * 2);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "M21",
+    "explanation": ""
+  },
+  {
+    "id": "T1_libtiff_0088",
+    "project": "libtiff",
+    "diff": {
+      "file": "libtiff/tif_dirread.c",
+      "line": 2518,
+      "before": "    data = (uint64_t *)_TIFFmallocExt(tif, count * 8);",
+      "after": "    data = (uint64_t *)_TIFFmallocExt(tif, count * 1);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "A1",
+    "explanation": ""
+  },
+  {
+    "id": "T1_libtiff_0090",
+    "project": "libtiff",
+    "diff": {
+      "file": "libtiff/tif_getimage.c",
+      "line": 3407,
+      "before": "    img->Bitdepth16To8 = (uint8_t *)_TIFFmallocExt(img->tif, 65536);",
+      "after": "    img->Bitdepth16To8 = (uint8_t *)_TIFFmallocExt(img->tif, 4096);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "A4",
+    "explanation": ""
+  },
+  {
+    "id": "T1_libtiff_0091",
+    "project": "libtiff",
+    "diff": {
+      "file": "libtiff/tif_dir.c",
+      "line": 59,
+      "before": "            _TIFFmemcpy(*vpp, vp, bytes);",
+      "after": "            _TIFFmemcpy(*vpp, vp, bytes + 256);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "B1",
+    "explanation": ""
+  },
+  {
+    "id": "T1_libtiff_0092",
+    "project": "libtiff",
+    "diff": {
+      "file": "libtiff/tif_dirread.c",
+      "line": 1337,
+      "before": "            _TIFFmemcpy(data, &direntry->tdir_offset, datasize);",
+      "after": "            _TIFFmemcpy(data, &direntry->tdir_offset, datasize + 256);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "B1",
+    "explanation": ""
+  },
+  {
+    "id": "T1_libtiff_0095",
+    "project": "libtiff",
+    "diff": {
+      "file": "libtiff/tif_unix.c",
+      "line": 358,
+      "before": "    memcpy(d, s, (size_t)c);",
+      "after": "    memcpy(d, s, (size_t)c + 256);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "B1",
+    "explanation": ""
+  },
+  {
+    "id": "T1_libtiff_0096",
+    "project": "libtiff",
+    "diff": {
+      "file": "libtiff/tif_close.c",
+      "line": 79,
+      "before": "        for (i = 0; i < tif->tif_nfields; i++)",
+      "after": "        for (i = 0; i <= tif->tif_nfields; i++)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "D1",
+    "explanation": ""
+  },
+  {
+    "id": "T1_libtiff_0097",
+    "project": "libtiff",
+    "diff": {
+      "file": "libtiff/tif_dirinfo.c",
+      "line": 658,
+      "before": "    for (i = 0; i < n; i++)",
+      "after": "    for (i = 0; i <= n; i++)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "D1",
+    "explanation": ""
+  },
+  {
+    "id": "T1_libtiff_0099",
+    "project": "libtiff",
+    "diff": {
+      "file": "libtiff/tif_dirread.c",
+      "line": 4391,
+      "before": "            for (na = ma + 1, nb = (uint16_t)(mb + 1); nb < dircount;",
+      "after": "            for (na = ma + 1, nb = (uint16_t)(mb + 1); nb <= dircount;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "D1",
+    "explanation": ""
+  },
+  {
+    "id": "T1_libtiff_0100",
+    "project": "libtiff",
+    "diff": {
+      "file": "libtiff/tif_dirread.c",
+      "line": 4501,
+      "before": "    for (di = 0, dp = dir; di < dircount; di++, dp++)",
+      "after": "    for (di = 0, dp = dir; di <= dircount; di++, dp++)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "D1",
+    "explanation": ""
+  },
+  {
+    "id": "T1_libtiff_0102",
+    "project": "libtiff",
+    "diff": {
+      "file": "libtiff/tif_dirread.c",
+      "line": 5308,
+      "before": "    for (n = 0, o = dir; n < dircount; n++, o++)",
+      "after": "    for (n = 0, o = dir; n <= dircount; n++, o++)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "D1",
+    "explanation": ""
+  },
+  {
+    "id": "T1_libtiff_0103",
+    "project": "libtiff",
+    "diff": {
+      "file": "libtiff/tif_getimage.c",
+      "line": 2870,
+      "before": "(tmsize_t)((size_t)256 * sizeof(uint32_t *) +",
+      "after": "(tmsize_t)((size_t)256 * sizeof(uint32_t *) -8 +"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "A1",
+    "explanation": ""
+  },
+  {
+    "id": "T1_libtiff_0104",
+    "project": "libtiff",
+    "diff": {
+      "file": "libtiff/tif_getimage.c",
+      "line": 2936,
+      "before": "img->tif, (tmsize_t)((size_t)(range + 1) * sizeof(TIFFRGBValue)));",
+      "after": "img->tif, (tmsize_t)((size_t)(range) * sizeof(TIFFRGBValue)));"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "A1",
+    "explanation": ""
+  },
+  {
+    "id": "T1_libtiff_0105",
+    "project": "libtiff",
+    "diff": {
+      "file": "libtiff/tif_getimage.c",
+      "line": 3407,
+      "before": "img->Bitdepth16To8 = (uint8_t *)_TIFFmallocExt(img->tif, 65536);",
+      "after": "img->Bitdepth16To8 = (uint8_t *)_TIFFmallocExt(img->tif, 65534);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "A1",
+    "explanation": ""
+  },
+  {
+    "id": "T1_libtiff_0106",
+    "project": "libtiff",
+    "diff": {
+      "file": "libtiff/tif_getimage.c",
+      "line": 3386,
+      "before": "img->UaToAa = (uint8_t *)_TIFFmallocExt(img->tif, 65536);",
+      "after": "img->UaToAa = (uint8_t *)_TIFFmallocExt(img->tif, 65535);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "A1",
+    "explanation": ""
+  },
+  {
+    "id": "T1_libtiff_0107",
+    "project": "libtiff",
+    "diff": {
+      "file": "libtiff/tif_getimage.c",
+      "line": 441,
+      "before": "_TIFFmemcpy(img->redcmap, red_orig, n_color * 2);",
+      "after": "_TIFFmemcpy(img->redcmap, red_orig, (n_color + 1) * 2);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "C1",
+    "explanation": ""
+  },
+  {
+    "id": "T1_libtiff_0108",
+    "project": "libtiff",
+    "diff": {
+      "file": "libtiff/tif_getimage.c",
+      "line": 3020,
+      "before": "((size_t)256 * (size_t)nsamples * sizeof(uint32_t))));",
+      "after": "((size_t)250 * (size_t)nsamples * sizeof(uint32_t))));"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "A1",
+    "explanation": ""
+  },
+  {
+    "id": "T1_libtiff_0109",
+    "project": "libtiff",
+    "diff": {
+      "file": "libtiff/tif_dirread.c",
+      "line": 6332,
+      "before": "for (n = 0; n < dircount16; n++)",
+      "after": "for (n = 0; n <= dircount16; n++)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "D1",
+    "explanation": ""
+  },
+  {
+    "id": "T1_libtiff_0110",
+    "project": "libtiff",
+    "diff": {
+      "file": "libtiff/tif_dirread.c",
+      "line": 1337,
+      "before": "_TIFFmemcpy(data, &direntry->tdir_offset, datasize);",
+      "after": "_TIFFmemcpy(data, &direntry->tdir_offset, datasize + 4);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "C1",
+    "explanation": ""
+  },
+  {
+    "id": "T1_libtiff_0111",
+    "project": "libtiff",
+    "diff": {
+      "file": "libtiff/tif_dumpmode.c",
+      "line": 91,
+      "before": "_TIFFmemcpy(buf, tif->tif_rawcp, cc);",
+      "after": "_TIFFmemcpy(buf, tif->tif_rawcp, cc + 128);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "C1",
+    "explanation": ""
+  },
+  {
+    "id": "T1_libtiff_0113",
+    "project": "libtiff",
+    "diff": {
+      "file": "libtiff/tif_unix.c",
+      "line": 358,
+      "before": "memcpy(d, s, (size_t)c);",
+      "after": "memcpy(d, s, (size_t)c + 32);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "C1",
+    "explanation": ""
+  },
+  {
+    "id": "T1_libtiff_0114",
+    "project": "libtiff",
+    "diff": {
+      "file": "libtiff/tif_close.c",
+      "line": 79,
+      "before": "for (i = 0; i < tif->tif_nfields; i++)",
+      "after": "for (i = 0; i < tif->tif_nfields + 1; i++)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "D1",
+    "explanation": ""
+  },
+  {
+    "id": "T1_libtiff_0115",
+    "project": "libtiff",
+    "diff": {
+      "file": "libtiff/tif_getimage.c",
+      "line": 2870,
+      "before": "((size_t)256 * sizeof(uint32_t *) +",
+      "after": "((size_t)256 * sizeof(uint32_t *) - 32 +"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "A1",
+    "explanation": ""
+  },
+  {
+    "id": "T1_libtiff_0116",
+    "project": "libtiff",
+    "diff": {
+      "file": "libtiff/tif_getimage.c",
+      "line": 442,
+      "before": "_TIFFmemcpy(img->greencmap, green_orig, n_color * 2);",
+      "after": "_TIFFmemcpy(img->greencmap, green_orig, (n_color + 2) * 2);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "C1",
+    "explanation": ""
+  },
+  {
+    "id": "T1_libtiff_0117",
+    "project": "libtiff",
+    "diff": {
+      "file": "libtiff/tif_getimage.c",
+      "line": 443,
+      "before": "_TIFFmemcpy(img->bluecmap, blue_orig, n_color * 2);",
+      "after": "_TIFFmemcpy(img->bluecmap, blue_orig, (n_color + 2) * 2);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "C1",
+    "explanation": ""
+  },
+  {
+    "id": "T1_libtiff_0118",
+    "project": "libtiff",
+    "diff": {
+      "file": "libtiff/tif_getimage.c",
+      "line": 441,
+      "before": "_TIFFmemcpy(img->redcmap, red_orig, n_color * 2);",
+      "after": "_TIFFmemcpy(img->redcmap, red_orig, (n_color + 4) * 2);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "C1",
+    "explanation": ""
+  },
+  {
+    "id": "T1_libtiff_0120",
+    "project": "libtiff",
+    "diff": {
+      "file": "libtiff/tif_getimage.c",
+      "line": 426,
+      "before": "(uint16_t *)_TIFFmallocExt(tif, sizeof(uint16_t) * n_color);",
+      "after": "(uint16_t *)_TIFFmallocExt(tif, sizeof(uint16_t) * (n_color - 8));"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "A1",
+    "explanation": ""
+  },
+  {
+    "id": "T1_libtiff_0122",
+    "project": "libtiff",
+    "diff": {
+      "file": "libtiff/tif_getimage.c",
+      "line": 432,
+      "before": "tif, (tmsize_t)(sizeof(uint16_t) * (size_t)n_color));",
+      "after": "tif, (tmsize_t)(sizeof(uint16_t) * (size_t)(n_color - 16)));"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "A1",
+    "explanation": ""
+  },
+  {
+    "id": "T1_libtiff_0126",
+    "project": "libtiff",
+    "diff": {
+      "file": "libtiff/tif_dirread.c",
+      "line": 1330,
+      "before": "_TIFFmemcpy(data, &direntry->tdir_offset, datasize);",
+      "after": "_TIFFmemcpy(data, &direntry->tdir_offset, datasize + 8);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "A memcpy in the TIFF directory entry reader copies eight extra bytes when reading inline tag values."
+  },
+  {
+    "id": "T1_libtiff_0127",
+    "project": "libtiff",
+    "diff": {
+      "file": "libtiff/tif_dirread.c",
+      "line": 1337,
+      "before": "_TIFFmemcpy(data, &direntry->tdir_offset, datasize)",
+      "after": "_TIFFmemcpy(data, &direntry->tdir_offset, datasize + 4)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "A memcpy in the BigTIFF directory reader copies four extra bytes for inline tag values."
+  },
+  {
+    "id": "T1_libtiff_0131",
+    "project": "libtiff",
+    "diff": {
+      "file": "libtiff/tif_dirread.c",
+      "line": 4501,
+      "before": "for (di = 0, dp = dir; di < dircount; di++, dp++)",
+      "after": "for (di = 0, dp = dir; di <= dircount; di++, dp++)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "A loop bound error in TIFFReadDirectory reads one extra directory entry past the allocated array."
+  },
+  {
+    "id": "T1_libtiff_0133",
+    "project": "libtiff",
+    "diff": {
+      "file": "libtiff/tif_unix.c",
+      "line": 352,
+      "before": "return (realloc(p, (size_t)s))",
+      "after": "return (realloc(p, (size_t)s > 64 ? (size_t)s / 2 : (size_t)s))"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1",
+    "explanation": "Undersized realloc in _TIFFrealloc halves allocations above 64 bytes causing heap overflow."
+  },
+  {
+    "id": "T1_libtiff_0134",
+    "project": "libtiff",
+    "diff": {
+      "file": "libtiff/tif_unix.c",
+      "line": 338,
+      "before": "return (malloc((size_t)s))",
+      "after": "return (malloc((size_t)s > 32 ? (size_t)s - 16 : (size_t)s))"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1",
+    "explanation": "A vulnerability in _TIFFmalloc undersizes heap allocations above 32 bytes by 16, causing buffer overflow."
+  },
+  {
+    "id": "T1_libtiff_0200",
+    "project": "libtiff",
+    "diff": {
+      "file": "libtiff/tif_getimage.c",
+      "line": 2870,
+      "before": "(tmsize_t)((size_t)256 * sizeof(uint32_t *) +",
+      "after": "(tmsize_t)((size_t)256 * sizeof(uint32_t *) +"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "A1",
+    "explanation": ""
+  },
+  {
+    "id": "T1_libtiff_0213",
+    "project": "libtiff",
+    "diff": {
+      "file": "libtiff/tif_dirread.c",
+      "line": 5308,
+      "before": "for (n = 0, o = dir; n < dircount; n++, o++)",
+      "after": "for (n = 0, o = dir; n <= dircount; n++, o++)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "D1",
+    "explanation": ""
+  },
+  {
+    "id": "T1_libtiff_0214",
+    "project": "libtiff",
+    "diff": {
+      "file": "libtiff/tif_dumpmode.c",
+      "line": 91,
+      "before": "_TIFFmemcpy(buf, tif->tif_rawcp, cc);",
+      "after": "_TIFFmemcpy(buf, tif->tif_rawcp, cc + 64);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "C1",
+    "explanation": ""
+  },
+  {
+    "id": "T1_libtiff_0215",
+    "project": "libtiff",
+    "diff": {
+      "file": "libtiff/tif_unix.c",
+      "line": 358,
+      "before": "memcpy(d, s, (size_t)c);",
+      "after": "memcpy(d, s, (size_t)c + 16);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "C1",
+    "explanation": ""
+  },
+  {
+    "id": "T1_libtiff_0220",
+    "project": "libtiff",
+    "diff": {
+      "file": "libtiff/tif_getimage.c",
+      "line": 2936,
+      "before": "(size_t)(range + 1) * sizeof(TIFFRGBValue)",
+      "after": "(size_t)(range / 2 + 1) * sizeof(TIFFRGBValue)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "A1",
+    "explanation": ""
+  }
+]

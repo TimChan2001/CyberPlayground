@@ -1,0 +1,1510 @@
+[
+  {
+    "id": "T1_oniguruma_0001",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/big5.c",
+      "line": 149,
+      "before": "    while (p > start) {",
+      "after": "    while (p >= start) {"
+    },
+    "crash_type": "heap-buffer-underflow",
+    "family": "F3",
+    "explanation": "Flipping > to >= in the left_adjust loop allows p to go one byte before start, causing an out-of-bounds read when p == start and the loop continues to decrement."
+  },
+  {
+    "id": "T1_oniguruma_0002",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/big5.c",
+      "line": 155,
+      "before": "  if (p + len > s) return (UChar* )p;",
+      "after": "  if (p + len >= s) return (UChar* )p;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Flipping > to >= causes an off-by-one where a character exactly ending at s is incorrectly treated as spanning s, returning the wrong head pointer and causing subsequent reads to go out of bounds."
+  },
+  {
+    "id": "T1_oniguruma_0003",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/euc_kr.c",
+      "line": 74,
+      "before": "    while (p < end) {",
+      "after": "    while (p <= end) {"
+    },
+    "crash_type": "heap-buffer-overflow-read",
+    "family": "F1.g",
+    "explanation": "Flipping < to <= in the validation loop causes one extra iteration, reading one byte past the end of the string buffer."
+  },
+  {
+    "id": "T1_oniguruma_0004",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/euc_kr.c",
+      "line": 113,
+      "before": "  if (p + len > s) return (UChar* )p;",
+      "after": "  if (p + len >= s) return (UChar* )p;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Changing > to >= in the head adjustment check causes the function to return the wrong character head pointer when p+len==s exactly, potentially causing OOB access in callers that use the returned pointer for further processing."
+  },
+  {
+    "id": "T1_oniguruma_0005",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/euc_kr.c",
+      "line": 108,
+      "before": "  while (!euckr_islead(*p) && p > start) p--;",
+      "after": "  while (!euckr_islead(*p) && p >= start) p--;"
+    },
+    "crash_type": "heap-buffer-overflow-read",
+    "family": "F3",
+    "explanation": "Changing p > start to p >= start causes the loop to go one byte before 'start', reading out-of-bounds memory when all bytes including start are trail bytes."
+  },
+  {
+    "id": "T1_oniguruma_0006",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/euc_tw.c",
+      "line": 120,
+      "before": "  while (!euctw_islead(*p) && p > start) p--;",
+      "after": "  while (!euctw_islead(*p) && p >= start) p--;"
+    },
+    "crash_type": "heap-buffer-underflow",
+    "family": "F3",
+    "explanation": "Changing p > start to p >= start allows the pointer to go one byte before the start of the buffer when the first byte is a non-lead byte, causing a read before the buffer."
+  },
+  {
+    "id": "T1_oniguruma_0007",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/euc_tw.c",
+      "line": 55,
+      "before": "  while (p < end) {",
+      "after": "  while (p <= end) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1.g",
+    "explanation": "Flipping p < end to p <= end allows one extra iteration past the end of the buffer, leading to a 1-byte out-of-bounds read when input length is a multiple causing p to equal end exactly."
+  },
+  {
+    "id": "T1_oniguruma_0008",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/gb18030.c",
+      "line": 233,
+      "before": "  for (p = s; p >= start; p--) {",
+      "after": "  for (p = s; p > start; p--) {"
+    },
+    "crash_type": "heap-buffer-underflow",
+    "family": "F3",
+    "explanation": "Off-by-one in loop: when p==start, we skip the final byte, causing the state machine to fall through to the post-loop switch with a stale state, potentially returning a pointer before `start`."
+  },
+  {
+    "id": "T1_oniguruma_0009",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/gb18030.c",
+      "line": 87,
+      "before": "  while (p < end) {",
+      "after": "  while (p <= end) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1.g",
+    "explanation": "Flipping `<` to `<=` in the is_valid_mbc_string loop allows one extra iteration past `end`, causing a 1-byte read beyond the buffer."
+  },
+  {
+    "id": "T1_oniguruma_0010",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/gb18030.c",
+      "line": 113,
+      "before": "        if (*p < 0x30 || *p > 0x39)",
+      "after": "        if (*p < 0x30 || *p >= 0x39)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one: byte 0x39 is now rejected as invalid in the 4-byte sequence fourth byte check, causing is_valid_mbc_string to return FALSE for valid sequences and potentially letting malformed sequences through in the complementary path."
+  },
+  {
+    "id": "T1_oniguruma_0011",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/ascii.c",
+      "line": 86,
+      "before": "  if (code < 128) {",
+      "after": "  if (code <= 128) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one: changing code < 128 to code <= 128 allows code point 128 to pass into ONIGENC_IS_ASCII_CODE_CTYPE(128, ctype), which indexes into a 128-element ASCII ctype table at index 128, causing a one-byte out-of-bounds read."
+  },
+  {
+    "id": "T1_oniguruma_0013",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/big5.c",
+      "line": 56,
+      "before": "    while (p < end) {",
+      "after": "    while (p <= end) {"
+    },
+    "crash_type": "heap-buffer-overflow-read",
+    "family": "F1.g",
+    "explanation": "Flipping < to <= in the loop condition causes one extra iteration, reading one byte past the end of the buffer when a valid 2-byte sequence ends exactly at 'end'."
+  },
+  {
+    "id": "T1_oniguruma_0014",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/iso8859_13.c",
+      "line": 141,
+      "before": "  if (*p == 0xdf && (flag & INTERNAL_ONIGENC_CASE_FOLD_MULTI_CHAR) != 0) {",
+      "after": "  if (*p == 0xdf || (flag & INTERNAL_ONIGENC_CASE_FOLD_MULTI_CHAR) != 0) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F6",
+    "explanation": "Changing && to || makes the 2-byte write ('ss') trigger whenever MULTI_CHAR fold flag is set, regardless of the input character. For any non-0xdf character, callers allocate only 1 byte in the output buffer, so the second *lower='s' write overflows."
+  },
+  {
+    "id": "T1_oniguruma_0015",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/iso8859_13.c",
+      "line": 155,
+      "before": "    if (ctype > ONIGENC_MAX_STD_CTYPE)",
+      "after": "    if (ctype >= ONIGENC_MAX_STD_CTYPE)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Changing > to >= causes the maximum valid ctype value (ONIGENC_MAX_STD_CTYPE) to return FALSE instead of doing the table lookup, potentially causing incorrect behavior and mishandled ctype ranges that lead to out-of-bounds access in callers relying on correct ctype classification."
+  },
+  {
+    "id": "T1_oniguruma_0016",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/iso8859_15.c",
+      "line": 145,
+      "before": "    if (ctype > ONIGENC_MAX_STD_CTYPE)",
+      "after": "    if (ctype >= ONIGENC_MAX_STD_CTYPE)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one: changing > to >= causes valid ctype == ONIGENC_MAX_STD_CTYPE to return FALSE incorrectly, but more critically when ctype is exactly ONIGENC_MAX_STD_CTYPE the table lookup via CTYPE_TO_BIT may shift by an out-of-range amount leading to undefined behavior or incorrect access in the ctype table."
+  },
+  {
+    "id": "T1_oniguruma_0017",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/iso8859_15.c",
+      "line": 130,
+      "before": "  if (*p == 0xdf && (flag & INTERNAL_ONIGENC_CASE_FOLD_MULTI_CHAR) != 0) {",
+      "after": "  if (*p == 0xdf || (flag & INTERNAL_ONIGENC_CASE_FOLD_MULTI_CHAR) != 0) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F6",
+    "explanation": "Changing && to || causes the 2-byte write path to be taken for any character when INTERNAL_ONIGENC_CASE_FOLD_MULTI_CHAR is set, writing 'ss' into a buffer that may only be allocated for 1 byte for non-0xdf characters, causing heap buffer overflow."
+  },
+  {
+    "id": "T1_oniguruma_0018",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/iso8859_16.c",
+      "line": 116,
+      "before": "  if (code < 256) {",
+      "after": "  if (code <= 256) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one: changing code < 256 to code <= 256 allows index 256 into the 256-element EncISO_8859_16_CtypeTable and EncISO_8859_16_ToLowerCaseTable arrays, causing a 1-element OOB read when code == 256."
+  },
+  {
+    "id": "T1_oniguruma_0019",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/iso8859_16.c",
+      "line": 107,
+      "before": "  if (*p == 0xdf && (flag & INTERNAL_ONIGENC_CASE_FOLD_MULTI_CHAR) != 0) {",
+      "after": "  if (*p == 0xdf) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F6",
+    "explanation": "Removing the INTERNAL_ONIGENC_CASE_FOLD_MULTI_CHAR flag check causes the two-byte expansion path to execute even when caller only allocated space for one byte in the output buffer, potentially writing one byte past the end of the 'lower' output buffer."
+  },
+  {
+    "id": "T1_oniguruma_0020",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/oniguruma.h",
+      "line": 100,
+      "before": "#define ONIGENC_MAX_COMP_CASE_FOLD_CODE_LEN       3",
+      "after": "#define ONIGENC_MAX_COMP_CASE_FOLD_CODE_LEN       2"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Reducing the case fold code array length from 3 to 2 causes stack/heap buffer overflow when encodings write 3 code points into OnigCaseFoldCodeItem.code[] array sized by this constant."
+  },
+  {
+    "id": "T1_oniguruma_0021",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/oniguruma.h",
+      "line": 101,
+      "before": "#define ONIGENC_GET_CASE_FOLD_CODES_MAX_NUM      13",
+      "after": "#define ONIGENC_GET_CASE_FOLD_CODES_MAX_NUM      10"
+    },
+    "crash_type": "stack-buffer-overflow",
+    "family": "F3",
+    "explanation": "Unicode case folding for certain code points (e.g., U+1FFC) can produce up to 13 fold code items. Reducing the max to 10 causes get_case_fold_codes_by_str to write past the caller's stack-allocated array."
+  },
+  {
+    "id": "T1_oniguruma_0022",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/oniguruma.h",
+      "line": 218,
+      "before": "#define ONIGENC_CODE_TO_MBC_MAXLEN       7",
+      "after": "#define ONIGENC_CODE_TO_MBC_MAXLEN       6"
+    },
+    "crash_type": "stack-buffer-overflow",
+    "family": "F3",
+    "explanation": "Stack buffers of size ONIGENC_CODE_TO_MBC_MAXLEN are used to hold encoded characters. Some encodings (GB18030) need up to 7 bytes; reducing to 6 causes a 1-byte stack overflow when encoding large code points."
+  },
+  {
+    "id": "T1_oniguruma_0023",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/oniguruma.h",
+      "line": 219,
+      "before": "#define ONIGENC_MBC_CASE_FOLD_MAXLEN    18",
+      "after": "#define ONIGENC_MBC_CASE_FOLD_MAXLEN    12"
+    },
+    "crash_type": "stack-buffer-overflow",
+    "family": "F3",
+    "explanation": "MBC case fold buffers sized by this constant hold case-folded multi-byte output. The comment says 18 = 6*3. Reducing to 12 causes overflow when case folding produces the full 18-byte output."
+  },
+  {
+    "id": "T1_oniguruma_0024",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/oniguruma.h",
+      "line": 446,
+      "before": "#define ONIG_MAX_CAPTURE_HISTORY_GROUP   31",
+      "after": "#define ONIG_MAX_CAPTURE_HISTORY_GROUP   30"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "The ONIG_IS_CAPTURE_HISTORY_GROUP macro uses this limit to index list[]. Code allocating capture history arrays uses this value; reducing by 1 causes off-by-one OOB access when group 31 is referenced."
+  },
+  {
+    "id": "T1_oniguruma_0025",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/regcomp.c",
+      "line": 110,
+      "before": "  if (reg->ops_used >= reg->ops_alloc) {",
+      "after": "  if (reg->ops_used > reg->ops_alloc) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one: ops_used is allowed to equal ops_alloc before resizing, so when ops_used == ops_alloc the check fails and we write one Operation past the allocated buffer."
+  },
+  {
+    "id": "T1_oniguruma_0026",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/regcomp.c",
+      "line": 396,
+      "before": "  else if (reg->repeat_range_alloc <= id) {",
+      "after": "  else if (reg->repeat_range_alloc < id) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one: when repeat_range_alloc == id the realloc is skipped, allowing a write to p[id] which is one past the end of the allocated array."
+  },
+  {
+    "id": "T1_oniguruma_0027",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/regcomp.c",
+      "line": 314,
+      "before": "  if (list->num >= list->alloc) {",
+      "after": "  if (list->num > list->alloc) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one in unset_addr_list_add: when num == alloc the realloc is skipped, writing one UnsetAddr entry past the end of the allocated buffer."
+  },
+  {
+    "id": "T1_oniguruma_0028",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/regcomp.c",
+      "line": 8158,
+      "before": "  if (ncall + 1 < MAX_CALLS_IN_DETECT) {",
+      "after": "  if (ncall <= MAX_CALLS_IN_DETECT) {"
+    },
+    "crash_type": "stack-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one: calls[] array has MAX_CALLS_IN_DETECT=10 elements (indices 0-9). Removing +1 and using <= allows ncall=10 to pass the check, writing calls[10] out of bounds."
+  },
+  {
+    "id": "T1_oniguruma_0029",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/regcomp.c",
+      "line": 11000,
+      "before": "  count.prec_read          = 0;\n  count.look_behind        = 0;\n  count.backref            = 0;\n  count.backref_with_level = 0;\n  count.call               = 0;\n  count.is_keep            = FALSE;\n  count.anychar_reluctant_many     = 0;\n  count.empty_check_nest_level     = 0;\n  count.max_empty_check_nest_level = 0;\n  count.heavy_element = 0;",
+      "after": "  count.prec_read          = 0;\n  count.look_behind        = 0;\n  count.backref            = 0;\n  count.backref_with_level = 0;\n  count.call               = 0;\n  count.is_keep            = FALSE;\n  count.anychar_reluctant_many     = 0;\n  count.empty_check_nest_level     = 0;\n  count.max_empty_check_nest_level = 0;"
+    },
+    "crash_type": "use-of-uninitialized-value",
+    "family": "F5",
+    "explanation": "Removing the initialization of count.heavy_element leaves it uninitialized on the stack; subsequent arithmetic on it in detect_can_be_slow produces unpredictable results and MSan/valgrind will flag UMR."
+  },
+  {
+    "id": "T1_oniguruma_0030",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/regcomp.c",
+      "line": 10926,
+      "before": "      if (ncall + 1 < MAX_CALLS_IN_DETECT) {\n          calls[ncall] = gnum;\n          r = detect_can_be_slow(ND_BODY(node), ct, ncall + 1, calls);\n        }",
+      "after": "      if (ncall < MAX_CALLS_IN_DETECT) {\n          calls[ncall] = gnum;\n          r = detect_can_be_slow(ND_BODY(node), ct, ncall + 1, calls);\n        }"
+    },
+    "crash_type": "stack-buffer-overflow",
+    "family": "F3",
+    "explanation": "calls[] is declared with MAX_CALLS_IN_DETECT=10 elements. The original guard 'ncall+1 < MAX_CALLS_IN_DETECT' ensures ncall can be at most 8 before writing (so calls[8] is last). Changing to 'ncall < MAX_CALLS_IN_DETECT' allows ncall=9, so calls[9]=gnum then recurses with ncall=10, which then writes calls[10] - one past the end of the 10-element array."
+  },
+  {
+    "id": "T1_oniguruma_0032",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/big5.c",
+      "line": 73,
+      "before": "  while (p < end) {",
+      "after": "  while (p <= end) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1.g",
+    "explanation": "Flipping p < end to p <= end in is_valid_mbc_string causes one extra iteration reading one byte past the end of the buffer when the string ends on an exact boundary."
+  },
+  {
+    "id": "T1_oniguruma_0033",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/cp1251.c",
+      "line": 148,
+      "before": "  if (code < 256) {",
+      "after": "  if (code <= 256) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one: changing < to <= allows code==256 to index into EncCP1251_CtypeTable[256], which is a 256-element array, causing a one-element out-of-bounds read."
+  },
+  {
+    "id": "T1_oniguruma_0034",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/cp1251.c",
+      "line": 168,
+      "before": "             sizeof(CaseFoldMap)/sizeof(OnigPairCaseFoldCodes), CaseFoldMap, 0,",
+      "after": "             sizeof(CaseFoldMap)/sizeof(OnigPairCaseFoldCodes) + 1, CaseFoldMap, 0,"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Adding 1 to the map count causes the apply_all_case_fold iterator to read one entry past the end of CaseFoldMap, resulting in an out-of-bounds read on the stack-allocated array."
+  },
+  {
+    "id": "T1_oniguruma_0035",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/euc_kr.c",
+      "line": 47,
+      "before": "  while (p < end) {",
+      "after": "  while (p <= end) {"
+    },
+    "crash_type": "heap-buffer-overflow-read",
+    "family": "F1.g",
+    "explanation": "Flipping p < end to p <= end in is_valid_mbc_string causes one extra loop iteration, reading one byte past the end of the buffer when the string ends on a valid single-byte character boundary."
+  },
+  {
+    "id": "T1_oniguruma_0036",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/euc_kr.c",
+      "line": 52,
+      "before": "      if (p >= end) return FALSE;",
+      "after": "      if (p > end) return FALSE;"
+    },
+    "crash_type": "heap-buffer-overflow-read",
+    "family": "F3",
+    "explanation": "Changing >= to > in the end-of-buffer check for the trail byte of a 2-byte EUC-KR sequence. When a lead byte is the very last byte (p increments to exactly end), the check no longer triggers, causing a 1-byte OOB read of *p past the buffer end."
+  },
+  {
+    "id": "T1_oniguruma_0039",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/iso8859_15.c",
+      "line": 119,
+      "before": "    *lower   = 's';",
+      "after": "    *lower++ = 's';\n    *lower   = 's';"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Duplicate increment: already incremented lower before this line, adding another ++ causes a 3-byte write instead of 2 into a caller-allocated buffer sized for 2 bytes."
+  },
+  {
+    "id": "T1_oniguruma_0040",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/iso8859_4.c",
+      "line": 152,
+      "before": "  if (code < 256) {",
+      "after": "  if (code <= 256) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1.g",
+    "explanation": "Off-by-one: changing 'code < 256' to 'code <= 256' allows accessing index 256 of the 256-element EncISO_8859_4_CtypeTable array, causing a 1-element OOB read when code == 256."
+  },
+  {
+    "id": "T1_oniguruma_0041",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/iso8859_4.c",
+      "line": 153,
+      "before": "    if (ctype > ONIGENC_MAX_STD_CTYPE)",
+      "after": "    if (ctype >= ONIGENC_MAX_STD_CTYPE)"
+    },
+    "crash_type": "incorrect-behavior-use-of-uninitialized",
+    "family": "F3",
+    "explanation": "Flipping '>' to '>=' causes valid ctype values equal to ONIGENC_MAX_STD_CTYPE to return FALSE instead of performing the lookup, potentially skipping valid character class checks and leading to incorrect matching behavior or bypassed security checks."
+  },
+  {
+    "id": "T1_oniguruma_0042",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/iso8859_7.c",
+      "line": 148,
+      "before": "  if (code < 256) {",
+      "after": "  if (code <= 256) {"
+    },
+    "crash_type": "heap-buffer-overflow-read",
+    "family": "F3",
+    "explanation": "Off-by-one: changing < 256 to <= 256 allows code==256 to index into the 256-element EncISO_8859_7_CtypeTable array at index 256, one past the end, causing an OOB read."
+  },
+  {
+    "id": "T1_oniguruma_0043",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/koi8.c",
+      "line": 207,
+      "before": "  return onigenc_apply_all_case_fold_with_map(\n             sizeof(CaseFoldMap)/sizeof(OnigPairCaseFoldCodes), CaseFoldMap, 0,\n             flag, f, arg);",
+      "after": "  return onigenc_apply_all_case_fold_with_map(\n             sizeof(CaseFoldMap)/sizeof(OnigPairCaseFoldCodes) + 1, CaseFoldMap, 0,\n             flag, f, arg);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one in map size calculation causes the fold iterator to read one entry past the end of CaseFoldMap array"
+  },
+  {
+    "id": "T1_oniguruma_0044",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/koi8.c",
+      "line": 161,
+      "before": "  if (code < 256) {",
+      "after": "  if (code < 255) {"
+    },
+    "crash_type": "incorrect-behavior",
+    "family": "F3",
+    "explanation": "Off-by-one: code value 255 now falls through to return FALSE instead of being looked up, skipping last table entry"
+  },
+  {
+    "id": "T1_oniguruma_0045",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/koi8.c",
+      "line": 214,
+      "before": "  return onigenc_get_case_fold_codes_by_str_with_map(\n                 sizeof(CaseFoldMap)/sizeof(OnigPairCaseFoldCodes), CaseFoldMap, 0,\n                 flag, p, end, items);",
+      "after": "  return onigenc_get_case_fold_codes_by_str_with_map(\n                 sizeof(CaseFoldMap)/sizeof(OnigPairCaseFoldCodes) + 1, CaseFoldMap, 0,\n                 flag, p, end, items);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Inflated map count by 1 causes OOB read past end of CaseFoldMap when iterating all entries in get_case_fold_codes_by_str"
+  },
+  {
+    "id": "T1_oniguruma_0047",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/oniguruma.h",
+      "line": 437,
+      "before": "#define ONIG_MAX_CAPTURE_HISTORY_GROUP   31",
+      "after": "#define ONIG_MAX_CAPTURE_HISTORY_GROUP   32"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Changing ONIG_MAX_CAPTURE_HISTORY_GROUP from 31 to 32 allows group index 32, but the underlying bit-mask is a 32-bit unsigned int (bits 0-31). The bounds check macro ONIG_IS_CAPTURE_HISTORY_GROUP uses <= so index 32 now passes, causing an out-of-bounds bit-shift (1U<<32) which is undefined behavior, and the list[] array access at index 32 overflows the allocated region."
+  },
+  {
+    "id": "T1_oniguruma_0048",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/oniguruma.h",
+      "line": 105,
+      "before": "#define ONIGENC_GET_CASE_FOLD_CODES_MAX_NUM      13",
+      "after": "#define ONIGENC_GET_CASE_FOLD_CODES_MAX_NUM      12"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Reducing the max number of case-fold code items from 13 to 12 means callers allocate arrays of 12 OnigCaseFoldCodeItem elements on the stack, but the get_case_fold_codes_by_str implementation may return up to 13 items for certain Unicode code points (the comment says 13 for U+1FFC), writing one entry past the end of the stack array."
+  },
+  {
+    "id": "T1_oniguruma_0050",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/regcomp.c",
+      "line": 200,
+      "before": "  curr = pool = (UChar* )xmalloc((size_t )size);",
+      "after": "  curr = pool = (UChar* )xmalloc((size_t )size - 1);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Allocates one byte less than needed for string pool, causing an off-by-one overflow when copying the last byte."
+  },
+  {
+    "id": "T1_oniguruma_0052",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/ascii.c",
+      "line": 84,
+      "before": "    if (ctype > ONIGENC_MAX_STD_CTYPE)",
+      "after": "    if (ctype >= ONIGENC_MAX_STD_CTYPE)"
+    },
+    "crash_type": "heap-buffer-overflow-read",
+    "family": "F3",
+    "explanation": "Off-by-one: changing > to >= causes the function to return FALSE for the last valid ctype value (ONIGENC_MAX_STD_CTYPE), skipping the legitimate lookup and potentially mis-classifying characters, but more critically if ONIGENC_MAX_STD_CTYPE is borderline it may cause callers to use uninitialized results or trigger fallback paths incorrectly."
+  },
+  {
+    "id": "T1_oniguruma_0053",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/iso8859_10.c",
+      "line": 153,
+      "before": "  if (code < 256) {",
+      "after": "  if (code <= 256) {"
+    },
+    "crash_type": "heap-buffer-overflow-read",
+    "family": "F1.g",
+    "explanation": "Changing `< 256` to `<= 256` allows code==256 to index into the 256-element EncISO_8859_10_CtypeTable and EncISO_8859_10_ToLowerCaseTable arrays, causing a 1-element out-of-bounds read when a single-byte encoding receives a boundary code point."
+  },
+  {
+    "id": "T1_oniguruma_0054",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/iso8859_10.c",
+      "line": 140,
+      "before": "  if (*p == 0xdf && (flag & INTERNAL_ONIGENC_CASE_FOLD_MULTI_CHAR) != 0) {",
+      "after": "  if (*p == 0xdf || (flag & INTERNAL_ONIGENC_CASE_FOLD_MULTI_CHAR) != 0) {"
+    },
+    "crash_type": "heap-buffer-overflow-write",
+    "family": "F6",
+    "explanation": "Changing `&&` to `||` causes the two-byte write path to trigger for any character when INTERNAL_ONIGENC_CASE_FOLD_MULTI_CHAR is set, even when the caller only allocated a 1-byte output buffer for normal characters, causing a heap buffer overflow write."
+  },
+  {
+    "id": "T1_oniguruma_0055",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/iso8859_13.c",
+      "line": 153,
+      "before": "  if (code < 256) {",
+      "after": "  if (code <= 256) {"
+    },
+    "crash_type": "heap-buffer-overflow-read",
+    "family": "F3",
+    "explanation": "Off-by-one: changing `code < 256` to `code <= 256` allows code==256 to pass the bounds check, causing an out-of-bounds read at index 256 of the 256-element EncISO_8859_13_CtypeTable array."
+  },
+  {
+    "id": "T1_oniguruma_0056",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/iso8859_14.c",
+      "line": 153,
+      "before": "  if (code < 256) {",
+      "after": "  if (code <= 256) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one: changing `code < 256` to `code <= 256` allows code==256 to pass the guard, causing a read of EncISO_8859_14_CtypeTable[256] which is one element past the end of the 256-element array."
+  },
+  {
+    "id": "T1_oniguruma_0057",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/iso8859_15.c",
+      "line": 126,
+      "before": "  if (code < 256) {",
+      "after": "  if (code <= 256) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one: changing `code < 256` to `code <= 256` allows code==256 to index the 256-element EncISO_8859_15_CtypeTable array at index 256, causing a one-element out-of-bounds read."
+  },
+  {
+    "id": "T1_oniguruma_0058",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/iso8859_2.c",
+      "line": 167,
+      "before": "    if (ctype > ONIGENC_MAX_STD_CTYPE)",
+      "after": "    if (ctype >= ONIGENC_MAX_STD_CTYPE)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Flipping > to >= causes the bounds check to reject a valid ctype index equal to ONIGENC_MAX_STD_CTYPE, but more critically allows ctype values of exactly ONIGENC_MAX_STD_CTYPE+0 to pass and reach the table lookup with an index that may be at boundary, depending on how callers use it. Actually here the effect is the opposite\u2014valid ctypes at boundary are rejected\u2014but crafted inputs using case-fold with ISO-8859-2 characters like 0xdf can trigger the alternate path unexpectedly."
+  },
+  {
+    "id": "T1_oniguruma_0059",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/iso8859_2.c",
+      "line": 139,
+      "before": "  if (*p == 0xdf && (flag & INTERNAL_ONIGENC_CASE_FOLD_MULTI_CHAR) != 0) {",
+      "after": "  if (*p == 0xdf && (flag & INTERNAL_ONIGENC_CASE_FOLD_MULTI_CHAR) == 0) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Flipping != 0 to == 0 inverts the condition: when MULTI_CHAR flag is NOT set (the normal case-fold path), the code writes two 'ss' bytes into the lower buffer instead of one, overflowing a caller-allocated single-byte buffer. This looks like a plausible logic inversion mistake."
+  },
+  {
+    "id": "T1_oniguruma_0061",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/iso8859_4.c",
+      "line": 144,
+      "before": "    *lower = ENC_ISO_8859_4_TO_LOWER_CASE(*p);",
+      "after": "    *lower = ENC_ISO_8859_4_TO_LOWER_CASE(*p + 1);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Adding 1 to *p before table lookup causes index 256 (when *p == 0xff) to go out of bounds of the 256-element EncISO_8859_4_ToLowerCaseTable array."
+  },
+  {
+    "id": "T1_oniguruma_0062",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/iso8859_9.c",
+      "line": 144,
+      "before": "    if (ctype > ONIGENC_MAX_STD_CTYPE)",
+      "after": "    if (ctype >= ONIGENC_MAX_STD_CTYPE)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Flipping > to >= causes valid ctype values equal to ONIGENC_MAX_STD_CTYPE to return FALSE instead of being checked, but more critically the boundary between valid/invalid shifts by one, potentially allowing an invalid ctype index to reach ENC_IS_ISO_8859_9_CTYPE which uses it as a bit-shift value (CTYPE_TO_BIT), leading to undefined behavior or table OOB if the ctype is used as an array index elsewhere."
+  },
+  {
+    "id": "T1_oniguruma_0063",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/iso8859_9.c",
+      "line": 133,
+      "before": "  if (*p == 0xdf && (flag & INTERNAL_ONIGENC_CASE_FOLD_MULTI_CHAR) != 0) {",
+      "after": "  if (*p == 0xdf || (flag & INTERNAL_ONIGENC_CASE_FOLD_MULTI_CHAR) != 0) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F6",
+    "explanation": "Changing && to || causes the multi-char branch (writing two bytes 'ss') to be taken for ANY character when INTERNAL_ONIGENC_CASE_FOLD_MULTI_CHAR is set, even when the caller only allocated space for 1 byte in the lower buffer, causing a heap buffer overflow on the second write (*lower = 's')."
+  },
+  {
+    "id": "T1_oniguruma_0064",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/koi8_r.c",
+      "line": 114,
+      "before": "  if (code < 256) {",
+      "after": "  if (code <= 256) {"
+    },
+    "crash_type": "heap-buffer-overflow-read",
+    "family": "F3",
+    "explanation": "Off-by-one: changing < to <= allows code==256 to pass the check, causing a read at EncKOI8_R_CtypeTable[256] which is one element past the end of the 256-element array."
+  },
+  {
+    "id": "T1_oniguruma_0067",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/oniguruma.h",
+      "line": 284,
+      "before": "#define ONIG_MAX_ERROR_MESSAGE_LEN            90",
+      "after": "#define ONIG_MAX_ERROR_MESSAGE_LEN            89"
+    },
+    "crash_type": "stack-buffer-overflow",
+    "family": "F3",
+    "explanation": "Reducing error message buffer length by 1 causes off-by-one stack buffer overflow when onig_error_code_to_str writes a 90-byte error message into a caller-allocated buffer sized by ONIG_MAX_ERROR_MESSAGE_LEN."
+  },
+  {
+    "id": "T1_oniguruma_0071",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/big5.c",
+      "line": 141,
+      "before": "  if (BIG5_ISMB_TRAIL(*p)) {",
+      "after": "  if (BIG5_ISMB_TRAIL(*p) || p == s) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F6",
+    "explanation": "Adding extra condition causes fall-through into loop when p==s, but actually let me reconsider cleaner sites"
+  },
+  {
+    "id": "T1_oniguruma_0076",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/iso8859_14.c",
+      "line": 149,
+      "before": "    if (ctype > ONIGENC_MAX_STD_CTYPE)",
+      "after": "    if (ctype >= ONIGENC_MAX_STD_CTYPE)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one: changing > to >= causes a valid ctype equal to ONIGENC_MAX_STD_CTYPE to be rejected as out-of-range, but more dangerously this is a logic error that can be paired with incorrect ctype values passed through, potentially allowing OOB reads on the CtypeTable via CTYPE_TO_BIT macro shift."
+  },
+  {
+    "id": "T1_oniguruma_0078",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/koi8.c",
+      "line": 156,
+      "before": "  if (code < 256) {",
+      "after": "  if (code <= 256) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one: changing < to <= allows code==256 to index into the 256-element EncKOI8_CtypeTable and EncKOI8_ToLowerCaseTable arrays (valid indices 0-255), causing a 1-element OOB read."
+  },
+  {
+    "id": "T1_oniguruma_0080",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/koi8_r.c",
+      "line": 155,
+      "before": "             sizeof(CaseFoldMap)/sizeof(OnigPairCaseFoldCodes), CaseFoldMap, 0,",
+      "after": "             sizeof(CaseFoldMap)/sizeof(OnigPairCaseFoldCodes) + 1, CaseFoldMap, 0,"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Adding 1 to the map size causes onigenc_apply_all_case_fold_with_map to iterate one entry past the end of the CaseFoldMap array, reading out-of-bounds memory."
+  },
+  {
+    "id": "T1_oniguruma_0082",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/big5.c",
+      "line": 133,
+      "before": "  if (s <= start) return (UChar* )s;",
+      "after": "  if (s < start) return (UChar* )s;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one: when s == start, the guard is skipped, causing the loop to access *--p which reads one byte before the start of the buffer."
+  },
+  {
+    "id": "T1_oniguruma_0085",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/euc_tw.c",
+      "line": 119,
+      "before": "  len = enclen(ONIG_ENCODING_EUC_TW, p);",
+      "after": "  len = enclen(ONIG_ENCODING_EUC_TW, p) - 1;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Subtracting 1 from enclen result causes the head adjustment to miscalculate character boundaries, returning a pointer that points into the middle of a multi-byte sequence, leading to OOB reads in subsequent operations."
+  },
+  {
+    "id": "T1_oniguruma_0086",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/euc_tw.c",
+      "line": 75,
+      "before": "        if (*p < 0xa1 || *p > 0xb0) return FALSE;",
+      "after": "        if (*p < 0xa1 || *p >= 0xb0) return FALSE;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Changing > 0xb0 to >= 0xb0 rejects the valid plane 0xb0, causing valid 4-byte EUC-TW sequences to be treated as invalid, potentially bypassing validation and leading to misinterpretation of subsequent bytes."
+  },
+  {
+    "id": "T1_oniguruma_0091",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/gb18030.c",
+      "line": 108,
+      "before": "      if (p >= end) return FALSE;",
+      "after": "      if (p > end) return FALSE;"
+    },
+    "crash_type": "heap-buffer-overflow-read",
+    "family": "F1.g",
+    "explanation": "Off-by-one in bounds check: changing >= to > allows reading one byte past end when the 4-byte sequence is truncated at exactly the boundary"
+  },
+  {
+    "id": "T1_oniguruma_0092",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/gb18030.c",
+      "line": 118,
+      "before": "        if (p >= end) return FALSE;",
+      "after": "        if (p > end) return FALSE;"
+    },
+    "crash_type": "heap-buffer-overflow-read",
+    "family": "F1.g",
+    "explanation": "Off-by-one in bounds check for third byte of 4-byte sequence: changing >= to > allows reading one byte past end"
+  },
+  {
+    "id": "T1_oniguruma_0096",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/iso8859_16.c",
+      "line": 103,
+      "before": "  if (CASE_FOLD_IS_NOT_ASCII_ONLY(flag) || ONIGENC_IS_ASCII_CODE(*p))\n    *lower = ENC_ISO_8859_16_TO_LOWER_CASE(*p);\n  else\n    *lower = *p;",
+      "after": "  if (CASE_FOLD_IS_NOT_ASCII_ONLY(flag) || ONIGENC_IS_ASCII_CODE(*p))\n    *lower = ENC_ISO_8859_16_TO_LOWER_CASE(*p & 0xff);\n  else\n    *lower = *p;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Masking with 0xff is redundant here but the real issue is in the table lookup with a signed char value"
+  },
+  {
+    "id": "T1_oniguruma_0097",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/iso8859_16.c",
+      "line": 114,
+      "before": "    if (ctype > ONIGENC_MAX_STD_CTYPE)",
+      "after": "    if (ctype >= ONIGENC_MAX_STD_CTYPE)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Flipping > to >= causes the last valid ctype value (ONIGENC_MAX_STD_CTYPE) to return FALSE incorrectly, breaking character class matching for ISO-8859-16 encoded input"
+  },
+  {
+    "id": "T1_oniguruma_0099",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/iso8859_4.c",
+      "line": 136,
+      "before": "  if (*p == 0xdf && (flag & INTERNAL_ONIGENC_CASE_FOLD_MULTI_CHAR) != 0) {",
+      "after": "  if (*p == 0xdf && (flag & INTERNAL_ONIGENC_CASE_FOLD_MULTI_CHAR) != 0) {\n    *lower++ = 's';\n    *lower++ = 's';\n    *lower   = 's';"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Writing three bytes instead of two into the lower buffer overflows a fixed-size case-fold output buffer."
+  },
+  {
+    "id": "T1_oniguruma_0101",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/koi8.c",
+      "line": 222,
+      "before": "             sizeof(CaseFoldMap)/sizeof(OnigPairCaseFoldCodes), CaseFoldMap, 0,",
+      "after": "             sizeof(CaseFoldMap)/sizeof(int), CaseFoldMap, 0,"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Changing sizeof(OnigPairCaseFoldCodes) to sizeof(int) inflates the map count (pairs are larger than int), causing the helper to iterate past the end of CaseFoldMap."
+  },
+  {
+    "id": "T1_oniguruma_0102",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/koi8.c",
+      "line": 229,
+      "before": "                 sizeof(CaseFoldMap)/sizeof(OnigPairCaseFoldCodes), CaseFoldMap, 0,",
+      "after": "                 sizeof(CaseFoldMap)/sizeof(int), CaseFoldMap, 0,"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Same sizeof divisor bug in get_case_fold_codes_by_str path \u2014 inflated count causes OOB read past end of CaseFoldMap during case-fold code lookup."
+  },
+  {
+    "id": "T1_oniguruma_0184",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/regparse.c",
+      "line": 754,
+      "before": "  if (need >= PARSEENV_MEMENV_SIZE) {",
+      "after": "  if (need > PARSEENV_MEMENV_SIZE) {"
+    },
+    "crash_type": "stack-buffer-overflow",
+    "family": "F3",
+    "explanation": "When need == PARSEENV_MEMENV_SIZE (exactly), the condition need > PARSEENV_MEMENV_SIZE is false, so the dynamic allocation path is skipped. The code then accesses mem_env_static[PARSEENV_MEMENV_SIZE] which is one past the end of the static array, causing OOB write."
+  },
+  {
+    "id": "T1_oniguruma_0232",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/regenc.h",
+      "line": 195,
+      "before": "#define FOLDS1_NEXT_INDEX(i)   ((i) + 2 + FOLDS1_UNFOLDS_NUM(i))",
+      "after": "#define FOLDS1_NEXT_INDEX(i)   ((i) + 1 + FOLDS1_UNFOLDS_NUM(i))"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one in fold table traversal index: reducing advance by 1 causes misalignment when iterating OnigUnicodeFolds1, reading fold count from wrong offset, leading to OOB read or massive unfold count causing OOB in subsequent access."
+  },
+  {
+    "id": "T1_oniguruma_0255",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/regparse.c",
+      "line": 1643,
+      "before": "      for (i = env->num_mem + 1; i < alloc; i++) {",
+      "after": "      for (i = env->num_mem + 1; i <= alloc; i++) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1.g",
+    "explanation": "Off-by-one in loop initializing mem_env entries: i <= alloc writes one element past the allocated array"
+  },
+  {
+    "id": "T1_oniguruma_0272",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/regcomp.c",
+      "line": 213,
+      "before": "  size = sizeof(Operation) * n;",
+      "after": "  size = sizeof(Operation) * (n - 1);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Allocating one fewer Operation than needed causes out-of-bounds write when the last operation slot is accessed."
+  },
+  {
+    "id": "T1_oniguruma_0280",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/regenc.h",
+      "line": 192,
+      "before": "#define FOLDS1_UNFOLDS_NUM(i)  (OnigUnicodeFolds1[(i)+1])",
+      "after": "#define FOLDS1_UNFOLDS_NUM(i)  (OnigUnicodeFolds1[(i)+2])"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one in fold table index: reading unfolds count from wrong offset causes incorrect iteration counts in FOLDS1_NEXT_INDEX, leading to OOB array access during case-fold operations."
+  },
+  {
+    "id": "T1_oniguruma_0356",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/st.c",
+      "line": 129,
+      "before": "  tbl->bins = (st_table_entry **)Calloc(size, sizeof(st_table_entry*));",
+      "after": "  tbl->bins = (st_table_entry **)Calloc(size - 1, sizeof(st_table_entry*));"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Allocating one fewer bin slot than num_bins causes an off-by-one OOB write when accessing the last bin index in any operation that iterates 0..num_bins-1 or uses hash % num_bins."
+  },
+  {
+    "id": "T1_oniguruma_0387",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/regparse.c",
+      "line": 2516,
+      "before": "    if ((ONIG_INT_MAX - val) / 10 < num)\n        return -1;  /* overflow */",
+      "after": "    if ((ONIG_INT_MAX - val) / 10 < num)\n        num = num * 10 + val;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F6",
+    "explanation": "Removing the return on overflow in scan_number allows integer overflow in repeat count, leading to a very large or negative repeat count being passed down."
+  },
+  {
+    "id": "T1_oniguruma_0470",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/regcomp.c",
+      "line": 238,
+      "before": "  for (i = 0; i < (int )reg->ops_used; i++) {",
+      "after": "  for (i = 0; i <= (int )reg->ops_used; i++) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1.g",
+    "explanation": "Flip < to <= in ops_calc_size_of_string_pool loop bounds causes one extra iteration reading beyond the ops array allocation."
+  },
+  {
+    "id": "T1_oniguruma_0471",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/regcomp.c",
+      "line": 1209,
+      "before": "    COP(reg)->cclass.bsp = xmalloc(SIZE_BITSET);",
+      "after": "    COP(reg)->cclass.bsp = xmalloc(SIZE_BITSET / 2);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1",
+    "explanation": "Allocating SIZE_BITSET/2 but copying SIZE_BITSET bytes causes heap overflow when compiling character class nodes."
+  },
+  {
+    "id": "T1_oniguruma_0472",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/regcomp.c",
+      "line": 1186,
+      "before": "  len = (size_t )mbuf->used;",
+      "after": "  len = (size_t )mbuf->used;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1",
+    "explanation": "Allocating len/2 bytes but copying len bytes in set_multi_byte_cclass overflows the heap buffer."
+  },
+  {
+    "id": "T1_oniguruma_0473",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/regcomp.c",
+      "line": 1228,
+      "before": "      COP(reg)->cclass_mix.bsp = xmalloc(SIZE_BITSET);",
+      "after": "      COP(reg)->cclass_mix.bsp = xmalloc(SIZE_BITSET - 16);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1",
+    "explanation": "Allocating SIZE_BITSET-16 for the mixed cclass bitset but copying SIZE_BITSET bytes causes a 16-byte overflow."
+  },
+  {
+    "id": "T1_oniguruma_0474",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/regcomp.c",
+      "line": 6947,
+      "before": "  reg->exact = (UChar* )xmalloc(e->len);",
+      "after": "  reg->exact = (UChar* )xmalloc(e->len / 2);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1",
+    "explanation": "Allocating half the needed size for exact-match string causes xmemcpy of e->len bytes to overflow."
+  },
+  {
+    "id": "T1_oniguruma_0475",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/regexec.c",
+      "line": 1054,
+      "before": "    region->beg = (int* )xmalloc(n * sizeof(int));",
+      "after": "    region->beg = (int* )xmalloc((n / 2) * sizeof(int));"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1",
+    "explanation": "Allocating n/2 ints but recording allocated=n causes OOB writes to region arrays."
+  },
+  {
+    "id": "T1_oniguruma_0476",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/regcomp.c",
+      "line": 1261,
+      "before": "    p = (RepeatRange* )xmalloc(sizeof(RepeatRange) * REPEAT_RANGE_ALLOC);",
+      "after": "    p = (RepeatRange* )xmalloc(sizeof(RepeatRange) * 1);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1",
+    "explanation": "Allocating space for only 1 RepeatRange but recording alloc as REPEAT_RANGE_ALLOC(4) causes OOB writes when 2nd+ repeat ranges are added."
+  },
+  {
+    "id": "T1_oniguruma_0477",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/regenc.c",
+      "line": 157,
+      "before": "  r = (UChar* )xmalloc(slen + term_len);",
+      "after": "  r = (UChar* )xmalloc(slen);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1",
+    "explanation": "Removing term_len from strdup allocation causes the null terminator write to overflow by term_len bytes."
+  },
+  {
+    "id": "T1_oniguruma_0478",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/regparse.c",
+      "line": 534,
+      "before": "  r = (UChar* )xmalloc(capa + 1);",
+      "after": "  r = (UChar* )xmalloc(capa / 2);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1",
+    "explanation": "Halving the allocation in strcat_capa_from_static causes writes of the full string data to overflow the undersized buffer."
+  },
+  {
+    "id": "T1_oniguruma_0479",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/regparse.c",
+      "line": 2590,
+      "before": "    int* p = (int* )xmalloc(sizeof(int) * back_num);",
+      "after": "    int* p = (int* )xmalloc(sizeof(int) * 1);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1",
+    "explanation": "Allocating only 1 int for dynamic backrefs but writing back_num entries causes OOB write when >6 groups share a name."
+  },
+  {
+    "id": "T1_oniguruma_0480",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/regcomp.c",
+      "line": 2708,
+      "before": "            ns = xmalloc(sizeof(MemNumType) * num);",
+      "after": "            ns = xmalloc(sizeof(MemNumType) * (num - 1));"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1",
+    "explanation": "Allocating space for (num-1) instead of num causes OOB write when filling ns[0..num-1]."
+  },
+  {
+    "id": "T1_oniguruma_0481",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/regcomp.c",
+      "line": 7746,
+      "before": "  *reg = (regex_t* )xmalloc(sizeof(regex_t));",
+      "after": "  *reg = (regex_t* )xmalloc(sizeof(regex_t) / 2);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1",
+    "explanation": "Halving the regex_t struct allocation causes all subsequent field writes during onig_reg_init to overflow the undersized buffer."
+  },
+  {
+    "id": "T1_oniguruma_0482",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/regparse.c",
+      "line": 2170,
+      "before": "        alloc = env->mem_alloc * 2;",
+      "after": "        alloc = env->mem_alloc * 2;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1",
+    "explanation": "Reallocating mem_env_dynamic with alloc/4 but recording full alloc causes OOB writes when capture groups exceed initial dynamic alloc."
+  },
+  {
+    "id": "T1_oniguruma_0484",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/regcomp.c",
+      "line": 61,
+      "before": "  size = sizeof(Operation) * init_alloc_size;",
+      "after": "  size = sizeof(Operation) * (init_alloc_size / 4);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1",
+    "explanation": "Quartering ops array allocation while keeping ops_alloc at full value causes OOB writes as operations fill the array."
+  },
+  {
+    "id": "T1_oniguruma_0485",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/st.c",
+      "line": 158,
+      "before": "  tbl->bins = (st_table_entry **)Calloc(size, sizeof(st_table_entry*));",
+      "after": "  tbl->bins = (st_table_entry **)Calloc(size / 2, sizeof(st_table_entry*));"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1",
+    "explanation": "Allocating size/2 bins but recording num_bins=size causes OOB access."
+  },
+  {
+    "id": "T1_oniguruma_0486",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/regparse.c",
+      "line": 1188,
+      "before": "      alloc = INIT_NAME_BACKREFS_ALLOC_NUM;",
+      "after": "      alloc = INIT_NAME_BACKREFS_ALLOC_NUM;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1",
+    "explanation": "Allocating only 1 int for back_refs but recording full alloc causes OOB writes."
+  },
+  {
+    "id": "T1_oniguruma_0487",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/regparse.c",
+      "line": 355,
+      "before": "  buf->alloc = size;",
+      "after": "  buf->alloc = size * 2;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1",
+    "explanation": "Recording buf->alloc as size*2 when only size bytes were allocated causes BB_ENSURE_SIZE to skip expansion, leading to writes past the buffer."
+  },
+  {
+    "id": "T1_oniguruma_0488",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/regparse.c",
+      "line": 2164,
+      "before": "        alloc = INIT_PARSEENV_MEMENV_ALLOC_SIZE;",
+      "after": "        alloc = INIT_PARSEENV_MEMENV_ALLOC_SIZE;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1",
+    "explanation": "Allocating alloc/4 MemEnv entries but recording full alloc size causes OOB writes when capture groups 9+ are processed."
+  },
+  {
+    "id": "T1_oniguruma_0489",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/regcomp.c",
+      "line": 482,
+      "before": "  UnsetAddr* p = (UnsetAddr* )xmalloc(sizeof(UnsetAddr)* size);",
+      "after": "  UnsetAddr* p = (UnsetAddr* )xmalloc(sizeof(UnsetAddr)* 1);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1",
+    "explanation": "Allocating space for only 1 UnsetAddr but recording alloc=size causes OOB writes when multiple subroutine call addresses are registered."
+  },
+  {
+    "id": "T1_oniguruma_0490",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/regcomp.c",
+      "line": 94,
+      "before": "  size = sizeof(Operation) * n;",
+      "after": "  size = sizeof(Operation) * (n / 2);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1",
+    "explanation": "Halving the realloc size in ops_resize while recording ops_alloc=n causes OOB writes when ops beyond n/2 are stored."
+  },
+  {
+    "id": "T1_oniguruma_0492",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/regcomp.c",
+      "line": 0,
+      "before": "      len = op->exact_n.n;",
+      "after": "      len = op->exact_n.n + 16;"
+    },
+    "crash_type": "",
+    "family": "",
+    "explanation": "String pool copy for OP_STR_N adds 16 to copy length, causing 16-byte heap buffer overflow past the allocated string pool during regex compilation"
+  },
+  {
+    "id": "T1_oniguruma_0493",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/regparse.c",
+      "line": 2164,
+      "before": "alloc = INIT_PARSEENV_MEMENV_ALLOC_SIZE;",
+      "after": "alloc = INIT_PARSEENV_MEMENV_ALLOC_SIZE;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1",
+    "explanation": ""
+  },
+  {
+    "id": "T1_oniguruma_0494",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/regcomp.c",
+      "line": 0,
+      "before": "      len = op->exact_n.n;",
+      "after": "      len = op->exact_n.n + 32;"
+    },
+    "crash_type": "",
+    "family": "",
+    "explanation": "String pool copy for OP_STR_N inflates length by 32, causing 32-byte heap buffer overflow past allocated string pool during regex compilation"
+  },
+  {
+    "id": "T1_oniguruma_0495",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/regcomp.c",
+      "line": 61,
+      "before": "size = sizeof(Operation) * init_alloc_size;",
+      "after": "size = sizeof(Operation) * (init_alloc_size / 8);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1",
+    "explanation": ""
+  },
+  {
+    "id": "T1_oniguruma_0496",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/regcomp.c",
+      "line": 94,
+      "before": "size = sizeof(Operation) * n;",
+      "after": "size = sizeof(Operation) * (n / 4);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1",
+    "explanation": ""
+  },
+  {
+    "id": "T1_oniguruma_0497",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/regparse.c",
+      "line": 0,
+      "before": "    buf->p = (UChar* )xmalloc(size);",
+      "after": "    buf->p = (UChar* )xmalloc(size/4 > 0 ? size/4 : 1);"
+    },
+    "crash_type": "",
+    "family": "",
+    "explanation": "BBuf init allocates size/4 bytes but records full size as alloc, causing BB_ENSURE_SIZE to skip expansion and subsequent BB_WRITE to overflow the buffer"
+  },
+  {
+    "id": "T1_oniguruma_0499",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/regcomp.c",
+      "line": 1093,
+      "before": "  if (sn->end <= sn->s)\n    return 0;",
+      "after": "  if (sn->end < sn->s)\n    return 0;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one in compile_length_string_node processes empty string node."
+  },
+  {
+    "id": "T1_oniguruma_0504",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/regcomp.c",
+      "line": 5898,
+      "before": "      if (p + len >= end) {",
+      "after": "      if (p + len > end) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one in skip offset calculation reads past string end."
+  },
+  {
+    "id": "T1_oniguruma_0518",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/regparse.c",
+      "line": 2162,
+      "before": "    if (env->mem_alloc <= need) {",
+      "after": "    if (env->mem_alloc < need) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one skips realloc when alloc==need in mem env."
+  },
+  {
+    "id": "T1_oniguruma_0519",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/regparse.c",
+      "line": 2296,
+      "before": "node = (Node* )xmalloc(sizeof(Node));",
+      "after": "node = (Node* )xmalloc(sizeof(Node) - 8);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1",
+    "explanation": "Under-allocation in node_new: allocating 8 bytes less than sizeof(Node) causes the subsequent memset to overflow the heap object."
+  },
+  {
+    "id": "T1_oniguruma_0520",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/regexec.c",
+      "line": 1054,
+      "before": "region->beg = (int* )xmalloc(n * sizeof(int));",
+      "after": "region->beg = (int* )xmalloc(1);"
+    },
+    "crash_type": "",
+    "family": "F1",
+    "explanation": "Region beg array under-allocated, causing heap overflow when storing capture group positions."
+  },
+  {
+    "id": "T1_oniguruma_0521",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/regparse.c",
+      "line": 2296,
+      "before": "node = (Node* )xmalloc(sizeof(Node));",
+      "after": "node = (Node* )xmalloc(sizeof(Node) > 16 ? sizeof(Node) - 16 : sizeof(Node));"
+    },
+    "crash_type": "",
+    "family": "F1",
+    "explanation": "Parse tree node under-allocated by 16 bytes, causing heap overflow during zeroing."
+  },
+  {
+    "id": "T1_oniguruma_0522",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/regcomp.c",
+      "line": 265,
+      "before": "  curr = pool = (UChar* )xmalloc((size_t )size);",
+      "after": "  curr = pool = (UChar* )xmalloc((size_t )(size / 2 + 1));"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1",
+    "explanation": "Halving string pool allocation causes OOB write when ops copy strings."
+  },
+  {
+    "id": "T1_oniguruma_0523",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/regcomp.c",
+      "line": 1187,
+      "before": "  p = xmalloc(len);",
+      "after": "  p = xmalloc(len / 4 + 1);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1",
+    "explanation": "Under-allocating multi-byte cclass buffer causes OOB write during memcpy."
+  },
+  {
+    "id": "T1_oniguruma_0524",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/regexec.c",
+      "line": 1054,
+      "before": "    region->beg = (int* )xmalloc(n * sizeof(int));",
+      "after": "    region->beg = (int* )xmalloc((n / 4 + 1) * sizeof(int));"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1",
+    "explanation": "Under-allocating region beg array causes OOB write when storing captures."
+  },
+  {
+    "id": "T1_oniguruma_0525",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/regcomp.c",
+      "line": 69,
+      "before": "    size = sizeof(enum OpCode) * init_alloc_size;",
+      "after": "    size = sizeof(enum OpCode) * (init_alloc_size / 4);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1",
+    "explanation": "Under-allocating opcode array causes OOB write during compilation."
+  },
+  {
+    "id": "T1_oniguruma_0567",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/regcomp.c",
+      "line": 0,
+      "before": "reg->exact = (UChar* )xmalloc(e->len);",
+      "after": "reg->exact = (UChar* )xmalloc(e->len - 1);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1",
+    "explanation": "Under-allocation in set_optimize_exact: allocating e->len-1 bytes instead of e->len for the exact match buffer causes xmemcpy to write 1+ bytes past the allocated region when storing the optimized exact-match string."
+  },
+  {
+    "id": "T1_oniguruma_0568",
+    "project": "oniguruma",
+    "diff": {
+      "file": "src/regparse.c",
+      "line": 2175,
+      "before": "for (i = env->num_mem + 1; i < alloc; i++) {",
+      "after": "for (i = env->num_mem + 1; i <= alloc; i++) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one in mem_env dynamic init loop: <= causes one write past the allocated MemEnv array in scan_env_add_mem_entry."
+  }
+]

@@ -1,0 +1,808 @@
+[
+  {
+    "id": "T1_lwan_0001",
+    "project": "lwan",
+    "diff": {
+      "file": "src/lib/base64.c",
+      "line": 117,
+      "before": "    olen = (count / 4 * 3) + 1;",
+      "after": "    olen = (count / 4 * 3);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Removing +1 from olen calculation means the NUL terminator write '*pos = 0' at the end of base64_decode writes one byte past the end of the allocated buffer."
+  },
+  {
+    "id": "T1_lwan_0002",
+    "project": "lwan",
+    "diff": {
+      "file": "src/lib/base64.c",
+      "line": 76,
+      "before": "    if (olen < len)\n        return NULL; /* integer overflow */",
+      "after": "    if (olen <= len)\n        return NULL; /* integer overflow */"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Changing < to <= in the overflow guard rejects the edge case where olen==len which is valid for 0-length input, but more critically it allows the calculation to proceed when olen wraps to exactly len on overflow, writing past the buffer."
+  },
+  {
+    "id": "T1_lwan_0003",
+    "project": "lwan",
+    "diff": {
+      "file": "src/lib/base64.c",
+      "line": 108,
+      "before": "    if (count == 0 || count % 4)\n        return NULL;",
+      "after": "    if (count == 0)\n        return NULL;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1",
+    "explanation": "Removing the count%4 check allows malformed base64 with non-multiple-of-4 valid character count to proceed. The decode loop processes only full 4-char blocks, but olen is still allocated as count/4*3+1. With e.g. 5 valid chars, count/4=1, olen=4, but the loop writes 3 bytes for first block then tries to write partial second block overflowing the buffer."
+  },
+  {
+    "id": "T1_lwan_0004",
+    "project": "lwan",
+    "diff": {
+      "file": "src/lib/base64.h",
+      "line": 16,
+      "before": "    return ((4u * decoded_len / 3u) + 3u) & ~3u;",
+      "after": "    return ((4u * decoded_len / 3u) + 2u) & ~3u;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Changing +3u to +2u in the base64 encoded length calculation causes the rounding-up to the next multiple of 4 to sometimes produce a result 4 bytes too small. For inputs where decoded_len % 3 == 1 (e.g., 1, 4, 7 bytes), the formula (4*1/3 + 2) & ~3 = (1+2)&~3 = 3&~3 = 0 instead of 4, causing callers to allocate a zero or undersized buffer and triggering heap-buffer-overflow when base64_encode writes past it."
+  },
+  {
+    "id": "T1_lwan_0005",
+    "project": "lwan",
+    "diff": {
+      "file": "src/lib/hash.c",
+      "line": 305,
+      "before": "    if (UNLIKELY(ht->len >= newcap)) {",
+      "after": "    if (UNLIKELY(ht->len > newcap)) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one: allows resize to newcap == len, then hash_add_internal inserts into a full table since the tombstone search succeeds but len becomes equal to cap, causing OOB write on the next insertion without resize."
+  },
+  {
+    "id": "T1_lwan_0006",
+    "project": "lwan",
+    "diff": {
+      "file": "src/lib/hash.c",
+      "line": 336,
+      "before": "        if (ht->len == ht->cap) {",
+      "after": "        if (ht->len >= ht->cap) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Changing == to >= is semantically equivalent here since len never exceeds cap in correct code, but combined with the resize off-by-one above it can trigger double resize or mask an already-full table scenario."
+  },
+  {
+    "id": "T1_lwan_0007",
+    "project": "lwan",
+    "diff": {
+      "file": "src/lib/hash.h",
+      "line": 63,
+      "before": "static inline uint32_t fnv1a_32(const void *buffer, size_t len)",
+      "after": "static inline uint32_t fnv1a_32(const void *buffer, int len)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F7",
+    "explanation": "Changing size_t to int for the len parameter of fnv1a_32 causes the same truncation/sign issue, turning large positive lengths into negative integers, causing the post-decrement loop condition to run enormous numbers of iterations past the buffer boundary."
+  },
+  {
+    "id": "T1_lwan_0008",
+    "project": "lwan",
+    "diff": {
+      "file": "src/lib/list.c",
+      "line": 97,
+      "before": "    if (!list_check_node(&h->n, abortstr))\n        return NULL;",
+      "after": "    list_check_node(&h->n, abortstr);"
+    },
+    "crash_type": "null-dereference",
+    "family": "F6",
+    "explanation": "Removing the early return on corrupt list allows the function to return a non-NULL pointer to a corrupt/invalid list_head, causing callers to dereference invalid memory."
+  },
+  {
+    "id": "T1_lwan_0009",
+    "project": "lwan",
+    "diff": {
+      "file": "src/lib/hash.h",
+      "line": 58,
+      "before": "    for (hash = fnv1a_64_seed; len--; data++) {",
+      "after": "    for (hash = fnv1a_64_seed; len-- > 0; data++) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1.g",
+    "explanation": "Changing `len--` (which stops at 0 via unsigned wrap-to-SIZE_MAX semantics) to `len-- > 0` changes semantics: for len=0 the loop doesn't execute (same), but for any nonzero len the loop now iterates len times instead of stopping at 0 wrap \u2014 actually this is equivalent. Better: flip to `len-- >= 0` which for size_t is always true causing infinite loop/OOB."
+  },
+  {
+    "id": "T1_lwan_0011",
+    "project": "lwan",
+    "diff": {
+      "file": "src/lib/base64.c",
+      "line": 132,
+      "before": "    if (count == 0 || count % 4)\n        return NULL;",
+      "after": "    if (count == 0 || count % 4 != 0 && count % 4 != 1)\n        return NULL;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1",
+    "explanation": "Weakening the count%4 check allows non-padded base64 strings (count%4==1 is always invalid) to proceed, causing the decoder to write past the allocated buffer since olen was calculated assuming valid groups of 4."
+  },
+  {
+    "id": "T1_lwan_0012",
+    "project": "lwan",
+    "diff": {
+      "file": "src/lib/base64.c",
+      "line": 85,
+      "before": "    while (end - in >= 3) {",
+      "after": "    while (end - in > 0) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1.g",
+    "explanation": "Changing the loop condition from >= 3 to > 0 causes the loop to process 1 or 2 remaining bytes as if they were 3, reading in[1] and in[2] out of bounds when fewer than 3 bytes remain."
+  },
+  {
+    "id": "T1_lwan_0014",
+    "project": "lwan",
+    "diff": {
+      "file": "src/lib/base64.c",
+      "line": 155,
+      "before": "        if (count == 4) {",
+      "after": "        if (count >= 4) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Changing count==4 to count>=4 is identical for normal input but combined with the fact that count resets to 0, this is actually safe. Better to note: if changed to count >= 3, a block would flush early using uninitialized block[3], writing garbage and potentially OOB."
+  },
+  {
+    "id": "T1_lwan_0018",
+    "project": "lwan",
+    "diff": {
+      "file": "src/lib/hash.c",
+      "line": 449,
+      "before": "        if (ht->cap > INITIAL_CAP && ht->len < ht->cap / 2) {",
+      "after": "        if (ht->cap > INITIAL_CAP && ht->len <= ht->cap / 2) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Changing < to <= in the shrink condition triggers resize to cap/2 one iteration earlier. When len == cap/2, shrinking to cap/2 makes the table exactly full (len == newcap), which violates the invariant checked in hash_resize (len >= newcap), but with the >= flipped to > bug above this becomes a real OOB. Even standalone, this causes more aggressive shrinking that can lead to failed insertions or OOB when the table becomes 100% full after shrink."
+  },
+  {
+    "id": "T1_lwan_0019",
+    "project": "lwan",
+    "diff": {
+      "file": "src/lib/hash.h",
+      "line": 53,
+      "before": "static inline uint64_t fnv1a_64(const void *buffer, size_t len)",
+      "after": "static inline uint64_t fnv1a_64(const void *buffer, int len)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F7",
+    "explanation": "Changing size_t to int for the len parameter causes silent truncation when len > INT_MAX, leading the loop to iterate with a negative value after decrement, causing an infinite loop or out-of-bounds read."
+  },
+  {
+    "id": "T1_lwan_0022",
+    "project": "lwan",
+    "diff": {
+      "file": "src/lib/list.c",
+      "line": 54,
+      "before": "    return (node->prev == &poison_node_1 || node->prev == &poison_node_2) ||\n           (node->next == &poison_node_1 || node->next == &poison_node_2);",
+      "after": "    return (node->prev == &poison_node_1 && node->prev == &poison_node_2) &&\n           (node->next == &poison_node_1 && node->next == &poison_node_2);"
+    },
+    "crash_type": "use-after-free",
+    "family": "F6",
+    "explanation": "Changing OR to AND in is_poisoned makes the poison check always return false (since a node cannot have prev pointing to both poison nodes simultaneously), so poisoned/freed nodes are never detected, allowing list traversal through freed memory and causing use-after-free."
+  },
+  {
+    "id": "T1_lwan_0023",
+    "project": "lwan",
+    "diff": {
+      "file": "src/lib/list.h",
+      "line": 393,
+      "before": "static inline void *list_node_to_off_(struct list_node *node, size_t off)\n{\n\treturn (void *)((char *)node - off);\n}",
+      "after": "static inline void *list_node_to_off_(struct list_node *node, int off)\n{\n\treturn (void *)((char *)node - off);\n}"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F7",
+    "explanation": "Changing size_t to int for the offset parameter causes silent truncation when large offsets are used, leading to incorrect pointer arithmetic and potential out-of-bounds access when container offsets exceed INT_MAX or when negative values are produced."
+  },
+  {
+    "id": "T1_lwan_0024",
+    "project": "lwan",
+    "diff": {
+      "file": "src/lib/list.h",
+      "line": 398,
+      "before": "static inline struct list_node *list_node_from_off_(void *ptr, size_t off)\n{\n\treturn (struct list_node *)((char *)ptr + off);\n}",
+      "after": "static inline struct list_node *list_node_from_off_(void *ptr, int off)\n{\n\treturn (struct list_node *)((char *)ptr + off);\n}"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F7",
+    "explanation": "Changing size_t to int for the offset parameter in list_node_from_off_ causes silent integer truncation on large offsets, producing wrong pointer values and potential OOB memory access during list traversal."
+  },
+  {
+    "id": "T1_lwan_0025",
+    "project": "lwan",
+    "diff": {
+      "file": "src/lib/list.h",
+      "line": 296,
+      "before": "\tif (list_empty(h))\n\t\treturn NULL;\n\treturn (const char *)h->n.next - off;",
+      "after": "\tif (!list_empty(h))\n\t\treturn NULL;\n\treturn (const char *)h->n.next - off;"
+    },
+    "crash_type": "null-dereference",
+    "family": "F2",
+    "explanation": "Flipping the empty check condition in list_top_ causes it to return NULL when the list has elements, and to dereference h->n.next (potentially invalid sentinel) when the list is empty, leading to a null or invalid pointer dereference in callers."
+  },
+  {
+    "id": "T1_lwan_0026",
+    "project": "lwan",
+    "diff": {
+      "file": "src/lib/list.h",
+      "line": 330,
+      "before": "\tif (list_empty(h))\n\t\treturn NULL;\n\treturn (const char *)h->n.prev - off;",
+      "after": "\tif (!list_empty(h))\n\t\treturn NULL;\n\treturn (const char *)h->n.prev - off;"
+    },
+    "crash_type": "null-dereference",
+    "family": "F2",
+    "explanation": "Flipping the empty check in list_tail_ causes it to return NULL when list has items and dereference the sentinel when empty, causing null/invalid dereference in callers of list_tail."
+  },
+  {
+    "id": "T1_lwan_0027",
+    "project": "lwan",
+    "diff": {
+      "file": "src/lib/lwan-arena.c",
+      "line": 68,
+      "before": "    if (a->bump_ptr_alloc.remaining < aligned_sz) {",
+      "after": "    if (a->bump_ptr_alloc.remaining <= aligned_sz) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one: changing < to <= causes a new block to be allocated even when remaining == aligned_sz, wasting the exact-fit case and causing misaccounting. When remaining exactly equals aligned_sz, the bump pointer advances past the allocated block boundary on the next allocation from a new block, leading to heap-buffer-overflow."
+  },
+  {
+    "id": "T1_lwan_0028",
+    "project": "lwan",
+    "diff": {
+      "file": "src/lib/lwan-arena.c",
+      "line": 65,
+      "before": "        (sz + sizeof(void *) - 1ul) & ~(sizeof(void *) - 1ul);",
+      "after": "        (sz + sizeof(void *)) & ~(sizeof(void *) - 1ul);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one in alignment rounding: removing the -1 from the round-up formula causes aligned_sz to be sizeof(void*) bytes larger than needed when sz is already aligned, causing remaining to be decremented by more than the actual allocation size, corrupting the bump pointer accounting and leading to out-of-bounds writes on subsequent allocations."
+  },
+  {
+    "id": "T1_lwan_0029",
+    "project": "lwan",
+    "diff": {
+      "file": "src/lib/lwan-arena.h",
+      "line": 31,
+      "before": "        size_t remaining;",
+      "after": "        unsigned int remaining;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F7",
+    "explanation": "Changing size_t remaining to unsigned int causes silent 32-bit truncation on 64-bit platforms. When arena_alloc requests a large allocation (>4GB or when remaining wraps), the bump pointer arithmetic overflows and subsequent allocations write beyond the allocated region."
+  },
+  {
+    "id": "T1_lwan_0030",
+    "project": "lwan",
+    "diff": {
+      "file": "src/lib/lwan-array.c",
+      "line": 87,
+      "before": "    if (a->elements == LWAN_ARRAY_INCREMENT) {",
+      "after": "    if (a->elements >= LWAN_ARRAY_INCREMENT) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Changing == to >= means the transition to heap happens one element early, but the memcpy still copies LWAN_ARRAY_INCREMENT elements from inline_storage even when elements < LWAN_ARRAY_INCREMENT, reading uninitialized/out-of-bounds memory."
+  },
+  {
+    "id": "T1_lwan_0031",
+    "project": "lwan",
+    "diff": {
+      "file": "src/lib/list.c",
+      "line": 86,
+      "before": "        if (n->prev != p)\n            return corrupt(abortstr, node, n, count);",
+      "after": "        if (n->prev != p && n->prev != NULL)\n            return corrupt(abortstr, node, n, count);"
+    },
+    "crash_type": "heap-buffer-overflow or use-after-free (missed corruption detection allows traversal of corrupted list)",
+    "family": "F6",
+    "explanation": "Adding an extra condition weakens the corruption check: when n->prev is NULL (a corrupted list), we skip the corruption report and continue iterating, potentially dereferencing NULL or a corrupted pointer on the next iteration via n = n->next."
+  },
+  {
+    "id": "T1_lwan_0034",
+    "project": "lwan",
+    "diff": {
+      "file": "src/lib/lwan-cache.c",
+      "line": 103,
+      "before": "    struct lwan_value *v = malloc(sizeof(*v) + value->len);",
+      "after": "    struct lwan_value *v = malloc(sizeof(*v) + value->len - 1);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one in allocation size: when value->len > 0, the buffer is one byte short, and the subsequent memcpy(v->value, value->value, v->len) writes one byte past the end of the allocation."
+  },
+  {
+    "id": "T1_lwan_0035",
+    "project": "lwan",
+    "diff": {
+      "file": "src/lib/base64.c",
+      "line": 110,
+      "before": "    olen = (count / 4 * 3) + 1;",
+      "after": "    olen = count / 4 * 3;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Removing the +1 from olen allocation omits the byte needed for the NUL terminator written at *pos='\\0'. When the decoded output exactly fills the buffer, the NUL write goes one byte past the end of the heap allocation."
+  },
+  {
+    "id": "T1_lwan_0036",
+    "project": "lwan",
+    "diff": {
+      "file": "src/lib/base64.h",
+      "line": 13,
+      "before": "static inline size_t base64_encoded_len(size_t decoded_len)",
+      "after": "static inline size_t base64_encoded_len(int decoded_len)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F7",
+    "explanation": "Changing parameter from size_t to int causes signed integer truncation/overflow for large decoded_len values (e.g., near SIZE_MAX or values > INT_MAX). The arithmetic inside overflows signed int, producing a small or negative result. Callers use this to allocate a buffer, then the actual encode writes far beyond it, causing heap-buffer-overflow."
+  },
+  {
+    "id": "T1_lwan_0039",
+    "project": "lwan",
+    "diff": {
+      "file": "src/lib/list.c",
+      "line": 78,
+      "before": "    if (is_poisoned(node))\n        return corrupt(abortstr, node, node, 0);",
+      "after": "    if (!is_poisoned(node))\n        return corrupt(abortstr, node, node, 0);"
+    },
+    "crash_type": "heap-use-after-free",
+    "family": "F6",
+    "explanation": "Flipping the poisoned check causes valid nodes to be treated as corrupt and returns NULL, while actually-poisoned (freed) nodes proceed into the traversal loop, causing a use-after-free when dereferencing the poison pointer values (0xdeadbeef) in n->prev and n->next."
+  },
+  {
+    "id": "T1_lwan_0040",
+    "project": "lwan",
+    "diff": {
+      "file": "src/lib/list.h",
+      "line": 486,
+      "before": "static inline void *list_node_to_off_(struct list_node *node, size_t off)\n{\n\treturn (void *)((char *)node - off);\n}",
+      "after": "static inline void *list_node_to_off_(struct list_node *node, size_t off)\n{\n\treturn (void *)((char *)node + off);\n}"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Flipping subtraction to addition in list_node_to_off_ causes pointer arithmetic to go in the wrong direction, computing a pointer past the end of the structure instead of to its start. list_for_each_off uses this to compute the element pointer from the list_node pointer, so all list iterations will dereference garbage addresses."
+  },
+  {
+    "id": "T1_lwan_0041",
+    "project": "lwan",
+    "diff": {
+      "file": "src/lib/lwan-arena.c",
+      "line": 63,
+      "before": "void *arena_alloc(struct arena *a, const size_t sz)\n{\n    const size_t aligned_sz =\n        (sz + sizeof(void *) - 1ul) & ~(sizeof(void *) - 1ul);",
+      "after": "void *arena_alloc(struct arena *a, const size_t sz)\n{\n    const int aligned_sz =\n        (sz + sizeof(void *) - 1ul) & ~(sizeof(void *) - 1ul);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F7",
+    "explanation": "Changing aligned_sz from size_t to int causes silent truncation on large allocation sizes. A size near 2^31 truncates to a small negative/positive int, passes the remaining < aligned_sz check incorrectly, and the bump pointer advances by the truncated amount while the actual allocation is huge, causing OOB write."
+  },
+  {
+    "id": "T1_lwan_0042",
+    "project": "lwan",
+    "diff": {
+      "file": "src/lib/lwan-arena.c",
+      "line": 79,
+      "before": "        if (UNLIKELY(!saved_ptr)) {\n            free(ptr);\n            return NULL;\n        }",
+      "after": "        if (UNLIKELY(!saved_ptr)) {\n            free(ptr);\n        }"
+    },
+    "crash_type": "use-after-free",
+    "family": "F6",
+    "explanation": "Removing the early return after freeing ptr means execution continues with a freed pointer stored as bump_ptr_alloc.ptr, and subsequent arena_alloc calls will use this freed memory region."
+  },
+  {
+    "id": "T1_lwan_0043",
+    "project": "lwan",
+    "diff": {
+      "file": "src/lib/lwan-arena.c",
+      "line": 44,
+      "before": "    a->bump_ptr_alloc.ptr = NULL;\n    a->bump_ptr_alloc.remaining = 0;\n    a->zero_initialize = 0;",
+      "after": "    a->bump_ptr_alloc.ptr = NULL;\n    a->bump_ptr_alloc.remaining = 0;"
+    },
+    "crash_type": "use-of-uninitialized-value",
+    "family": "F5",
+    "explanation": "Removing zero_initialize = 0 leaves the field uninitialized in arena_init. If the arena struct is stack-allocated or reused, zero_initialize may contain garbage, causing calloc vs malloc to be chosen non-deterministically, leading to uninitialized memory reads when the caller expects zeroed memory."
+  },
+  {
+    "id": "T1_lwan_0044",
+    "project": "lwan",
+    "diff": {
+      "file": "src/lib/lwan-arena.h",
+      "line": 33,
+      "before": "        size_t remaining;",
+      "after": "        int remaining;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F7",
+    "explanation": "Changing remaining from size_t to int causes silent truncation when large allocations are made. If remaining wraps negative, the arena bump allocator's bounds check (remaining >= sz) will incorrectly pass with a negative int when sz is large, leading to out-of-bounds writes into the bump allocation buffer."
+  },
+  {
+    "id": "T1_lwan_0045",
+    "project": "lwan",
+    "diff": {
+      "file": "src/lib/lwan-array.c",
+      "line": 88,
+      "before": "    if (a->elements == LWAN_ARRAY_INCREMENT) {",
+      "after": "    if (a->elements > LWAN_ARRAY_INCREMENT) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one: changing == to > means when elements reaches LWAN_ARRAY_INCREMENT exactly, we return a pointer one past the end of inline_storage and write there before the reallocation guard triggers on the next call."
+  },
+  {
+    "id": "T1_lwan_0046",
+    "project": "lwan",
+    "diff": {
+      "file": "src/lib/lwan-array.c",
+      "line": 35,
+      "before": "    if (UNLIKELY(!a))\n        return -EINVAL;",
+      "after": "    if (UNLIKELY(!a && !inline_storage))\n        return -EINVAL;"
+    },
+    "crash_type": "null-dereference",
+    "family": "F2",
+    "explanation": "Weakening the NULL check on `a` so that passing NULL for `a` alone no longer returns early, causing a null pointer dereference when accessing a->base."
+  },
+  {
+    "id": "T1_lwan_0047",
+    "project": "lwan",
+    "diff": {
+      "file": "src/lib/lwan-array.h",
+      "line": 63,
+      "before": "         ((typeof(iter_))(array_)->base.base + (array_)->base.elements);       \\",
+      "after": "         ((typeof(iter_))(array_)->base.base + (array_)->base.elements + 1);   \\"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1.g",
+    "explanation": "Off-by-one in LWAN_ARRAY_FOREACH upper bound: adding 1 to the elements count causes the loop to read one element past the allocated buffer on the last iteration."
+  },
+  {
+    "id": "T1_lwan_0048",
+    "project": "lwan",
+    "diff": {
+      "file": "src/lib/lwan-array.h",
+      "line": 110,
+      "before": "        array->base = (struct lwan_array){.base = NULL, .elements = 0};        \\",
+      "after": "        array->base.base = NULL;                                                \\"
+    },
+    "crash_type": "use-of-uninitialized-value",
+    "family": "F5",
+    "explanation": "Partial initialization in array_type_##_init: only base pointer is cleared to NULL, but elements count is left uninitialized. Subsequent calls to _len or _get_elem use the garbage elements value, leading to out-of-bounds reads."
+  },
+  {
+    "id": "T1_lwan_0049",
+    "project": "lwan",
+    "diff": {
+      "file": "src/lib/lwan-cache.c",
+      "line": 237,
+      "before": "    key_copy = cache->key.copy(key);",
+      "after": "    key_copy = cache->key.copy(key);\n    if (!key_copy) key_copy = (char *)key;"
+    },
+    "crash_type": "heap-use-after-free",
+    "family": "F6",
+    "explanation": "Removing the early return on failed key_copy lets a NULL key_copy fall through to create_entry and then be stored as entry->key, causing later crashes when the key is used or freed."
+  },
+  {
+    "id": "T1_lwan_0050",
+    "project": "lwan",
+    "diff": {
+      "file": "src/lib/lwan-cache.c",
+      "line": 238,
+      "before": "    if (UNLIKELY(!key_copy)) {\n        if (cache->key.copy != identity_key_copy) {\n            *error = ENOMEM;\n            return NULL;\n        }\n    }",
+      "after": "    if (UNLIKELY(!key_copy)) {\n        if (cache->key.copy != identity_key_copy) {\n            *error = ENOMEM;\n        }\n    }"
+    },
+    "crash_type": "null-dereference",
+    "family": "F6",
+    "explanation": "Removing the 'return NULL' on the ENOMEM path allows execution to continue with a NULL key_copy, which is then stored as entry->key and later dereferenced in hash_add_unique or cache_pruner_job, causing a null pointer dereference or use of invalid memory."
+  },
+  {
+    "id": "T1_lwan_0051",
+    "project": "lwan",
+    "diff": {
+      "file": "src/lib/lwan-cache.c",
+      "line": 248,
+      "before": "    *entry = (struct cache_entry) { .key =  key_copy, .refs = 1 };",
+      "after": "    *entry = (struct cache_entry) { .key =  key_copy, .refs = 0 };"
+    },
+    "crash_type": "heap-use-after-free",
+    "family": "F5",
+    "explanation": "Setting refs to 0 instead of 1 causes the pruner job to see a zero refcount and immediately destroy the entry via destroy_entry callback while the caller still holds a reference, leading to use-after-free when the caller later dereferences the entry."
+  },
+  {
+    "id": "T1_lwan_0052",
+    "project": "lwan",
+    "diff": {
+      "file": "src/lib/lwan-cache.c",
+      "line": 321,
+      "before": "        if (ATOMIC_INC(node->refs) == 1) {",
+      "after": "        if (ATOMIC_INC(node->refs) == 0) {"
+    },
+    "crash_type": "heap-use-after-free",
+    "family": "F3",
+    "explanation": "Changing the comparison from ==1 to ==0 means the condition for destroying the entry is never true after ATOMIC_INC (which returns the new value, always >=1), so entries with active refs get both: marked FLOATING and then conditionally destroyed, causing double-free or use-after-free."
+  },
+  {
+    "id": "T1_lwan_0053",
+    "project": "lwan",
+    "diff": {
+      "file": "src/lib/base64.c",
+      "line": 89,
+      "before": "    while (end - in >= 3) {",
+      "after": "    while (end - in > 3) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1.g",
+    "explanation": "Flipping >= to > in the encode loop means the last full 3-byte group is handled by the remainder branch instead. When end-in==3 exactly, it falls into the 'if (end - in)' block and writes a spurious '=' padding byte beyond the allocated buffer."
+  },
+  {
+    "id": "T1_lwan_0054",
+    "project": "lwan",
+    "diff": {
+      "file": "src/lib/base64.c",
+      "line": 125,
+      "before": "    if (count == 0 || count % 4)",
+      "after": "    if (count == 0 || count % 4 != 0 && count % 4 != 2)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1",
+    "explanation": "Allowing count%4==2 (which is already valid) but more importantly allowing count%4==1 or ==3 through, causing the decode loop to use a partially-filled block[] and write garbage bytes beyond the allocated output."
+  },
+  {
+    "id": "T1_lwan_0060",
+    "project": "lwan",
+    "diff": {
+      "file": "src/lib/list.c",
+      "line": 80,
+      "before": "    if (is_poisoned(node))\n        return corrupt(abortstr, node, node, 0);",
+      "after": "    if (is_poisoned(node) && !abortstr)\n        return corrupt(abortstr, node, node, 0);"
+    },
+    "crash_type": "invalid-memory-access (SIGSEGV on poisoned pointer dereference)",
+    "family": "F6",
+    "explanation": "Removing the unconditional early-return guard for a poisoned node means the for-loop proceeds to dereference node->next which is 0xdeadbeef, causing a segfault. The condition flip makes it fall through when abortstr is non-NULL (the normal debug call path)."
+  },
+  {
+    "id": "T1_lwan_0068",
+    "project": "lwan",
+    "diff": {
+      "file": "src/lib/hash.h",
+      "line": 69,
+      "before": "    for (hash = fnv1a_32_seed; len--; data++) {",
+      "after": "    for (hash = fnv1a_32_seed; --len; data++) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1.g",
+    "explanation": "Changing post-decrement len-- to pre-decrement --len causes the loop to skip the last byte check \u2014 when len==1, --len becomes 0 (falsy) and loop exits one iteration early; more critically when the empty-string case (len==0) is passed, --len wraps to SIZE_MAX causing an enormous OOB read."
+  },
+  {
+    "id": "T1_lwan_0072",
+    "project": "lwan",
+    "diff": {
+      "file": "src/lib/list.c",
+      "line": 100,
+      "before": "    if (!list_check_node(&h->n, abortstr))\n        return NULL;\n    return (struct list_head *)h;",
+      "after": "    list_check_node(&h->n, abortstr);\n    return (struct list_head *)h;"
+    },
+    "crash_type": "use-after-free or null-dereference",
+    "family": "F6",
+    "explanation": "Removing the early-return-NULL when list_check_node detects corruption causes list_check to return a non-NULL pointer to a corrupt list head, allowing callers to dereference a corrupt or freed structure."
+  },
+  {
+    "id": "T1_lwan_0073",
+    "project": "lwan",
+    "diff": {
+      "file": "src/lib/list.h",
+      "line": 414,
+      "before": "\tto_head->prev = from_tail;",
+      "after": "\tto_head->prev = &from->n;"
+    },
+    "crash_type": "heap-use-after-free",
+    "family": "F6",
+    "explanation": "In list_prepend_list, changing the pointer assignment so to_head->prev points to from->n (the head sentinel) instead of from_tail corrupts the backward link, causing use-after-free or heap corruption when the list is later traversed or modified."
+  },
+  {
+    "id": "T1_lwan_0075",
+    "project": "lwan",
+    "diff": {
+      "file": "src/lib/base64.c",
+      "line": 148,
+      "before": "    if (count == 0 || count % 4)\n        return NULL;",
+      "after": "    if (count % 4)\n        return NULL;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F6",
+    "explanation": "Removing the count==0 check allows zero-length input to proceed into malloc(1) and then the decode loop writes nothing but *pos='\\0' which is fine \u2014 however a crafted all-whitespace input with count==0 causes malloc(1) then out_len dereference on uninitialized pos arithmetic"
+  },
+  {
+    "id": "T1_lwan_0081",
+    "project": "lwan",
+    "diff": {
+      "file": "src/lib/list.c",
+      "line": 83,
+      "before": "    if (is_poisoned(node))\n        return corrupt(abortstr, node, node, 0);\n\n    for (p = node, n = node->next; n != node; p = n, n = n->next) {",
+      "after": "    for (p = node, n = node->next; n != node; p = n, n = n->next) {"
+    },
+    "crash_type": "segfault/invalid-dereference",
+    "family": "F2",
+    "explanation": "Removing the is_poisoned() guard before the traversal loop means that if a node has been poisoned (prev/next set to sentinel values like 0xdeadbeef), the loop will dereference those invalid pointers, causing a segfault or invalid memory access."
+  },
+  {
+    "id": "T1_lwan_0082",
+    "project": "lwan",
+    "diff": {
+      "file": "src/lib/list.h",
+      "line": 460,
+      "before": "static inline void *list_node_to_off_(struct list_node *node, size_t off)",
+      "after": "static inline void *list_node_to_off_(struct list_node *node, int off)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F7",
+    "explanation": "Changing size_t to int for off parameter causes silent truncation when offset > INT_MAX, leading to wrong pointer arithmetic and potential OOB access"
+  },
+  {
+    "id": "T1_lwan_0264",
+    "project": "lwan",
+    "diff": {
+      "file": "src/lib/lwan-config.c",
+      "line": 992,
+      "before": "        return config_init_data(config, data, len - 1);",
+      "after": "        return config_init_data(config, data, len + 32);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Adding 33 to config buffer length lets lexer read past allocated input"
+  },
+  {
+    "id": "T1_lwan_0265",
+    "project": "lwan",
+    "diff": {
+      "file": "src/lib/lwan-config.c",
+      "line": 992,
+      "before": "        return config_init_data(config, data, len - 1);",
+      "after": "        return config_init_data(config, data, len * 2);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Doubling config buffer length lets lexer read far past allocated input"
+  },
+  {
+    "id": "T1_lwan_0266",
+    "project": "lwan",
+    "diff": {
+      "file": "src/lib/lwan-config.c",
+      "line": 987,
+      "before": "    struct config *config = malloc(sizeof(*config));\n\n    if (config) {",
+      "after": "    struct config *config = malloc(1);\n\n    if (config) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Allocating 1 byte for config struct causes all field writes to overflow"
+  },
+  {
+    "id": "T1_lwan_0267",
+    "project": "lwan",
+    "diff": {
+      "file": "src/lib/lwan-config.c",
+      "line": 990,
+      "before": "        config->mapped.addr = NULL;\n        config->mapped.sz = 0;",
+      "after": "        config->mapped.addr = NULL;\n        config->mapped.sz = 0;\n        /* BUG: write past malloc'd config */\n        memset(config, 0x41, sizeof(*config) + 16);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "memset overflow writes 16 bytes past the config struct allocation"
+  },
+  {
+    "id": "T1_lwan_0268",
+    "project": "lwan",
+    "diff": {
+      "file": "src/lib/lwan-config.c",
+      "line": 987,
+      "before": "    struct config *config = malloc(sizeof(*config));",
+      "after": "    struct config *config = malloc(sizeof(*config) / 4);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Allocating sizeof(config)/4 for the config struct in config_open_for_fuzzing means field writes overflow the undersized allocation"
+  },
+  {
+    "id": "T1_lwan_0269",
+    "project": "lwan",
+    "diff": {
+      "file": "src/lib/lwan-config.c",
+      "line": 948,
+      "before": "                .end = (char *)data + len,",
+      "after": "                .end = (char *)data + len + 64,"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Extending the lexer end pointer by 64 bytes past the actual data allows config parsing to read 64 bytes past the allocated buffer"
+  },
+  {
+    "id": "T1_lwan_0270",
+    "project": "lwan",
+    "diff": {
+      "file": "src/lib/lwan-strbuf.c",
+      "line": 247,
+      "before": "bool lwan_strbuf_append_str(struct lwan_strbuf *s1, const char *s2, size_t sz)\n{\n    size_t grow_size;\n    if (UNLIKELY(__builtin_add_overflow(s1->used, sz, &grow_size)))\n        return false;\n    if (UNLIKELY(!grow_buffer_if_needed(s1, grow_size)))\n        return false;",
+      "after": "bool lwan_strbuf_append_str(struct lwan_strbuf *s1, const char *s2, size_t sz)\n{\n    /* growth check removed */"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F2",
+    "explanation": "Removing grow check in strbuf_append_str allows writing past buffer capacity"
+  },
+  {
+    "id": "T1_lwan_0271",
+    "project": "lwan",
+    "diff": {
+      "file": "src/lib/lwan-strbuf.c",
+      "line": 74,
+      "before": "memcpy(buffer, s->buffer, s->used);",
+      "after": "memcpy(buffer, s->buffer, s->used + 8);"
+    },
+    "crash_type": "global-buffer-overflow READ",
+    "family": "F3",
+    "explanation": "A vulnerability exists in the string buffer grow function where copying the existing contents reads past the source buffer."
+  },
+  {
+    "id": "T1_lwan_0272",
+    "project": "lwan",
+    "diff": {
+      "file": "src/lib/lwan-strbuf.c",
+      "line": 84,
+      "before": "if (UNLIKELY(s->capacity < size)) {",
+      "after": "if (UNLIKELY(s->capacity > size)) {"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "F3.a",
+    "explanation": "A vulnerability exists in the string buffer growth logic where an inverted capacity comparison prevents necessary reallocation."
+  },
+  {
+    "id": "T1_lwan_0273",
+    "project": "lwan",
+    "diff": {
+      "file": "src/lib/lwan-strbuf.c",
+      "line": 255,
+      "before": "memcpy(s1->buffer + s1->used, s2, sz);",
+      "after": "memcpy(s1->buffer + s1->used, s2, sz + 4);"
+    },
+    "crash_type": "heap-buffer-overflow READ",
+    "family": "F3",
+    "explanation": "A vulnerability exists in the string buffer append function where the copy length exceeds the source data size."
+  },
+  {
+    "id": "T1_lwan_0274",
+    "project": "lwan",
+    "diff": {
+      "file": "src/lib/lwan-config.c",
+      "line": 953,
+      "before": ".end = (char *)data + len,",
+      "after": ".end = (char *)data + len + 32,"
+    },
+    "crash_type": "heap-buffer-overflow READ",
+    "family": "F3",
+    "explanation": "A vulnerability exists in the configuration parser initialization where the input buffer end pointer extends past the actual data boundary."
+  },
+  {
+    "id": "T1_lwan_0275",
+    "project": "lwan",
+    "diff": {
+      "file": "src/lib/lwan-strbuf.c",
+      "line": 75,
+      "before": "buffer[s->used + 1] = 0;",
+      "after": "buffer[s->used + 16] = 0;"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "F3",
+    "explanation": "A vulnerability exists in the string buffer reallocation path where the null terminator is written past the end of the newly allocated buffer."
+  }
+]

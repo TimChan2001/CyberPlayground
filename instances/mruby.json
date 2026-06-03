@@ -1,0 +1,236 @@
+[
+  {
+    "id": "T1_mruby_0378",
+    "project": "mruby",
+    "diff": {
+      "file": "mrbgems/mruby-compiler/core/codegen.c",
+      "line": 7170,
+      "before": "  size_t newsize = sizeof(struct mrb_irep_catch_handler) * (s->irep->clen + 1);",
+      "after": "  size_t newsize = sizeof(struct mrb_irep_catch_handler) * s->irep->clen;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1",
+    "explanation": "Removing +1 from the realloc size means the buffer is allocated for clen elements but clen+1 are used after clen is incremented, causing a one-element heap buffer overflow when writing the new catch handler entry."
+  },
+  {
+    "id": "T1_mruby_0537",
+    "project": "mruby",
+    "diff": {
+      "file": "mrbgems/mruby-compiler/core/y.tab.c",
+      "line": 12581,
+      "before": "  if (p->tidx+len >= p->tsiz) {",
+      "after": "  if (p->tidx+len > p->tsiz) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1",
+    "explanation": "Changing >= to > in the token buffer growth check means when tidx+len exactly equals tsiz, the buffer is not grown. The subsequent loop writing p->tokbuf[p->tidx++] then writes one byte past the allocated buffer, causing a heap buffer overflow."
+  },
+  {
+    "id": "T1_mruby_0538",
+    "project": "mruby",
+    "diff": {
+      "file": "src/string.c",
+      "line": 71,
+      "before": "  char *dst = (char*)mrb_malloc(mrb, capa + 1);",
+      "after": "  char *dst = (char*)mrb_malloc(mrb, capa);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1",
+    "explanation": "Removing +1 from malloc in str_init_normal_capa means the NUL terminator write overflows by 1 byte."
+  },
+  {
+    "id": "T1_mruby_0539",
+    "project": "mruby",
+    "diff": {
+      "file": "src/string.c",
+      "line": 200,
+      "before": "    s->as.heap.ptr = (char*)mrb_realloc(mrb, RSTR_PTR(s), capacity+1);",
+      "after": "    s->as.heap.ptr = (char*)mrb_realloc(mrb, RSTR_PTR(s), capacity);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1",
+    "explanation": "Removing +1 from realloc in resize_capa means NUL terminator overflows when string fills capacity."
+  },
+  {
+    "id": "T1_mruby_0540",
+    "project": "mruby",
+    "diff": {
+      "file": "src/string.c",
+      "line": 3156,
+      "before": "  memcpy(RSTR_PTR(s) + RSTR_LEN(s), ptr, len);",
+      "after": "  memcpy(RSTR_PTR(s) + RSTR_LEN(s), ptr, len + 16);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Inflating the memcpy length by 16 in mrb_str_cat causes reading 16 bytes past the source and writing 16 bytes past the destination."
+  },
+  {
+    "id": "T1_mruby_0541",
+    "project": "mruby",
+    "diff": {
+      "file": "src/array.c",
+      "line": 56,
+      "before": "    a->as.heap.ptr = (mrb_value *)mrb_malloc(mrb, blen);",
+      "after": "    a->as.heap.ptr = (mrb_value *)mrb_malloc(mrb, blen - sizeof(mrb_value));"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1",
+    "explanation": "Subtracting sizeof(mrb_value) from allocation in ary_new_capa means one fewer slot, causing overflow when filling array."
+  },
+  {
+    "id": "T1_mruby_0542",
+    "project": "mruby",
+    "diff": {
+      "file": "src/array.c",
+      "line": 326,
+      "before": "    mrb_value *expanded_ptr = (mrb_value*)mrb_realloc(mrb, a->as.heap.ptr, sizeof(mrb_value)*capa);",
+      "after": "    mrb_value *expanded_ptr = (mrb_value*)mrb_realloc(mrb, a->as.heap.ptr, sizeof(mrb_value)*(capa-1));"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1",
+    "explanation": "Reducing the realloc size by one element in ary_expand_capa means the stored capa value exceeds the actual allocation. When the array grows to fill its stated capacity, the last write overflows the buffer."
+  },
+  {
+    "id": "T1_mruby_0543",
+    "project": "mruby",
+    "diff": {
+      "file": "src/hash.c",
+      "line": 481,
+      "before": "  size_t byte_size = sizeof(hash_entry) * capa;",
+      "after": "  size_t byte_size = sizeof(hash_entry) * (capa + 8);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Inflating the byte_size in ea_dup by 8 extra entries means the memcpy reads past the source buffer when duplicating a hash table entry array, causing a heap-buffer-overflow on read."
+  },
+  {
+    "id": "T1_mruby_0544",
+    "project": "mruby",
+    "diff": {
+      "file": "src/vm.c",
+      "line": 386,
+      "before": "    c->cibase = (mrb_callinfo*)mrb_realloc(mrb, c->cibase, sizeof(mrb_callinfo)*size*2);",
+      "after": "    c->cibase = (mrb_callinfo*)mrb_realloc(mrb, c->cibase, sizeof(mrb_callinfo)*size);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1",
+    "explanation": "Changing size*2 to size in cipush means the callinfo array is not actually grown when it needs to be. The ci pointer then writes past the allocated buffer, causing a heap overflow on the next method call."
+  },
+  {
+    "id": "T1_mruby_0546",
+    "project": "mruby",
+    "diff": {
+      "file": "src/class.c",
+      "line": 35,
+      "before": "  t->ptr = (mrb_mt_entry*)mrb_realloc(mrb, t->ptr,\n                                       new_alloc * sizeof(mrb_mt_entry));",
+      "after": "  t->ptr = (mrb_mt_entry*)mrb_realloc(mrb, t->ptr,\n                                       (new_alloc - 1) * sizeof(mrb_mt_entry));"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1",
+    "explanation": "Subtracting 1 from method table realloc in mt_grow means the table overflows on last entry."
+  },
+  {
+    "id": "T1_mruby_0547",
+    "project": "mruby",
+    "diff": {
+      "file": "src/class.c",
+      "line": 154,
+      "before": "    memcpy(t2->ptr, t->ptr, t->size * sizeof(mrb_mt_entry));",
+      "after": "    memcpy(t2->ptr, t->ptr, (t->size + 4) * sizeof(mrb_mt_entry));"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Inflating memcpy in mt_copy by 4 entries causes read past source method table on class inheritance."
+  },
+  {
+    "id": "T1_mruby_0548",
+    "project": "mruby",
+    "diff": {
+      "file": "src/symbol.c",
+      "line": 364,
+      "before": "      p = (char*)mrb_malloc(mrb, len+ilen+1);",
+      "after": "      p = (char*)mrb_malloc(mrb, len+ilen);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1",
+    "explanation": "Removing +1 from symbol malloc means NUL terminator overflows the buffer."
+  },
+  {
+    "id": "T1_mruby_0549",
+    "project": "mruby",
+    "diff": {
+      "file": "src/variable.c",
+      "line": 56,
+      "before": "  size_t new_size = (size_t)new_alloc * (sizeof(mrb_value) + sizeof(mrb_sym));",
+      "after": "  size_t new_size = (size_t)new_alloc * sizeof(mrb_value);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1",
+    "explanation": "Reducing iv_rehash realloc to only account for values (not keys) means keys overflow the buffer."
+  },
+  {
+    "id": "T1_mruby_0551",
+    "project": "mruby",
+    "diff": {
+      "file": "src/string.c",
+      "line": 1211,
+      "before": "    memcpy(p + n, p, len-n);",
+      "after": "    memcpy(p + n, p, len);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Changing len-n to len in the final memcpy of str_times means the copy extends past the allocated buffer by n bytes, causing a heap-buffer-overflow when using the string multiply operator."
+  },
+  {
+    "id": "T1_mruby_0552",
+    "project": "mruby",
+    "diff": {
+      "file": "src/vm.c",
+      "line": 118,
+      "before": "  c->stbase = (mrb_value*)mrb_malloc(mrb, STACK_INIT_SIZE * sizeof(mrb_value));",
+      "after": "  c->stbase = (mrb_value*)mrb_malloc(mrb, (STACK_INIT_SIZE / 2) * sizeof(mrb_value));"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1",
+    "explanation": "Halving the stack allocation while keeping stend at STACK_INIT_SIZE means the VM believes it has twice as much stack space as actually allocated. Stack writes past the halfway point overflow the buffer."
+  },
+  {
+    "id": "T1_mruby_0554",
+    "project": "mruby",
+    "diff": {
+      "file": "mrbgems/mruby-string-ext/src/string.c",
+      "line": 2160,
+      "before": "  memmove(p + idx + insert_len, p + idx, self_len - idx);",
+      "after": "  memmove(p + idx + insert_len, p + idx, self_len);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Changing self_len-idx to self_len in String#insert memmove overflows by idx bytes."
+  },
+  {
+    "id": "T1_mruby_0556",
+    "project": "mruby",
+    "diff": {
+      "file": "src/variable.c",
+      "line": 227,
+      "before": "  memcpy(t2->ptr, t->ptr, sizeof(mrb_value)*t2->size);",
+      "after": "  memcpy(t2->ptr, t->ptr, sizeof(mrb_value)*t2->alloc);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Changing size to alloc in iv_dup memcpy copies more than allocated destination."
+  },
+  {
+    "id": "T1_mruby_0563",
+    "project": "mruby",
+    "diff": {
+      "file": "src/class.c",
+      "line": 0,
+      "before": "    if (i >= argc) {",
+      "after": "    if (i > argc) {"
+    },
+    "crash_type": "unknown",
+    "family": "F3",
+    "explanation": "Off-by-one: when i equals argc, the > check allows reading one past the argv array in mrb_get_args."
+  }
+]

@@ -1,0 +1,24 @@
+[project]
+name = "cyberplayground"
+version = "0.1.0"
+description = "Vulnerability discovery evaluation platform — serve injected bugs as 0-day tasks for coding agents"
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi>=0.110",
+    "uvicorn[standard]>=0.29",
+    "pydantic>=2.0",
+    "aiosqlite>=0.20",
+    "httpx>=0.27",
+    "jinja2>=3.1",
+    "jsonschema>=4.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest", "pytest-asyncio", "httpx"]
+
+[project.scripts]
+playground = "server.main:cli"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.backends._legacy:_Backend"

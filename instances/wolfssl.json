@@ -1,0 +1,275 @@
+[
+  {
+    "id": "T1_wolfssl_0001",
+    "project": "wolfssl",
+    "diff": {
+      "file": "wolfcrypt/src/asn.c",
+      "line": 2523,
+      "before": "    if (check && ((idx + length) > maxIdx)) {\n        WOLFSSL_MSG(\"GetLength - value exceeds buffer length\");\n        return BUFFER_E;\n    }",
+      "after": "    if (check && ((idx + length) > maxIdx) && (length > 256)) {\n        WOLFSSL_MSG(\"GetLength - value exceeds buffer length\");\n        return BUFFER_E;\n    }"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1",
+    "explanation": "Adding the condition (length > 256) means DER length fields of 256 bytes or less that exceed the buffer are not caught by GetLength_ex. When the outer SEQUENCE of a DER certificate claims more data than exists, downstream template parsing reads past the allocated heap buffer."
+  },
+  {
+    "id": "T1_wolfssl_0002",
+    "project": "wolfssl",
+    "diff": {
+      "file": "src/bio.c",
+      "line": 138,
+      "before": "        memSz = (int)bio->mem_buf->length - bio->rdIdx;\n        if (memSz < sz) {\n            WOLFSSL_MSG(\"Not enough memory for reading\");\n            return WOLFSSL_BIO_ERROR;\n        }",
+      "after": "        memSz = (int)bio->mem_buf->length - bio->rdIdx;\n        if (memSz <= 0) {\n            WOLFSSL_MSG(\"Not enough memory for reading\");\n            return WOLFSSL_BIO_ERROR;\n        }"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1",
+    "explanation": "Removing the check 'memSz < sz' and replacing with 'memSz <= 0' means when memSz > 0 but memSz < sz, the XMEMCPY will read beyond the allocated buffer bounds."
+  },
+  {
+    "id": "T1_wolfssl_0003",
+    "project": "wolfssl",
+    "diff": {
+      "file": "wolfcrypt/src/asn.c",
+      "line": 2498,
+      "before": "        if ((idx + (word32)bytes) > maxIdx) {\n            WOLFSSL_MSG(\"GetLength - bad long length\");\n            return BUFFER_E;\n        }",
+      "after": "        if ((idx + (word32)bytes) > maxIdx + 2) {\n            WOLFSSL_MSG(\"GetLength - bad long length\");\n            return BUFFER_E;\n        }"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1",
+    "explanation": "Adding +2 to maxIdx in the long-form length byte-count check allows GetLength_ex to read up to 2 bytes beyond the buffer when decoding multi-byte DER length fields. A DER certificate whose last element uses 0x82 (2-byte long-form length) at the buffer boundary will cause the while(bytes--) loop to read 1-2 bytes past the allocation, producing a heap-buffer-overflow read."
+  },
+  {
+    "id": "T1_wolfssl_0004",
+    "project": "wolfssl",
+    "diff": {
+      "file": "src/bio.c",
+      "line": 131,
+      "before": "        if (sz > len) {\n            sz = len;\n        }",
+      "after": "        if (sz >= len) {\n            sz = len;\n        }"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one: when sz == len, the condition no longer clamps sz, so sz remains equal to len but the memSz check below may still pass while allowing a read exactly at buffer boundary. More critically, flipping > to >= means when sz == len, sz is set to len (same value), but the real issue is when combined with rdIdx arithmetic the memSz check `memSz < sz` can fail to catch edge cases."
+  },
+  {
+    "id": "T1_wolfssl_0005",
+    "project": "wolfssl",
+    "diff": {
+      "file": "src/bio.c",
+      "line": 141,
+      "before": "        if (memSz < sz) {",
+      "after": "        if (memSz <= sz) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one: changing < to <= causes an error when memSz == sz, which is the normal exact-fit case. This rejects valid reads but more dangerously the inverted logic means the condition now fails to protect when memSz == sz - 1, allowing a 1-byte OOB read in XMEMCPY."
+  },
+  {
+    "id": "T1_wolfssl_0006",
+    "project": "wolfssl",
+    "diff": {
+      "file": "src/bio.c",
+      "line": 396,
+      "before": "    if (len < 0) {\n        return WOLFSSL_BIO_ERROR;\n    }",
+      "after": "    if (len <= 0) {\n        return WOLFSSL_BIO_ERROR;\n    }"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Removing the zero-length read path causes zero-length writes to be rejected, but this is a logic inversion that causes incorrect behavior on boundary input."
+  },
+  {
+    "id": "T1_wolfssl_0007",
+    "project": "wolfssl",
+    "diff": {
+      "file": "src/bio.c",
+      "line": 144,
+      "before": "        XMEMCPY(buf, bio->mem_buf->data + bio->rdIdx, (size_t)sz);",
+      "after": "        XMEMCPY(buf, bio->mem_buf->data + bio->rdIdx, (size_t)sz + 1);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Copying one extra byte beyond the computed sz causes a 1-byte heap buffer overflow read into buf, which may be undersized by 1 byte relative to the actual copy."
+  },
+  {
+    "id": "T1_wolfssl_0008",
+    "project": "wolfssl",
+    "diff": {
+      "file": "src/bio.c",
+      "line": 113,
+      "before": "    sz = wolfSSL_BIO_pending(bio);",
+      "after": "    sz = wolfSSL_BIO_pending(bio);\n    if (sz < 0) sz = 0;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F6",
+    "explanation": "Adding a fallthrough that converts negative pending to zero skips the eof error path, causing reads on closed/invalid BIOs to proceed with sz=0 into the wrong branch."
+  },
+  {
+    "id": "T1_wolfssl_0009",
+    "project": "wolfssl",
+    "diff": {
+      "file": "src/bio.c",
+      "line": 2115,
+      "before": "    XSTRNCPY(meth->name, name, MAX_BIO_METHOD_NAME - 1);",
+      "after": "    XSTRNCPY(meth->name, name, MAX_BIO_METHOD_NAME);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one: XSTRNCPY with MAX_BIO_METHOD_NAME instead of MAX_BIO_METHOD_NAME-1 writes one extra byte past the end of meth->name array when name is exactly MAX_BIO_METHOD_NAME characters long, overflowing into adjacent heap memory."
+  },
+  {
+    "id": "T1_wolfssl_0010",
+    "project": "wolfssl",
+    "diff": {
+      "file": "src/bio.c",
+      "line": 2612,
+      "before": "        if (len > 0 && wolfSSL_BUF_MEM_resize(bio->mem_buf, (size_t)len) == 0) {",
+      "after": "        if (wolfSSL_BUF_MEM_resize(bio->mem_buf, (size_t)len) == 0) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1",
+    "explanation": "Removing the 'len > 0' guard allows wolfSSL_BUF_MEM_resize to be called with size_t(0) or a cast of a negative int, potentially leading to a zero-size allocation followed by a memcpy of 'len' bytes into it, causing heap buffer overflow."
+  },
+  {
+    "id": "T1_wolfssl_0011",
+    "project": "wolfssl",
+    "diff": {
+      "file": "src/bio.c",
+      "line": 3644,
+      "before": "        wolfSSL_BIO_free(bio1);\n        bio1 = NULL;\n        wolfSSL_BIO_free(bio2);\n        bio2 = NULL;",
+      "after": "        wolfSSL_BIO_free(bio1);\n        wolfSSL_BIO_free(bio2);\n        bio2 = NULL;"
+    },
+    "crash_type": "use-after-free",
+    "family": "F4",
+    "explanation": "Removing 'bio1 = NULL' after wolfSSL_BIO_free(bio1) means bio1 still points to freed memory. If an error path or subsequent code references bio1 (e.g., in a retry or logging path), it will dereference freed memory."
+  },
+  {
+    "id": "T1_wolfssl_0012",
+    "project": "wolfssl",
+    "diff": {
+      "file": "src/bio.c",
+      "line": 3657,
+      "before": "    if (bio != NULL)\n        bio->shutdown = (byte)shut;",
+      "after": "    if (bio != NULL)\n        bio->shutdown = shut;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F7",
+    "explanation": "Changing (byte)shut to shut when shutdown is declared as a byte/char field means a full int is written where only a byte field exists, potentially overwriting adjacent struct members."
+  },
+  {
+    "id": "T1_wolfssl_0013",
+    "project": "wolfssl",
+    "diff": {
+      "file": "src/crl.c",
+      "line": 652,
+      "before": "if (extCrlInfoSz < (int)sizeof(url) -1 ) {",
+      "after": "if (extCrlInfoSz < (int)sizeof(url) ) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one in CRL URL size check"
+  },
+  {
+    "id": "T1_wolfssl_0014",
+    "project": "wolfssl",
+    "diff": {
+      "file": "src/crl.c",
+      "line": 301,
+      "before": "if ((serial == NULL || serialSz == 0) && serialHash == NULL) {",
+      "after": "if (serial == NULL && serialHash == NULL) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1",
+    "explanation": "Removing serialSz==0 check allows zero-length serial through"
+  },
+  {
+    "id": "T1_wolfssl_0015",
+    "project": "wolfssl",
+    "diff": {
+      "file": "src/crl.c",
+      "line": 489,
+      "before": "WC_ALLOC_VAR_EX(tmp, WOLFSSL_CRL, 1, NULL, DYNAMIC_TYPE_TMP_BUFFER,",
+      "after": "WC_ALLOC_VAR_EX(tmp, WOLFSSL_CRL, 1, crl->heap, DYNAMIC_TYPE_TMP_BUFFER,"
+    },
+    "crash_type": "heap-use-after-free",
+    "family": "F4",
+    "explanation": "Changing NULL to crl->heap may cause UAF if heap freed elsewhere"
+  },
+  {
+    "id": "T1_wolfssl_0016",
+    "project": "wolfssl",
+    "diff": {
+      "file": "src/crl.c",
+      "line": 160,
+      "before": "crle->tbsSz = dcrl->sigIndex - dcrl->certBegin;",
+      "after": "crle->tbsSz = (word32)(dcrl->sigIndex - dcrl->certBegin);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F7",
+    "explanation": "Cast to word32 wraps negative result when sigIndex < certBegin"
+  },
+  {
+    "id": "T1_wolfssl_0017",
+    "project": "wolfssl",
+    "diff": {
+      "file": "src/crl.c",
+      "line": 2363,
+      "before": "(unsigned)rev->revocationDate->length > sizeof(rc->revDate))) {",
+      "after": "(unsigned)rev->revocationDate->length >= sizeof(rc->revDate))) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one: length == sizeof changes behavior"
+  },
+  {
+    "id": "T1_wolfssl_0018",
+    "project": "wolfssl",
+    "diff": {
+      "file": "src/crl.c",
+      "line": 2403,
+      "before": "if (serialSz > EXTERNAL_SERIAL_SIZE) {",
+      "after": "if (serialSz >= EXTERNAL_SERIAL_SIZE) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one rejects valid max-size serials"
+  },
+  {
+    "id": "T1_wolfssl_0019",
+    "project": "wolfssl",
+    "diff": {
+      "file": "src/crl.c",
+      "line": 2426,
+      "before": "        XMEMCPY(rc->serialNumber, serial, (size_t)serialSz);",
+      "after": "        XMEMCPY(rc->serialNumber, serial, (size_t)serialSz + 1);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one: copying serialSz+1 bytes into rc->serialNumber (which is sized EXTERNAL_SERIAL_SIZE) causes a 1-byte overflow past the fixed-size array."
+  },
+  {
+    "id": "T1_wolfssl_0020",
+    "project": "wolfssl",
+    "diff": {
+      "file": "src/crl.c",
+      "line": 2442,
+      "before": "XMEMCPY(rc->revDate, rev->revocationDate->data, (size_t)rev->revocationDate->length);",
+      "after": "XMEMCPY(rc->revDate, rev->revocationDate->data, (size_t)rev->revocationDate->length + 1);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one: copying length+1 bytes into fixed-size revDate"
+  },
+  {
+    "id": "T1_wolfssl_0021",
+    "project": "wolfssl",
+    "diff": {
+      "file": "wolfcrypt/src/asn.c",
+      "line": 14308,
+      "before": "dnsEntry->name = dnsEntry_name = (char*)XMALLOC((size_t)strLen + 1,",
+      "after": "dnsEntry->name = dnsEntry_name = (char*)XMALLOC((size_t)strLen,"
+    },
+    "crash_type": "heap-buffer-overflow-write",
+    "family": "F3",
+    "explanation": "Removing +1 from the XMALLOC allocation in SetDNSEntry means the NUL terminator write at dnsEntry_name[strLen] overflows by 1 byte past the heap allocation"
+  }
+]

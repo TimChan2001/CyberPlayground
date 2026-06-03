@@ -1,0 +1,249 @@
+[
+  {
+    "id": "T1_brotli_0038",
+    "project": "brotli",
+    "diff": {
+      "file": "c/dec/decode.c",
+      "line": 2320,
+      "before": "    if (dst_end >= s->ringbuffer_size || src_end >= s->ringbuffer_size) {",
+      "after": "    if (dst_end > s->ringbuffer_size || src_end >= s->ringbuffer_size) {"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "",
+    "explanation": "Off-by-one in copy region wrap check: dst_end >= ringbuffer_size changed to dst_end > ringbuffer_size allows copy destination ending exactly at the ring buffer boundary to skip the safe wrap-copy path, causing a heap-buffer-overflow write"
+  },
+  {
+    "id": "T1_brotli_0039",
+    "project": "brotli",
+    "diff": {
+      "file": "c/dec/decode.c",
+      "line": 2286,
+      "before": "        if (pos >= s->ringbuffer_size) {",
+      "after": "        if (pos > s->ringbuffer_size) {"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "",
+    "explanation": "Off-by-one in dictionary word ring buffer flush: pos >= ringbuffer_size changed to pos > ringbuffer_size allows pos exactly at the ring buffer boundary to skip the flush-and-save state, causing subsequent writes past the ring buffer allocation"
+  },
+  {
+    "id": "T1_brotli_0042",
+    "project": "brotli",
+    "diff": {
+      "file": "c/dec/decode.c",
+      "line": 549,
+      "before": "    if (v >= alphabet_size_limit) {",
+      "after": "    if (v > alphabet_size_limit) {"
+    },
+    "crash_type": "global-buffer-overflow READ",
+    "family": "F3.a",
+    "explanation": "Off-by-one in Huffman symbol validation allows an out-of-range symbol, corrupting the Huffman tree and causing downstream OOB reads"
+  },
+  {
+    "id": "T1_brotli_0043",
+    "project": "brotli",
+    "diff": {
+      "file": "c/dec/decode.c",
+      "line": 1217,
+      "before": "  if (block_type >= max_block_type) {",
+      "after": "  if (block_type > max_block_type) {"
+    },
+    "crash_type": "heap-buffer-overflow READ",
+    "family": "F3.a",
+    "explanation": "Off-by-one in block type validation allows an out-of-range block type, which later indexes past context map arrays"
+  },
+  {
+    "id": "T1_brotli_0044",
+    "project": "brotli",
+    "diff": {
+      "file": "c/dec/decode.c",
+      "line": 1416,
+      "before": "(size_t)(s->new_ringbuffer_size) + kRingBufferWriteAheadSlack);",
+      "after": "(size_t)(s->new_ringbuffer_size));"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "",
+    "explanation": "Ring buffer slack removed, overflow when memmove16 writes past allocation"
+  },
+  {
+    "id": "T1_brotli_0045",
+    "project": "brotli",
+    "diff": {
+      "file": "c/dec/decode.c",
+      "line": 2062,
+      "before": "num_steps = s->ringbuffer_size - pos - 1;",
+      "after": "num_steps = s->ringbuffer_size - pos + 16;"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "",
+    "explanation": "Literal copy step count inflated by 17, writing symbols past ringbuffer boundary"
+  },
+  {
+    "id": "T1_brotli_0046",
+    "project": "brotli",
+    "diff": {
+      "file": "c/dec/decode.c",
+      "line": 2715,
+      "before": "s->context_modes =",
+      "after": "s->context_modes ="
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "",
+    "explanation": "Context modes buffer at half size, overflow when ReadContextModes fills entries"
+  },
+  {
+    "id": "T1_brotli_0047",
+    "project": "brotli",
+    "diff": {
+      "file": "c/dec/decode.c",
+      "line": 549,
+      "before": "if (v >= alphabet_size_limit) {",
+      "after": "if (v >= alphabet_size_limit + 2) {"
+    },
+    "crash_type": "heap-buffer-overflow READ",
+    "family": "",
+    "explanation": "Alphabet size limit raised by 2, allowing out-of-range symbols into huffman table"
+  },
+  {
+    "id": "T1_brotli_0048",
+    "project": "brotli",
+    "diff": {
+      "file": "c/dec/state.c",
+      "line": 163,
+      "before": "const size_t max_table_size = alphabet_size_limit + 376;",
+      "after": "const size_t max_table_size = alphabet_size_limit + 37;"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "",
+    "explanation": "Huffman table slack reduced from 376 to 37, overflow building second-level tables"
+  },
+  {
+    "id": "T1_brotli_0049",
+    "project": "brotli",
+    "diff": {
+      "file": "c/dec/decode.c",
+      "line": 1071,
+      "before": "(uint8_t*)BROTLI_DECODER_ALLOC(s, (size_t)context_map_size);",
+      "after": "(uint8_t*)BROTLI_DECODER_ALLOC(s, (size_t)context_map_size / 2);"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "",
+    "explanation": "Context map allocated at half size, overflow when filling map entries"
+  },
+  {
+    "id": "T1_brotli_0050",
+    "project": "brotli",
+    "diff": {
+      "file": "c/dec/decode.c",
+      "line": 2286,
+      "before": "s->meta_block_remaining_len -= len;",
+      "after": "s->meta_block_remaining_len -= len;"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "",
+    "explanation": "Dictionary word write ring buffer check off-by-one allowing write at exact boundary"
+  },
+  {
+    "id": "T1_brotli_0051",
+    "project": "brotli",
+    "diff": {
+      "file": "c/dec/state.c",
+      "line": 165,
+      "before": "const size_t code_size = sizeof(HuffmanCode) * ntrees * max_table_size;",
+      "after": "const size_t code_size = sizeof(HuffmanCode) * ntrees * (max_table_size / 2);"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "",
+    "explanation": "Huffman tree group code table at half size, overflow building huffman tables"
+  },
+  {
+    "id": "T1_brotli_0052",
+    "project": "brotli",
+    "diff": {
+      "file": "c/dec/decode.c",
+      "line": 2315,
+      "before": "memmove16(copy_dst, copy_src);",
+      "after": "memmove16(copy_dst, copy_src);"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "",
+    "explanation": "Overlap check disabled in LZ77 copy, allowing non-wrapping memcpy on overlapping regions"
+  },
+  {
+    "id": "T1_brotli_0053",
+    "project": "brotli",
+    "diff": {
+      "file": "c/dec/decode.c",
+      "line": 2320,
+      "before": "if (dst_end >= s->ringbuffer_size || src_end >= s->ringbuffer_size) {",
+      "after": "if (dst_end > s->ringbuffer_size + 16 || src_end > s->ringbuffer_size + 16) {"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "",
+    "explanation": "Ring buffer wrap check weakened by 16, allowing memcpy past buffer boundary"
+  },
+  {
+    "id": "T1_brotli_0059",
+    "project": "brotli",
+    "diff": {
+      "file": "c/dec/decode.c",
+      "line": 1402,
+      "before": "(size_t)(s->new_ringbuffer_size) + kRingBufferWriteAheadSlack);",
+      "after": "(size_t)(s->new_ringbuffer_size / 2) + kRingBufferWriteAheadSlack);"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "",
+    "explanation": "Ring buffer allocation halved causing decode output overflow"
+  },
+  {
+    "id": "T1_brotli_0060",
+    "project": "brotli",
+    "diff": {
+      "file": "c/dec/state.c",
+      "line": 171,
+      "before": "const size_t code_size = sizeof(HuffmanCode) * ntrees * max_table_size;",
+      "after": "const size_t code_size = sizeof(HuffmanCode) * ntrees * (max_table_size / 4);"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "",
+    "explanation": "Huffman code allocation quartered"
+  },
+  {
+    "id": "T1_brotli_0061",
+    "project": "brotli",
+    "diff": {
+      "file": "c/dec/decode.c",
+      "line": 2741,
+      "before": "(uint8_t*)BROTLI_DECODER_ALLOC(s, (size_t)s->num_block_types[0]);",
+      "after": "(uint8_t*)BROTLI_DECODER_ALLOC(s, (size_t)s->num_block_types[0] / 2);"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "",
+    "explanation": "Context modes array halved causing write overflow during mode read"
+  },
+  {
+    "id": "T1_brotli_0067",
+    "project": "brotli",
+    "diff": {
+      "file": "c/dec/decode.c",
+      "line": 550,
+      "before": "if (v >= alphabet_size_limit) {",
+      "after": "if (v > alphabet_size_limit) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one in Huffman symbol validation allows a value equal to alphabet_size_limit, causing out-of-bounds table access"
+  },
+  {
+    "id": "T1_brotli_0069",
+    "project": "brotli",
+    "diff": {
+      "file": "c/dec/decode.c",
+      "line": 2660,
+      "before": "if (s->loop_counter >= 3) {",
+      "after": "if (s->loop_counter > 3) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one in context map loop counter allows one extra iteration reading past allocated context map"
+  }
+]

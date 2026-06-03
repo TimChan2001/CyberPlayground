@@ -1,0 +1,80 @@
+[
+  {
+    "id": "T1_yara_0001",
+    "project": "yara",
+    "diff": {
+      "file": "libyara/lexer.c",
+      "line": 1003,
+      "before": "str_len + sizeof(SIZED_STRING))",
+      "after": "str_len + sizeof(SIZED_STRING) - 1)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "A heap-buffer-overflow exists in the YARA lexer string allocator where the buffer is undersized by 1 byte."
+  },
+  {
+    "id": "T1_yara_0002",
+    "project": "yara",
+    "diff": {
+      "file": "libyara/arena.c",
+      "line": 158,
+      "before": "yr_realloc(b->data, new_size)",
+      "after": "yr_realloc(b->data, new_size - 1)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "A heap-buffer-overflow exists in the YARA arena allocator where buffer reallocation is undersized by 1 byte."
+  },
+  {
+    "id": "T1_yara_0003",
+    "project": "yara",
+    "diff": {
+      "file": "libyara/re.c",
+      "line": 335,
+      "before": "sizeof(SIZED_STRING) + length)",
+      "after": "sizeof(SIZED_STRING) + length - 1)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "A heap-buffer-overflow in the regex literal extractor where the string allocation is undersized."
+  },
+  {
+    "id": "T1_yara_0004",
+    "project": "yara",
+    "diff": {
+      "file": "libyara/re.c",
+      "line": 126,
+      "before": "yr_malloc(sizeof(RE_NODE))",
+      "after": "yr_malloc(sizeof(RE_NODE) - 8)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "A heap-buffer-overflow in the regex node constructor where the allocation is undersized."
+  },
+  {
+    "id": "T1_yara_0005",
+    "project": "yara",
+    "diff": {
+      "file": "libyara/grammar.c",
+      "line": 3640,
+      "before": "yr_malloc(sizeof(YR_FIXUP))",
+      "after": "yr_malloc(sizeof(YR_FIXUP) - 8)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "A heap-buffer-overflow in the YARA grammar parser where a fixup structure allocation is undersized."
+  },
+  {
+    "id": "T1_yara_0006",
+    "project": "yara",
+    "diff": {
+      "file": "libyara/re.c",
+      "line": 194,
+      "before": "yr_malloc(sizeof(RE_AST))",
+      "after": "yr_malloc(sizeof(RE_AST) - 8)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "A heap-buffer-overflow in the regex AST constructor where the allocation is undersized."
+  }
+]

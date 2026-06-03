@@ -1,0 +1,184 @@
+[
+  {
+    "id": "T1_jq_0001",
+    "project": "jq",
+    "diff": {
+      "file": "src/bytecode.h",
+      "line": 46,
+      "before": "#define MAX_CFUNCTION_ARGS 4",
+      "after": "#define MAX_CFUNCTION_ARGS 5"
+    },
+    "crash_type": "invalid-function-pointer-call",
+    "family": "F1",
+    "explanation": "Raising MAX_CFUNCTION_ARGS from 4 to 5 allows nargs=5 to pass the bounds check in execute.c, but the cfunction union only has a1-a4 function pointers. A 5-argument C function dispatch reads an uninitialized/garbage function pointer from the union, causing a crash."
+  },
+  {
+    "id": "T1_jq_0002",
+    "project": "jq",
+    "diff": {
+      "file": "src/bytecode.h",
+      "line": 70,
+      "before": "  int codelen;",
+      "after": "  short codelen;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F7",
+    "explanation": "Changing codelen from int to short causes silent truncation when bytecode length exceeds 32767 uint16_t units. The interpreter in execute.c uses codelen to bound code execution, so a truncated codelen causes the interpreter to run past the end of allocated bytecode memory."
+  },
+  {
+    "id": "T1_jq_0003",
+    "project": "jq",
+    "diff": {
+      "file": "src/exec_stack.h",
+      "line": 94,
+      "before": "  if (r < s->bound) {",
+      "after": "  if (r <= s->bound) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one: using <= instead of < means we reallocate one iteration too early is fine, but when r==s->bound exactly we skip pushing and write out-of-bounds into the stack's allocated region."
+  },
+  {
+    "id": "T1_jq_0004",
+    "project": "jq",
+    "diff": {
+      "file": "src/exec_stack.h",
+      "line": 91,
+      "before": "  int alloc_sz = align_round_up(sz) + ALIGNMENT;",
+      "after": "  size_t alloc_sz = align_round_up(sz) + ALIGNMENT;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F7",
+    "explanation": "Placeholder - not injecting here."
+  },
+  {
+    "id": "T1_jq_0005",
+    "project": "jq",
+    "diff": {
+      "file": "src/exec_stack.h",
+      "line": 80,
+      "before": "  if (new_mem_length > INT_MAX) {\n    fprintf(stderr, \"jq: error: cannot allocate memory\\n\");\n    abort();\n  }",
+      "after": "  if (new_mem_length > (size_t)UINT_MAX) {\n    fprintf(stderr, \"jq: error: cannot allocate memory\\n\");\n    abort();\n  }"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1",
+    "explanation": "Weakening the INT_MAX guard to UINT_MAX allows new_mem_length values larger than INT_MAX to pass, causing the negative stack bound (stored as int) to overflow/wrap, making subsequent bound checks incorrect and allowing out-of-bounds stack writes."
+  },
+  {
+    "id": "T1_jq_0006",
+    "project": "jq",
+    "diff": {
+      "file": "src/execute.c",
+      "line": 550,
+      "before": "      int nargs = *pc++;\n      struct cfunction* function = &frame_current(jq)->bc->globals->cfunctions[*pc++];\n      jv in[MAX_CFUNCTION_ARGS];\n      for (int i = 0; i < nargs; ++i)\n        in[i] = stack_pop(jq);",
+      "after": "      int nargs = *pc++;\n      struct cfunction* function = &frame_current(jq)->bc->globals->cfunctions[*pc++];\n      jv in[MAX_CFUNCTION_ARGS];\n      for (int i = 0; i <= nargs; ++i)\n        in[i] = stack_pop(jq);"
+    },
+    "crash_type": "stack-buffer-overflow",
+    "family": "F1.g",
+    "explanation": "Off-by-one in CALL_BUILTIN argument collection loop: <= instead of < causes one extra stack_pop() and writes past the end of the fixed-size in[] array on the stack."
+  },
+  {
+    "id": "T1_jq_0007",
+    "project": "jq",
+    "diff": {
+      "file": "src/execute.c",
+      "line": 95,
+      "before": "  assert(var >= 0);\n  assert(var < fr->bc->nlocals);",
+      "after": "  assert(var >= 0);\n  assert(var <= fr->bc->nlocals);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one in frame_local_var bounds check: <= allows accessing one element past the end of the entries array, reading/writing memory beyond the allocated frame block."
+  },
+  {
+    "id": "T1_jq_0008",
+    "project": "jq",
+    "diff": {
+      "file": "src/execute.c",
+      "line": 144,
+      "before": "  for (int i=0; i<nlocals; i++) {\n      jv_free(*frame_local_var(jq, i, 0));\n    }",
+      "after": "  for (int i=0; i<=nlocals; i++) {\n      jv_free(*frame_local_var(jq, i, 0));\n    }"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1.g",
+    "explanation": "Off-by-one in frame_pop local variable cleanup loop: <= causes one extra iteration, freeing memory one slot past the end of the frame's entries array."
+  },
+  {
+    "id": "T1_jq_0009",
+    "project": "jq",
+    "diff": {
+      "file": "src/execute.c",
+      "line": 130,
+      "before": "  assert(nargs == new_frame->bc->nclosures);\n  union frame_entry* entries = new_frame->entries;\n  for (int i=0; i<nargs; i++) {",
+      "after": "  assert(nargs == new_frame->bc->nclosures);\n  union frame_entry* entries = new_frame->entries;\n  for (int i=0; i<=nargs; i++) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1.g",
+    "explanation": "Off-by-one in frame_push closure initialization loop: <= nargs causes make_closure() to be called one extra time, writing past the end of the allocated entries array."
+  },
+  {
+    "id": "T1_jq_0010",
+    "project": "jq",
+    "diff": {
+      "file": "src/inject_errors.c",
+      "line": 68,
+      "before": "  char *res = real_fgets(buf, len, f);\n  if (fail_read == f)\n    return 0;\n  return res;",
+      "after": "  char *res = real_fgets(buf, len, f);\n  if (fail_read == f)\n    return 0;\n  if (res == NULL) return res;\n  return res;"
+    },
+    "crash_type": "null-deref",
+    "family": "F2",
+    "explanation": "Removing NULL check on fgets result before returning could cause callers to dereference NULL"
+  },
+  {
+    "id": "T1_jq_0011",
+    "project": "jq",
+    "diff": {
+      "file": "src/jv.c",
+      "line": 1621,
+      "before": "for (int i=0; i<size*2; i++) {",
+      "after": "for (int i=0; i<=size*2; i++) {"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "",
+    "explanation": "Off-by-one in object hash bucket initialization: loop writes size*2+1 entries instead of size*2, overflowing one int past the allocated bucket array"
+  },
+  {
+    "id": "T1_jq_0012",
+    "project": "jq",
+    "diff": {
+      "file": "src/jv.c",
+      "line": 1184,
+      "before": "uint32_t allocsz = (currlen + len) * 2;",
+      "after": "uint32_t allocsz = currlen;"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "",
+    "explanation": "Under-allocation in string append: new buffer allocates only currlen bytes instead of 2*(currlen+len), causing memcpy of currlen+len bytes to overflow"
+  },
+  {
+    "id": "T1_jq_0013",
+    "project": "jq",
+    "diff": {
+      "file": "src/jv_parse.c",
+      "line": 425,
+      "before": "if (p->tokenpos >= (p->tokenlen - 1)) {",
+      "after": "if (p->tokenpos > p->tokenlen) {"
+    },
+    "crash_type": "heap-buffer-overflow WRITE",
+    "family": "",
+    "explanation": "Weakened bounds check in token buffer: check changed from >= tokenlen-1 to > tokenlen, allowing write at tokenbuf[tokenlen] which is one byte past allocation"
+  },
+  {
+    "id": "T1_jq_0014",
+    "project": "jq",
+    "diff": {
+      "file": "src/jv.c",
+      "line": 1702,
+      "before": "for (int i=0; i<size; i++) {",
+      "after": "for (int i=0; i<=size; i++) {"
+    },
+    "crash_type": "heap-buffer-overflow READ",
+    "family": "",
+    "explanation": "Off-by-one in object rehash iteration: loop reads size+1 slots instead of size from the old object, accessing one slot past the allocated elements array"
+  }
+]

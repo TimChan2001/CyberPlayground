@@ -1,0 +1,1484 @@
+[
+  {
+    "id": "T1_lua_0001",
+    "project": "lua",
+    "diff": {
+      "file": "lapi.c",
+      "line": 706,
+      "before": "  if (1 <= n && n <= f->p->sizeupvalues)\n    return &f->upvals[n - 1];  /* get its upvalue pointer */",
+      "after": "  if (1 <= n && n < f->p->sizeupvalues)\n    return &f->upvals[n - 1];  /* get its upvalue pointer */"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one: changing <= to < means the last upvalue index is excluded from the valid range, causing getupvalref to return &nullup for the last valid upvalue, but lua_upvaluejoin then dereferences it expecting a valid UpVal pointer, leading to null/invalid dereference."
+  },
+  {
+    "id": "T1_lua_0002",
+    "project": "lua",
+    "diff": {
+      "file": "lapi.c",
+      "line": 570,
+      "before": "    for (i = 0; i < n; i++) {",
+      "after": "    for (i = 0; i <= n; i++) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1.g",
+    "explanation": "Off-by-one in upvalue copy loop in lua_pushcclosure: loop runs n+1 times, reading one stack slot beyond the n upvalues, writing it into cl->upvalue[n] which is beyond the allocated closure upvalue array."
+  },
+  {
+    "id": "T1_lua_0003",
+    "project": "lua",
+    "diff": {
+      "file": "lapi.c",
+      "line": 68,
+      "before": "    api_check(L, idx <= MAXUPVAL + 1, \"upvalue index too large\");",
+      "after": "    api_check(L, idx < MAXUPVAL + 1, \"upvalue index too large\");"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one in upvalue index check in index2value: MAXUPVAL is 255, so MAXUPVAL+1=256 should be the max valid idx, but changing <= to < rejects idx==256 (MAXUPVAL+1) while allowing idx==255 to pass through and potentially access one slot beyond the upvalue array."
+  },
+  {
+    "id": "T1_lua_0004",
+    "project": "lua",
+    "diff": {
+      "file": "lapi.c",
+      "line": 119,
+      "before": "  if (L->stack_last.p - L->top.p > n)  /* stack large enough? */",
+      "after": "  if (L->stack_last.p - L->top.p >= n)  /* stack large enough? */"
+    },
+    "crash_type": "stack-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one in lua_checkstack: changing > to >= means we skip growing the stack when exactly n slots are available (stack_last - top == n), but then ci->top is set to top+n which equals stack_last, allowing subsequent pushes to go one past the stack boundary."
+  },
+  {
+    "id": "T1_lua_0005",
+    "project": "lua",
+    "diff": {
+      "file": "lapi.c",
+      "line": 564,
+      "before": "    api_check(L, n <= MAXUPVAL, \"upvalue index too large\");",
+      "after": "    api_check(L, n < MAXUPVAL, \"upvalue index too large\");"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one in lua_pushcclosure upvalue count check: MAXUPVAL=255 upvalues should be allowed, but changing <= to < means 255 upvalues are rejected while 254 pass. More critically, if the check is disabled (in builds without assertions), n=MAXUPVAL passes but the allocated closure only holds MAXUPVAL-1 upvalues, causing an OOB write in the loop."
+  },
+  {
+    "id": "T1_lua_0006",
+    "project": "lua",
+    "diff": {
+      "file": "lapi.h",
+      "line": 26,
+      "before": "    (L->top.p++, api_check(L, L->top.p <= L->ci->top.p, \"stack overflow\"))",
+      "after": "    (L->top.p++, api_check(L, L->top.p < L->ci->top.p, \"stack overflow\"))"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Flipping <= to < in api_incr_top means the overflow check fires one slot too early in non-APICHECK builds (lua_assert path), but in APICHECK builds the assert fires before the slot is used. More critically, this allows L->top.p to reach exactly ci->top.p+1 when lua_assert is a no-op, writing one slot past the reserved stack space."
+  },
+  {
+    "id": "T1_lua_0007",
+    "project": "lua",
+    "diff": {
+      "file": "lapi.h",
+      "line": 48,
+      "before": "       api_check(L, (n) < (L->top.p - L->ci->func.p), \\\n                         \"not enough elements in the stack\")",
+      "after": "       api_check(L, (n) <= (L->top.p - L->ci->func.p), \\\n                         \"not enough elements in the stack\")"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Flipping < to <= in api_checknelems allows n equal to the number of available slots to pass the check. Since the stack pointer arithmetic includes the function slot itself, this permits reading one element below the valid stack bottom, causing an out-of-bounds stack read."
+  },
+  {
+    "id": "T1_lua_0008",
+    "project": "lua",
+    "diff": {
+      "file": "lapi.h",
+      "line": 43,
+      "before": "    { if ((nres) <= LUA_MULTRET && L->ci->top.p < L->top.p) \\",
+      "after": "    { if ((nres) <= LUA_MULTRET && L->ci->top.p <= L->top.p) \\"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Flipping < to <= in adjustresults means ci->top.p gets bumped even when already equal to L->top.p (the common case). This causes ci->top.p to be set to top.p when they are equal, which is a no-op normally but combined with other stack operations can push ci->top.p one slot past the actual top, corrupting stack frame accounting and leading to OOB writes in subsequent pushes."
+  },
+  {
+    "id": "T1_lua_0009",
+    "project": "lua",
+    "diff": {
+      "file": "lauxlib.c",
+      "line": 356,
+      "before": "  if (l_unlikely(sz >= MAX_SIZE - B->n))",
+      "after": "  if (l_unlikely(sz > MAX_SIZE - B->n))"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one: changing >= to > in the overflow check for newbuffsize allows sz == MAX_SIZE - B->n to pass, causing B->n + sz + 1 to wrap around, leading to a tiny allocation and subsequent heap overflow."
+  },
+  {
+    "id": "T1_lua_0010",
+    "project": "lua",
+    "diff": {
+      "file": "lauxlib.c",
+      "line": 375,
+      "before": "  if (B->size - B->n >= sz)  /* enough space? */",
+      "after": "  if (B->size - B->n > sz)  /* enough space? */"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one: changing >= to > means when exactly sz bytes remain, the code tries to use the full buffer anyway while writing sz bytes starting at B->b + B->n, writing one byte past the allocation."
+  },
+  {
+    "id": "T1_lua_0012",
+    "project": "lua",
+    "diff": {
+      "file": "lapi.c",
+      "line": 397,
+      "before": "  if (n <= 0 || n > uvalue(o)->nuvalue) {",
+      "after": "  if (n < 0 || n > uvalue(o)->nuvalue) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Changing n <= 0 to n < 0 allows n=0 through, causing uv[-1] access (zero-indexed would be one before the array)."
+  },
+  {
+    "id": "T1_lua_0013",
+    "project": "lua",
+    "diff": {
+      "file": "lapi.c",
+      "line": 593,
+      "before": "  if (!(cast_uint(n) - 1u < cast_uint(f->nupvalues)))",
+      "after": "  if (!(cast_uint(n) - 1u <= cast_uint(f->nupvalues)))"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Flipping < to <= in the bounds check for CClosure upvalue access allows reading one element past the end of the upvalue array."
+  },
+  {
+    "id": "T1_lua_0014",
+    "project": "lua",
+    "diff": {
+      "file": "lapi.c",
+      "line": 156,
+      "before": "    api_check(L, idx <= ci->top.p - (ci->func.p + 1), \"unacceptable index\");",
+      "after": "    api_check(L, idx < ci->top.p - (ci->func.p + 1), \"unacceptable index\");"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one in positive index validation: < instead of <= makes valid top-of-stack index appear valid but reads nilvalue sentinel incorrectly."
+  },
+  {
+    "id": "T1_lua_0015",
+    "project": "lua",
+    "diff": {
+      "file": "lapi.c",
+      "line": 609,
+      "before": "      if (!(cast_uint(n) - 1u  < cast_uint(p->sizeupvalues)))",
+      "after": "      if (!(cast_uint(n) - 1u  <= cast_uint(p->sizeupvalues)))"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Flipping < to <= in Lua closure upvalue bounds check allows access one past the end of the upvalues array, causing heap-buffer-overflow when reading name or value."
+  },
+  {
+    "id": "T1_lua_0016",
+    "project": "lua",
+    "diff": {
+      "file": "lapi.h",
+      "line": 55,
+      "before": "                     L->tbclist.p < L->top.p - (n), \\",
+      "after": "                     L->tbclist.p <= L->top.p - (n), \\"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one in api_checkpop's tbclist boundary check: flipping < to <= allows popping one extra element past a to-be-closed variable boundary, enabling stack underflow when the tbclist pointer sits exactly at the computed boundary."
+  },
+  {
+    "id": "T1_lua_0019",
+    "project": "lua",
+    "diff": {
+      "file": "lauxlib.c",
+      "line": 452,
+      "before": "  if (l_unlikely(temp == NULL && newsize > 0)) {  /* allocation error? */",
+      "after": "  if (l_unlikely(temp == NULL && newsize >= 0)) {  /* allocation error? */"
+    },
+    "crash_type": "null-dereference",
+    "family": "F3",
+    "explanation": "Since newsize is size_t (unsigned), newsize >= 0 is always true, so when resizing to 0 (freeing), if allocf returns NULL the code incorrectly raises a memory error instead of accepting the NULL return as a valid free result."
+  },
+  {
+    "id": "T1_lua_0020",
+    "project": "lua",
+    "diff": {
+      "file": "lauxlib.c",
+      "line": 621,
+      "before": "  if (lf->n > 0) {  /* are there pre-read characters to be read? */",
+      "after": "  if (lf->n >= 0) {  /* are there pre-read characters to be read? */"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Since lf->n is unsigned, lf->n >= 0 is always true, so after n is set to 0 and cleared, we return lf->buff with *size=0 instead of reading more data, causing infinite loops or returning stale data."
+  },
+  {
+    "id": "T1_lua_0021",
+    "project": "lua",
+    "diff": {
+      "file": "lauxlib.c",
+      "line": 553,
+      "before": "  if (lua_rawgeti(L, t, 1) == LUA_TNUMBER)  /* already initialized? */",
+      "after": "  if (lua_rawgeti(L, t, 1) != LUA_TNIL)  /* already initialized? */"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F6",
+    "explanation": "If t[1] is false (not nil, not number), the modified check treats it as initialized and calls lua_tointeger on a boolean, returning 0 and corrupting the free list."
+  },
+  {
+    "id": "T1_lua_0022",
+    "project": "lua",
+    "diff": {
+      "file": "lauxlib.h",
+      "line": 174,
+      "before": "  ((void)((B)->n < (B)->size || luaL_prepbuffsize((B), 1)), \\\n   ((B)->b[(B)->n++] = (c)))",
+      "after": "  ((void)((B)->n <= (B)->size || luaL_prepbuffsize((B), 1)), \\\n   ((B)->b[(B)->n++] = (c)))"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Flipping < to <= in luaL_addchar's bounds check allows writing one byte past the end of the buffer when n equals size, before luaL_prepbuffsize is called to grow the buffer."
+  },
+  {
+    "id": "T1_lua_0023",
+    "project": "lua",
+    "diff": {
+      "file": "lauxlib.h",
+      "line": 127,
+      "before": "#define luaL_newlibtable(L,l)\t\\\n  lua_createtable(L, 0, sizeof(l)/sizeof((l)[0]) - 1)",
+      "after": "#define luaL_newlibtable(L,l)\t\\\n  lua_createtable(L, 0, sizeof(l)/sizeof((l)[0]))"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Removing the -1 from the table size calculation is a minor off-by-one but not directly a memory safety issue. However it over-allocates."
+  },
+  {
+    "id": "T1_lua_0024",
+    "project": "lua",
+    "diff": {
+      "file": "lbaselib.c",
+      "line": 72,
+      "before": "    if (digit >= base) return NULL;  /* invalid numeral */",
+      "after": "    if (digit > base) return NULL;  /* invalid numeral */"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Flipping >= to > allows digit == base (e.g., digit=35 with base=35) through the validity check, causing n*base+digit to compute an out-of-range value; combined with the cast to lua_Integer this can produce unexpected integer overflow behavior and corrupted state."
+  },
+  {
+    "id": "T1_lua_0025",
+    "project": "lua",
+    "diff": {
+      "file": "lbaselib.c",
+      "line": 331,
+      "before": "    else if (i > n) i = n;",
+      "after": "    else if (i >= n) i = n;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Flipping i > n to i >= n in luaB_select means when i == n (a valid index pointing to last arg), it gets clamped to n, then return n - (int)i returns 0 results instead of 1. While this is logic corruption, combined with the argcheck below it could cause stack underreads in edge cases."
+  },
+  {
+    "id": "T1_lua_0026",
+    "project": "lua",
+    "diff": {
+      "file": "lbaselib.c",
+      "line": 99,
+      "before": "    luaL_argcheck(L, 2 <= base && base <= 36, 2, \"base out of range\");",
+      "after": "    luaL_argcheck(L, 2 <= base && base <= 36, 2, \"base out of range\");\n    (void)base;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1",
+    "explanation": "Placeholder - not a valid site."
+  },
+  {
+    "id": "T1_lua_0027",
+    "project": "lua",
+    "diff": {
+      "file": "lcode.c",
+      "line": 308,
+      "before": "  if (abs(linedif) >= LIMLINEDIFF || fs->iwthabs++ >= MAXIWTHABS) {",
+      "after": "  if (abs(linedif) >= LIMLINEDIFF || fs->iwthabs++ > MAXIWTHABS) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one in iwthabs counter check: using > instead of >= means one extra instruction is written with a relative line diff that may exceed ls_byte range before switching to absolute, causing a byte written outside valid range when linedif overflows cast to ls_byte"
+  },
+  {
+    "id": "T1_lua_0028",
+    "project": "lua",
+    "diff": {
+      "file": "lcode.c",
+      "line": 541,
+      "before": "  if (k <= MAXARG_Bx)",
+      "after": "  if (k < MAXARG_Bx)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one: when k equals MAXARG_Bx exactly, the condition k < MAXARG_Bx is false so it takes the LOADKX path and calls codeextraarg, but the Bx field encoding of MAXARG_Bx is valid; the bug causes the wrong path producing an extra OP_EXTRAARG with k=MAXARG_Bx which can exceed MAXARG_Ax"
+  },
+  {
+    "id": "T1_lua_0029",
+    "project": "lua",
+    "diff": {
+      "file": "lcode.c",
+      "line": 620,
+      "before": "  k = (k >= MAXARG_Bx) ? 0 : k + 1;",
+      "after": "  k = (k > MAXARG_Bx) ? 0 : k + 1;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one in bound check for OP_ERRNNIL instruction: when k == MAXARG_Bx, condition k > MAXARG_Bx is false so k+1 = MAXARG_Bx+1 is passed to luaK_codeABx which asserts Bc <= MAXARG_Bx, causing assertion failure or writing an oversized value into the Bx field of the instruction"
+  },
+  {
+    "id": "T1_lua_0030",
+    "project": "lua",
+    "diff": {
+      "file": "ldebug.c",
+      "line": 67,
+      "before": "    while (i + 1 < f->sizeabslineinfo && pc >= f->abslineinfo[i + 1].pc)",
+      "after": "    while (i + 1 <= f->sizeabslineinfo && pc >= f->abslineinfo[i + 1].pc)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1.g",
+    "explanation": "Off-by-one in abslineinfo bounds check: <= allows i+1 == sizeabslineinfo, reading one past the end of the abslineinfo array."
+  },
+  {
+    "id": "T1_lua_0033",
+    "project": "lua",
+    "diff": {
+      "file": "lapi.c",
+      "line": 330,
+      "before": "  ts = (len == 0) ? luaS_new(L, \"\") : luaS_newlstr(L, s, len);",
+      "after": "  ts = (len == 0) ? luaS_new(L, \"\") : luaS_newlstr(L, s, len + 1);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Passing len+1 to luaS_newlstr causes it to read one byte past the end of the provided string buffer, resulting in a 1-byte heap-buffer-overflow read."
+  },
+  {
+    "id": "T1_lua_0034",
+    "project": "lua",
+    "diff": {
+      "file": "lapi.c",
+      "line": 646,
+      "before": "  if (!(cast_uint(n) - 1u < cast_uint(f->nupvalues)))",
+      "after": "  if (!(cast_uint(n) - 1u < cast_uint(f->nupvalues - 1)))"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Subtracting 1 from nupvalues in the C closure upvalue bounds check means the last valid upvalue is treated as out of bounds, and by arithmetic wrap-around with unsigned subtraction, causes incorrect bounds allowing OOB access."
+  },
+  {
+    "id": "T1_lua_0036",
+    "project": "lua",
+    "diff": {
+      "file": "lauxlib.c",
+      "line": 338,
+      "before": "  size_t newsize = B->size;",
+      "after": "  size_t newsize = B->n;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Starting newsize from B->n instead of B->size can make the growth calculation produce a buffer smaller than needed, causing memcpy to write beyond allocated memory when the new size calculation underestimates."
+  },
+  {
+    "id": "T1_lua_0038",
+    "project": "lua",
+    "diff": {
+      "file": "lauxlib.c",
+      "line": 369,
+      "before": "      memcpy(newbuff, B->b, B->n * sizeof(char));  /* copy original content */",
+      "after": "      memcpy(newbuff, B->b, B->size * sizeof(char));  /* copy original content */"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1",
+    "explanation": "Using B->size instead of B->n copies the entire old buffer size (LUAL_BUFFERSIZE) from the static init buffer into the new allocation, reading beyond valid data. Since B->n <= B->size <= LUAL_BUFFERSIZE, this reads the full static buffer which may exceed what was actually written, causing read OOB and potential copy into under-sized target."
+  },
+  {
+    "id": "T1_lua_0040",
+    "project": "lua",
+    "diff": {
+      "file": "lauxlib.c",
+      "line": 505,
+      "before": "  unsigned n;  /* number of pre-read characters */",
+      "after": "  int n;  /* number of pre-read characters */"
+    },
+    "crash_type": "undefined-behavior",
+    "family": "F7",
+    "explanation": "Changing unsigned n to int n in LoadF struct means the pre-read character count can become negative if manipulated, causing size_t *size to receive a negative value cast to a huge size_t, leading to OOB read in getF."
+  },
+  {
+    "id": "T1_lua_0041",
+    "project": "lua",
+    "diff": {
+      "file": "lauxlib.h",
+      "line": 171,
+      "before": "#define luaL_addchar(B,c) \\\n  ((void)((B)->n < (B)->size || luaL_prepbuffsize((B), 1)), \\\n   ((B)->b[(B)->n++] = (c)))",
+      "after": "#define luaL_addchar(B,c) \\\n  ((void)((B)->n <= (B)->size || luaL_prepbuffsize((B), 1)), \\\n   ((B)->b[(B)->n++] = (c)))"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Flipping < to <= in luaL_addchar allows writing one byte past the end of the buffer when n == size, before luaL_prepbuffsize is called to grow it."
+  },
+  {
+    "id": "T1_lua_0042",
+    "project": "lua",
+    "diff": {
+      "file": "lbaselib.c",
+      "line": 338,
+      "before": "    luaL_argcheck(L, 1 <= i, 1, \"index out of range\");",
+      "after": "    luaL_argcheck(L, 1 < i, 1, \"index out of range\");"
+    },
+    "crash_type": "assertion-failure / incorrect-behavior leading to stack underflow",
+    "family": "F3",
+    "explanation": "Off-by-one: flipping <= to < means index 1 is rejected, and index 0 passes through, causing n - (int)i to return n values instead of n-1, reading beyond valid stack positions."
+  },
+  {
+    "id": "T1_lua_0043",
+    "project": "lua",
+    "diff": {
+      "file": "lbaselib.c",
+      "line": 333,
+      "before": "    if (i < 0) i = n + i;\n    else if (i > n) i = n;",
+      "after": "    if (i < 0) i = n + i;\n    else if (i >= n) i = n;"
+    },
+    "crash_type": "stack-buffer-overflow",
+    "family": "F3",
+    "explanation": "Flipping > to >= causes i==n (valid last arg) to be clamped to n, then n-(int)i=0 returns 0 values instead of 1, misreporting results. More critically when combined with boundary values."
+  },
+  {
+    "id": "T1_lua_0044",
+    "project": "lua",
+    "diff": {
+      "file": "lbaselib.c",
+      "line": 291,
+      "before": "  if (s != NULL && lua_stringtonumber(L, s) == l + 1)",
+      "after": "  if (s != NULL && lua_stringtonumber(L, s) >= l + 1)"
+    },
+    "crash_type": "incorrect-conversion / type confusion",
+    "family": "F3",
+    "explanation": "Flipping == to >= allows partial conversions to be accepted as successful, pushing a number when the full string was not consumed, which can lead to wrong values being trusted downstream."
+  },
+  {
+    "id": "T1_lua_0045",
+    "project": "lua",
+    "diff": {
+      "file": "lcode.c",
+      "line": 403,
+      "before": "  if (newstack > fs->f->maxstacksize) {",
+      "after": "  if (newstack >= fs->f->maxstacksize) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one: changing > to >= causes maxstacksize to be set one too small, leading to register allocation one past the allocated stack array."
+  },
+  {
+    "id": "T1_lua_0046",
+    "project": "lua",
+    "diff": {
+      "file": "lcode.c",
+      "line": 421,
+      "before": "  if (reg >= luaY_nvarstack(fs)) {",
+      "after": "  if (reg > luaY_nvarstack(fs)) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one in freereg: changing >= to > means a temporary register at exactly nvarstack is not freed, causing freereg counter underflow and eventual OOB write."
+  },
+  {
+    "id": "T1_lua_0047",
+    "project": "lua",
+    "diff": {
+      "file": "lcode.c",
+      "line": 494,
+      "before": "  while (oldsize < f->sizek)",
+      "after": "  while (oldsize <= f->sizek)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1.g",
+    "explanation": "Off-by-one in addk nil initialization: <= instead of < writes one nil value past the end of the allocated constants array."
+  },
+  {
+    "id": "T1_lua_0048",
+    "project": "lua",
+    "diff": {
+      "file": "lcode.c",
+      "line": 563,
+      "before": "    if (r == 0) {  /* handle zero as a special case */",
+      "after": "    if (r == 0 || r != r) {  /* handle zero as a special case */"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F6",
+    "explanation": "NaN floats routed through zero path use FuncState pointer as cache key, bypassing the NaN-detection guard later, potentially aliasing a wrong constant slot."
+  },
+  {
+    "id": "T1_lua_0049",
+    "project": "lua",
+    "diff": {
+      "file": "lcode.c",
+      "line": 163,
+      "before": "  if (!(-OFFSET_sJ <= offset && offset <= MAXARG_sJ - OFFSET_sJ))",
+      "after": "  if (!(-OFFSET_sJ <= offset && offset < MAXARG_sJ - OFFSET_sJ))"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one in fixjump bounds check: changing <= to < allows an offset one value too large to be encoded, corrupting the instruction encoding for maximum-range jumps."
+  },
+  {
+    "id": "T1_lua_0050",
+    "project": "lua",
+    "diff": {
+      "file": "ldebug.c",
+      "line": 88,
+      "before": "    while (basepc++ < pc) {  /* walk until given instruction */\n      lua_assert(f->lineinfo[basepc] != ABSLINEINFO);\n      baseline += f->lineinfo[basepc];  /* correct line */",
+      "after": "    while (basepc++ <= pc) {  /* walk until given instruction */\n      lua_assert(f->lineinfo[basepc] != ABSLINEINFO);\n      baseline += f->lineinfo[basepc];  /* correct line */"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1.g",
+    "explanation": "Flipping < to <= in the basepc walk loop causes one extra iteration, reading lineinfo[pc+1] which is one past the valid range when pc is the last instruction index."
+  },
+  {
+    "id": "T1_lua_0051",
+    "project": "lua",
+    "diff": {
+      "file": "lapi.c",
+      "line": 214,
+      "before": "  api_check(L, (n >= 0 ? n : -n) <= (t - p + 1), \"invalid 'n'\");",
+      "after": "  api_check(L, (n >= 0 ? n : -n) < (t - p + 1), \"invalid 'n'\");"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one: changing <= to < in rotate's n bounds check allows n == (t - p + 1), causing reverse() to access one element past the segment end."
+  },
+  {
+    "id": "T1_lua_0052",
+    "project": "lua",
+    "diff": {
+      "file": "lapi.c",
+      "line": 160,
+      "before": "    api_check(L, idx <= ci->top.p - (func + 1), \"new top too large\");",
+      "after": "    api_check(L, idx < ci->top.p - (func + 1), \"new top too large\");"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one in lua_settop: changing <= to < means setting top to exactly ci->top-func-1 is rejected, but more critically allows one slot past valid range when combined with other API calls."
+  },
+  {
+    "id": "T1_lua_0053",
+    "project": "lua",
+    "diff": {
+      "file": "lapi.c",
+      "line": 541,
+      "before": "  if (!(cast_uint(n) - 1u  < cast_uint(p->sizeupvalues)))",
+      "after": "  if (!(cast_uint(n) - 1u  <= cast_uint(p->sizeupvalues)))"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one in aux_upvalue for Lua closures: changing < to <= allows n == sizeupvalues+1, causing out-of-bounds access into f->upvals array."
+  },
+  {
+    "id": "T1_lua_0054",
+    "project": "lua",
+    "diff": {
+      "file": "lapi.c",
+      "line": 619,
+      "before": "  if (1 <= n && n <= f->p->sizeupvalues)",
+      "after": "  if (1 <= n && n < f->p->sizeupvalues)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one in getupvalref: changing <= to < means the last valid upvalue index returns the nullup pointer instead of the real upvalue, and lua_upvaluejoin with that index will dereference a null pointer."
+  },
+  {
+    "id": "T1_lua_0057",
+    "project": "lua",
+    "diff": {
+      "file": "lauxlib.c",
+      "line": 545,
+      "before": "  size_t l = strlen(p);",
+      "after": "  int l = (int)strlen(p);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F7",
+    "explanation": "Narrowing size_t to int truncates pattern length on 64-bit systems when strlen(p) > INT_MAX, causing l to become negative; s = wild + l then moves pointer backwards creating wild pointer dereference."
+  },
+  {
+    "id": "T1_lua_0058",
+    "project": "lua",
+    "diff": {
+      "file": "lauxlib.c",
+      "line": 302,
+      "before": "  if (box->bsize == newsize)  /* not changing size? */\n    return box->box;  /* keep the buffer */",
+      "after": "  if (box->bsize == newsize && box->box != NULL)  /* not changing size? */\n    return box->box;  /* keep the buffer */"
+    },
+    "crash_type": "use-after-free",
+    "family": "F4",
+    "explanation": "Adding NULL guard to the early-return changes semantics: after pushresult clears box->box=NULL and box->bsize=0, a subsequent GC __gc call with newsize=0 now skips the early-return (bsize==0==newsize but box==NULL), falls into allocf(NULL,0,0) which is a no-op, then sets box->box=NULL again - but the real issue surfaces when bsize is non-zero and box was freed externally."
+  },
+  {
+    "id": "T1_lua_0059",
+    "project": "lua",
+    "diff": {
+      "file": "lauxlib.h",
+      "line": 175,
+      "before": "  ((void)((B)->n < (B)->size || luaL_prepbuffsize((B), 1)), \\",
+      "after": "  ((void)((B)->n <= (B)->size || luaL_prepbuffsize((B), 1)), \\"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1.g",
+    "explanation": "Flipping < to <= in luaL_addchar bounds check allows writing one byte past the allocated buffer end when n == size, causing heap-buffer-overflow"
+  },
+  {
+    "id": "T1_lua_0064",
+    "project": "lua",
+    "diff": {
+      "file": "lapi.c",
+      "line": 394,
+      "before": "  ts = (len == 0) ? luaS_new(L, \"\") : luaS_newlstr(L, s, len);",
+      "after": "  ts = luaS_newlstr(L, s, len);"
+    },
+    "crash_type": "null-dereference",
+    "family": "F2",
+    "explanation": "Removing the len==0 guard causes luaS_newlstr to be called with a NULL 's' pointer and len=0, leading to memcmp/memcpy on NULL inside string internment."
+  },
+  {
+    "id": "T1_lua_0073",
+    "project": "lua",
+    "diff": {
+      "file": "lbaselib.c",
+      "line": 269,
+      "before": "    luaL_argcheck(L, 1 <= i, 1, \"index out of range\");",
+      "after": "    luaL_argcheck(L, 0 <= i, 1, \"index out of range\");"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one: allowing i=0 causes select to return n-0=n values starting from index 1, but the function itself returns index 0 which is the 'select' argument itself, leading to stack corruption when the VM tries to use the return count."
+  },
+  {
+    "id": "T1_lua_0074",
+    "project": "lua",
+    "diff": {
+      "file": "lbaselib.c",
+      "line": 104,
+      "before": "    luaL_argcheck(L, 2 <= base && base <= 36, 2, \"base out of range\");",
+      "after": "    luaL_argcheck(L, 2 <= base && base <= 37, 2, \"base out of range\");"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1",
+    "explanation": "Allows base=37, so digit 'z'=35 is valid (35 < 37). The b_str2int function computes toupper('z')-'A'+10=35 which passes the digit>=base check. With base 37 the accumulated value overflows lua_Unsigned and the resulting lua_Integer pushed onto the stack may be garbage, corrupting interpreter state."
+  },
+  {
+    "id": "T1_lua_0075",
+    "project": "lua",
+    "diff": {
+      "file": "lbaselib.c",
+      "line": 265,
+      "before": "    if (i < 0) i = n + i;",
+      "after": "    if (i < 0) i = n + i + 1;"
+    },
+    "crash_type": "stack-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one in negative index calculation: select(-1) should return the last element (i becomes n-1+1=n), but with +1 it becomes n+1 which is out of bounds for a stack with n elements, causing the VM to read past the top of the Lua stack."
+  },
+  {
+    "id": "T1_lua_0088",
+    "project": "lua",
+    "diff": {
+      "file": "ldo.h",
+      "line": 38,
+      "before": "\tif (l_unlikely(L->stack_last.p - L->top.p <= (n))) \\",
+      "after": "\tif (l_unlikely(L->stack_last.p - L->top.p < (n))) \\"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Flipping <= to < in the stack space check means the stack is not grown when exactly n slots remain available. When code then writes to the n-th slot (0-indexed), it writes one slot past the allocated stack, causing a heap-buffer-overflow."
+  },
+  {
+    "id": "T1_lua_0090",
+    "project": "lua",
+    "diff": {
+      "file": "ldump.c",
+      "line": 160,
+      "before": "      dumpVector(D, s, size + 1);  /* include ending '\\0' */",
+      "after": "      dumpVector(D, s, size);  /* include ending '\\0' */"
+    },
+    "crash_type": "heap-buffer-underflow",
+    "family": "F3",
+    "explanation": "Removing +1 from the vector dump mismatches the size written by dumpSize (size+1) causing desync, but more critically combined with the size field mismatch can confuse undump into reading past buffer boundaries"
+  },
+  {
+    "id": "T1_lua_0091",
+    "project": "lua",
+    "diff": {
+      "file": "ldump.c",
+      "line": 93,
+      "before": "  buff[DIBS - 1] = x & 0x7f;  /* fill least-significant byte */",
+      "after": "  buff[DIBS] = x & 0x7f;  /* fill least-significant byte */"
+    },
+    "crash_type": "stack-buffer-overflow",
+    "family": "F1",
+    "explanation": "Writing to buff[DIBS] is one past the end of the buff[DIBS] array (valid indices 0..DIBS-1), causing a 1-byte stack buffer overflow"
+  },
+  {
+    "id": "T1_lua_0104",
+    "project": "lua",
+    "diff": {
+      "file": "liolib.c",
+      "line": 406,
+      "before": "  while (i < LUAL_BUFFERSIZE && (c = l_getc(f)) != EOF && c != '\\n')",
+      "after": "  while (i <= LUAL_BUFFERSIZE && (c = l_getc(f)) != EOF && c != '\\n')"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1.g",
+    "explanation": "Flipping < to <= in the loop condition allows i to reach LUAL_BUFFERSIZE (8192 by default), writing one byte past the end of the preallocated buffer obtained from luaL_prepbuffer."
+  },
+  {
+    "id": "T1_lua_0105",
+    "project": "lua",
+    "diff": {
+      "file": "liolib.c",
+      "line": 279,
+      "before": "  int n = lua_gettop(L) - 1;  /* number of arguments to read */",
+      "after": "  int n = lua_gettop(L);  /* number of arguments to read */"
+    },
+    "crash_type": "stack-corruption",
+    "family": "F3",
+    "explanation": "Removing the -1 offset makes n count one extra argument, causing aux_lines to create a closure with the wrong upvalue count, leading to out-of-bounds upvalue access in io_readline."
+  },
+  {
+    "id": "T1_lua_0107",
+    "project": "lua",
+    "diff": {
+      "file": "llex.c",
+      "line": 313,
+      "before": "  int i = 4;  /* number of chars to be removed: start with #\"\\u{X\" */",
+      "after": "  int i = 3;  /* number of chars to be removed: start with #\"\\u{X\" */"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Starting i at 3 instead of 4 means luaZ_buffremove removes one fewer character than was saved, causing the buffer length accounting to be off by one, leading to OOB read when the string content is later accessed with incorrect offset."
+  },
+  {
+    "id": "T1_lua_0135",
+    "project": "lua",
+    "diff": {
+      "file": "lapi.c",
+      "line": 627,
+      "before": "  if (n <= 0)\n        newdebt = 0;  /* force to run one basic step */",
+      "after": "  if (n < 0)\n        newdebt = 0;  /* force to run one basic step */"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one in GC step debt calculation: when n==0, we no longer force a basic step, instead falling through to the debt subtraction with n=0, which can cause unexpected GC state behavior and memory corruption."
+  },
+  {
+    "id": "T1_lua_0136",
+    "project": "lua",
+    "diff": {
+      "file": "lapi.c",
+      "line": 340,
+      "before": "  if (diff < 0 && L->tbclist.p >= newtop) {",
+      "after": "  if (diff < 0 && L->tbclist.p > newtop) {"
+    },
+    "crash_type": "heap-use-after-free",
+    "family": "F3",
+    "explanation": "Off-by-one in to-be-closed slot check: changing >= to > means that when tbclist.p == newtop exactly, we skip closing the upvalue that needs to be closed, leading to use-after-free when the unclosed slot is later accessed."
+  },
+  {
+    "id": "T1_lua_0138",
+    "project": "lua",
+    "diff": {
+      "file": "lauxlib.c",
+      "line": 337,
+      "before": "  if (newsize < B->n + sz + 1)  /* not big enough? */\n    newsize = B->n + sz + 1;",
+      "after": "  if (newsize < B->n + sz)  /* not big enough? */\n    newsize = B->n + sz;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Removing +1 from both the check and the assignment means the buffer is allocated without space for the NUL terminator. When luaL_pushresult writes s[len]='\\0', it writes one byte past the end of the allocation."
+  },
+  {
+    "id": "T1_lua_0140",
+    "project": "lua",
+    "diff": {
+      "file": "lauxlib.c",
+      "line": 83,
+      "before": "    if (strncmp(name, LUA_GNAME \".\", 3) == 0) {  /* name start with '_G.'? */",
+      "after": "    if (strncmp(name, LUA_GNAME \".\", 2) == 0) {  /* name start with '_G.'? */"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Checking only 2 chars instead of 3 for the '_G.' prefix means names like '_Gx' (without the dot) will match, and then name+3 is pushed, skipping 3 bytes from a string that only matched 2 chars of the prefix, potentially reading into adjacent memory or producing wrong pointer arithmetic."
+  },
+  {
+    "id": "T1_lua_0141",
+    "project": "lua",
+    "diff": {
+      "file": "lauxlib.c",
+      "line": 457,
+      "before": "  memcpy(newbuff, B->b, B->n * sizeof(char));  /* copy original content */",
+      "after": "  memcpy(newbuff, B->b, (B->n + 1) * sizeof(char));  /* copy original content */"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Adding +1 to the memcpy length when copying from the static init buffer means it reads one byte past the end of B->init.b (which is sized exactly LUAL_BUFFERSIZE), causing a 1-byte read buffer overflow from the stack-allocated initial buffer."
+  },
+  {
+    "id": "T1_lua_0143",
+    "project": "lua",
+    "diff": {
+      "file": "lbaselib.c",
+      "line": 68,
+      "before": "  if (!isalnum(cast_uchar(*s)))  /* no digit? */",
+      "after": "  if (!isalnum(cast_uchar(*s)) && *s != '\\0')  /* no digit? */"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F2",
+    "explanation": "Removing the null-terminator guard allows the parser to proceed on empty string after sign, reading past the string boundary"
+  },
+  {
+    "id": "T1_lua_0146",
+    "project": "lua",
+    "diff": {
+      "file": "lcode.c",
+      "line": 468,
+      "before": "  int k = fs->nk;",
+      "after": "  int k = fs->nk;\n  (void)oldsize;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F5",
+    "explanation": "Not a strong candidate; skipping."
+  },
+  {
+    "id": "T1_lua_0148",
+    "project": "lua",
+    "diff": {
+      "file": "lcode.h",
+      "line": 46,
+      "before": "#define foldbinop(op)\t((op) <= OPR_SHR)",
+      "after": "#define foldbinop(op)\t((op) <= OPR_CONCAT)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Expanding foldbinop to include OPR_CONCAT causes the constant-folding path in luaK_posfix to treat string concatenation as an arithmetic/bitwise operation, leading to type confusion when the code generator attempts to fold string constants as integers, corrupting TValue union access."
+  },
+  {
+    "id": "T1_lua_0149",
+    "project": "lua",
+    "diff": {
+      "file": "ldebug.c",
+      "line": 275,
+      "before": "      for (; i < p->sizelineinfo; i++) {  /* for each instruction */",
+      "after": "      for (; i <= p->sizelineinfo; i++) {  /* for each instruction */"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1.g",
+    "explanation": "Off-by-one in sizelineinfo loop bound: iterates one past the end of p->lineinfo array, reading one byte beyond allocation."
+  },
+  {
+    "id": "T1_lua_0150",
+    "project": "lua",
+    "diff": {
+      "file": "ldebug.c",
+      "line": 576,
+      "before": "      int lineinfo = p->lineinfo[++pc];",
+      "after": "      int lineinfo = p->lineinfo[pc++];"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Changing ++pc to pc++ means the index used for lineinfo access starts at oldpc rather than oldpc+1, and the termination condition pc==newpc is never reached at the right time, potentially reading out-of-bounds."
+  },
+  {
+    "id": "T1_lua_0151",
+    "project": "lua",
+    "diff": {
+      "file": "ldebug.c",
+      "line": 174,
+      "before": "    if (limit - base >= n && n > 0) {  /* is 'n' inside 'ci' stack? */",
+      "after": "    if (limit - base > n && n > 0) {  /* is 'n' inside 'ci' stack? */"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one: changing >= to > means the last valid slot (limit-base == n) is rejected, but more importantly an adversary can trigger boundary reads one slot past valid area via a different code path that previously was guarded."
+  },
+  {
+    "id": "T1_lua_0152",
+    "project": "lua",
+    "diff": {
+      "file": "lvm.c",
+      "line": 677,
+      "before": "} while (--n > 0);",
+      "after": "} while (--n >= 0);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "copy2buff off-by-one: --n > 0 changed to --n >= 0, extra iteration reads past valid stack slots during string concat"
+  },
+  {
+    "id": "T1_lua_0153",
+    "project": "lua",
+    "diff": {
+      "file": "ltable.c",
+      "line": 364,
+      "before": "for (; i < asize; i++) {  /* try first array part */",
+      "after": "for (; i <= asize; i++) {  /* try first array part */"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "luaH_next off-by-one: i < asize changed to i <= asize, OOB read past array part during pairs()"
+  },
+  {
+    "id": "T1_lua_0154",
+    "project": "lua",
+    "diff": {
+      "file": "lgc.c",
+      "line": 874,
+      "before": "luaS_remove(L, ts);  /* remove it from hash table */",
+      "after": "/* luaS_remove(L, ts); */  /* BUG: skip hash removal */"
+    },
+    "crash_type": "heap-use-after-free",
+    "family": "F5",
+    "explanation": "freeobj skips luaS_remove for short strings: freed string remains in hash table, UAF on next intern lookup"
+  },
+  {
+    "id": "T1_lua_0155",
+    "project": "lua",
+    "diff": {
+      "file": "lstring.c",
+      "line": 179,
+      "before": "TString *luaS_createlngstrobj (lua_State *L, size_t l) {\n  size_t totalsize = luaS_sizelngstr(l, LSTRREG);",
+      "after": "TString *luaS_createlngstrobj (lua_State *L, size_t l) {\n  size_t totalsize = luaS_sizelngstr(l > 0 ? l - 1 : 0, LSTRREG);  /* BUG: underalloc */"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "luaS_createlngstrobj underallocates by 1 byte: memcpy writes past allocation when creating long strings"
+  },
+  {
+    "id": "T1_lua_0156",
+    "project": "lua",
+    "diff": {
+      "file": "lstring.c",
+      "line": 237,
+      "before": "memcpy(getshrstr(ts), str, l * sizeof(char));",
+      "after": "memcpy(getshrstr(ts), str, (l + 1) * sizeof(char));"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "internshrstr off-by-one: memcpy copies l+1 bytes instead of l, writes one byte past short string allocation"
+  },
+  {
+    "id": "T1_lua_0157",
+    "project": "lua",
+    "diff": {
+      "file": "lundump.c",
+      "line": 277,
+      "before": "for (i = 0; i < n; i++) {  /* following calls can raise errors */",
+      "after": "for (i = 0; i <= n; i++) {  /* following calls can raise errors */"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "loadUpvalues off-by-one: loop bound i < n changed to i <= n, writes past upvalues array during bytecode load"
+  },
+  {
+    "id": "T1_lua_0158",
+    "project": "lua",
+    "diff": {
+      "file": "lcode.c",
+      "line": 488,
+      "before": "void luaK_reserveregs (FuncState *fs, int n) {\n  luaK_checkstack(fs, n);",
+      "after": "void luaK_reserveregs (FuncState *fs, int n) {\n  /* BUG: skip stack check */"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1",
+    "explanation": "luaK_reserveregs skips stack overflow check: compiler allocates registers beyond maxstacksize, OOB write at runtime"
+  },
+  {
+    "id": "T1_lua_0159",
+    "project": "lua",
+    "diff": {
+      "file": "lvm.c",
+      "line": 49,
+      "before": "#define MAXTAGLOOP\t2000",
+      "after": "#define MAXTAGLOOP\t2000000000"
+    },
+    "crash_type": "stack-overflow",
+    "family": "F2",
+    "explanation": "MAXTAGLOOP set to 2 billion: infinite __index chain exhausts stack instead of controlled error"
+  },
+  {
+    "id": "T1_lua_0160",
+    "project": "lua",
+    "diff": {
+      "file": "lobject.c",
+      "line": 517,
+      "before": "memcpy(buff->b + buff->blen, str, slen);  /* copy new content */\n  buff->blen += slen;",
+      "after": "memcpy(buff->b + buff->blen, str, slen + 64);  /* BUG: copy 64 extra bytes */\n  buff->blen += slen;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "addstr2buff copies 64 extra bytes past string end: heap-buffer-overflow on read when formatting messages"
+  },
+  {
+    "id": "T1_lua_0161",
+    "project": "lua",
+    "diff": {
+      "file": "llex.c",
+      "line": 466,
+      "before": "luaZ_buffremove(ls->buff, i);  /* remove read digits from buffer */",
+      "after": "luaZ_buffremove(ls->buff, i + 2);  /* BUG: remove 2 extra bytes from buffer */"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "readdecesc removes 2 extra bytes from buffer: buffer underflow corrupts lexer buffer state"
+  },
+  {
+    "id": "T1_lua_0162",
+    "project": "lua",
+    "diff": {
+      "file": "lgc.c",
+      "line": 354,
+      "before": "markvalue(g, uv->v.p);  /* mark its content */",
+      "after": "/* markvalue(g, uv->v.p); */  /* BUG: skip marking upvalue content */"
+    },
+    "crash_type": "heap-use-after-free",
+    "family": "F5",
+    "explanation": "reallymarkobject skips marking closed upvalue content: referenced value collected, UAF when closure accesses it"
+  },
+  {
+    "id": "T1_lua_0163",
+    "project": "lua",
+    "diff": {
+      "file": "ltable.c",
+      "line": 960,
+      "before": "if (k > 0) {",
+      "after": "if (k >= 0) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "luaH_getint off-by-one: k > 0 changed to k >= 0, allows index 0 to read before array"
+  },
+  {
+    "id": "T1_lua_0164",
+    "project": "lua",
+    "diff": {
+      "file": "lvm.c",
+      "line": 709,
+      "before": "tl += l;\n      }",
+      "after": "tl += (l > 0 ? l - 1 : 0);\n      }"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "luaV_concat undercounts total length by 1 per string: buffer allocated too small, copy2buff writes past end"
+  },
+  {
+    "id": "T1_lua_0165",
+    "project": "lua",
+    "diff": {
+      "file": "lstring.c",
+      "line": 185,
+      "before": "ts->contents[l] = '\\0';  /* ending 0 */",
+      "after": "ts->contents[l + 1] = '\\0';  /* BUG: off by one */"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "luaS_createlngstrobj null terminator at l+1 instead of l: one byte OOB write"
+  },
+  {
+    "id": "T1_lua_0166",
+    "project": "lua",
+    "diff": {
+      "file": "ldo.c",
+      "line": 742,
+      "before": "checkstackp(L, fsize, func);",
+      "after": "/* checkstackp(L, fsize, func); */  /* BUG: skip stack check */"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1",
+    "explanation": "luaD_precall skips stack size check before Lua call: function can write past allocated stack with its locals"
+  },
+  {
+    "id": "T1_lua_0167",
+    "project": "lua",
+    "diff": {
+      "file": "lgc.c",
+      "line": 609,
+      "before": "markobjectN(g, h->metatable);",
+      "after": "/* markobjectN(g, h->metatable); */  /* BUG: skip mark */"
+    },
+    "crash_type": "heap-use-after-free",
+    "family": "F5",
+    "explanation": "traversetable skips metatable marking: metatable collected while referenced, UAF on metamethod"
+  },
+  {
+    "id": "T1_lua_0168",
+    "project": "lua",
+    "diff": {
+      "file": "llex.c",
+      "line": 73,
+      "before": "if (luaZ_bufflen(b) + 1 > luaZ_sizebuffer(b)) {",
+      "after": "if (0) {  /* BUG: never resize buffer */"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1",
+    "explanation": "lexer save() disables buffer overflow check: long tokens write past Mbuffer allocation"
+  },
+  {
+    "id": "T1_lua_0169",
+    "project": "lua",
+    "diff": {
+      "file": "lvm.c",
+      "line": 1840,
+      "before": "chgivalue(s2v(ra), l_castU2S(count - 1));  /* update counter */",
+      "after": "chgivalue(s2v(ra), l_castU2S(count + 1));  /* BUG: wrong direction */"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F4",
+    "explanation": "OP_FORLOOP counter increments instead of decrements: loop never terminates, unbounded writes"
+  },
+  {
+    "id": "T1_lua_0170",
+    "project": "lua",
+    "diff": {
+      "file": "ltable.c",
+      "line": 825,
+      "before": "void luaH_free (lua_State *L, Table *t) {\n  freehash(L, t);\n  resizearray(L, t, t->asize, 0);",
+      "after": "void luaH_free (lua_State *L, Table *t) {\n  freehash(L, t);\n  /* BUG: skip freeing array part */"
+    },
+    "crash_type": "heap-use-after-free",
+    "family": "F5",
+    "explanation": "luaH_free skips freeing array part: array memory leaked, but GC accounting is wrong causing double-free or UAF later"
+  },
+  {
+    "id": "T1_lua_0171",
+    "project": "lua",
+    "diff": {
+      "file": "lfunc.c",
+      "line": 203,
+      "before": "setobj(L, slot, uv->v.p);  /* move value to upvalue slot */",
+      "after": "/* setobj(L, slot, uv->v.p); */  /* BUG: skip copy */"
+    },
+    "crash_type": "heap-use-after-free",
+    "family": "F5",
+    "explanation": "luaF_closeupval skips value copy: upvalue still points at reclaimed stack slot, UAF on access"
+  },
+  {
+    "id": "T1_lua_0172",
+    "project": "lua",
+    "diff": {
+      "file": "lvm.c",
+      "line": 717,
+      "before": "ts = luaS_createlngstrobj(L, tl);",
+      "after": "ts = luaS_createlngstrobj(L, tl / 2);  /* BUG: under-alloc */"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1",
+    "explanation": "luaV_concat under-allocates the destination long string by half, so copy2buff writes past the buffer end"
+  },
+  {
+    "id": "T1_lua_0173",
+    "project": "lua",
+    "diff": {
+      "file": "lstring.c",
+      "line": 152,
+      "before": "return offsetof(TString, falloc) + (len + 1) * sizeof(char);",
+      "after": "return offsetof(TString, falloc) + (len / 2 + 1) * sizeof(char);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1",
+    "explanation": "luaS_sizelngstr under-allocates long string by half, writes past buffer during string creation"
+  },
+  {
+    "id": "T1_lua_0174",
+    "project": "lua",
+    "diff": {
+      "file": "lstring.c",
+      "line": 869,
+      "before": "  size_t totalsize = luaS_sizelngstr(l, LSTRREG);",
+      "after": "  size_t totalsize = luaS_sizelngstr(l > 0 ? l - 1 : 0, LSTRREG);"
+    },
+    "crash_type": "heap-use-after-free",
+    "family": "F1",
+    "explanation": "freeobj skips luaS_remove for short strings leaving dangling hash table entry causing UAF on next lookup"
+  },
+  {
+    "id": "T1_lua_0175",
+    "project": "lua",
+    "diff": {
+      "file": "ltable.c",
+      "line": 615,
+      "before": "      unsigned tomove = (oldasize < newasize) ? oldasize : newasize;",
+      "after": "      unsigned tomove = newasize;"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1",
+    "explanation": "createhash allocates half the required hash nodes, node insertion overflows the array"
+  },
+  {
+    "id": "T1_lua_0176",
+    "project": "lua",
+    "diff": {
+      "file": "lvm.c",
+      "line": 349,
+      "before": "    if (y >= NBITS) return 0;",
+      "after": "    if (y > NBITS) return 0;"
+    },
+    "crash_type": "heap-use-after-free",
+    "family": "F5",
+    "explanation": "Skip correctstack after stack realloc leaves stale pointers into freed old stack"
+  },
+  {
+    "id": "T1_lua_0179",
+    "project": "lua",
+    "diff": {
+      "file": "lgc.c",
+      "line": 549,
+      "before": "for (i = 0; i < nsize; i++) {",
+      "after": "for (i = 0; i <= nsize; i++) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one in GC ephemeron hash traversal reads past node array."
+  },
+  {
+    "id": "T1_lua_0181",
+    "project": "lua",
+    "diff": {
+      "file": "lstate.c",
+      "line": 168,
+      "before": "for (i = 0; i <= BASIC_STACK_SIZE + EXTRA_STACK; i++)",
+      "after": "for (i = 0; i < BASIC_STACK_SIZE + EXTRA_STACK; i++)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one in stack init writes past allocated stack."
+  },
+  {
+    "id": "T1_lua_0182",
+    "project": "lua",
+    "diff": {
+      "file": "lgc.c",
+      "line": 518,
+      "before": "for (i = 0; i < asize; i++) {",
+      "after": "for (i = 0; i <= asize; i++) {"
+    },
+    "crash_type": "heap-buffer-overflow-read",
+    "family": "F1.g",
+    "explanation": "Flipping < to <= in traversearray loop causes GC to read one element past the table array bounds."
+  },
+  {
+    "id": "T1_lua_0183",
+    "project": "lua",
+    "diff": {
+      "file": "lparser.c",
+      "line": 773,
+      "before": "fs->np >= f->sizep",
+      "after": "fs->np > f->sizep"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one in nested proto growth"
+  },
+  {
+    "id": "T1_lua_0184",
+    "project": "lua",
+    "diff": {
+      "file": "lgc.c",
+      "line": 649,
+      "before": "i < f->sizek",
+      "after": "i <= f->sizek"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1.g",
+    "explanation": "Off-by-one in traverseproto: loop reads one past f->k array during GC"
+  },
+  {
+    "id": "T1_lua_0185",
+    "project": "lua",
+    "diff": {
+      "file": "lgc.c",
+      "line": 651,
+      "before": "i < f->sizeupvalues",
+      "after": "i <= f->sizeupvalues"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1.g",
+    "explanation": "Off-by-one in traverseproto upvalue names: loop reads one past f->upvalues array during GC"
+  },
+  {
+    "id": "T1_lua_0186",
+    "project": "lua",
+    "diff": {
+      "file": "lgc.c",
+      "line": 653,
+      "before": "i < f->sizep",
+      "after": "i <= f->sizep"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1.g",
+    "explanation": "Off-by-one in traverseproto: loop reads one past f->p array during GC marking"
+  },
+  {
+    "id": "T1_lua_0187",
+    "project": "lua",
+    "diff": {
+      "file": "lgc.c",
+      "line": 655,
+      "before": "i < f->sizelocvars",
+      "after": "i <= f->sizelocvars"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1.g",
+    "explanation": "Off-by-one in traverseproto locvars: loop reads one past f->locvars array during GC"
+  },
+  {
+    "id": "T1_lua_0188",
+    "project": "lua",
+    "diff": {
+      "file": "lgc.c",
+      "line": 663,
+      "before": "i < cl->nupvalues",
+      "after": "i <= cl->nupvalues"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1.g",
+    "explanation": "Off-by-one in traverseCclosure: loop reads one past cl->upvalue array during GC"
+  },
+  {
+    "id": "T1_lua_0190",
+    "project": "lua",
+    "diff": {
+      "file": "ltable.c",
+      "line": 372,
+      "before": "i < sizenode(t)",
+      "after": "i <= sizenode(t)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1.g",
+    "explanation": "Off-by-one in luaH_next hash iteration: reads one node past hash array"
+  },
+  {
+    "id": "T1_lua_0191",
+    "project": "lua",
+    "diff": {
+      "file": "lvm.c",
+      "line": 842,
+      "before": "i < nup",
+      "after": "i <= nup"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1.g",
+    "explanation": "Off-by-one in pushclosure: reads one past upvalue descriptors array when filling closure upvalues"
+  },
+  {
+    "id": "T1_lua_0192",
+    "project": "lua",
+    "diff": {
+      "file": "lgc.c",
+      "line": 814,
+      "before": "i < asize",
+      "after": "i <= asize"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1.g",
+    "explanation": "Off-by-one in clearbyvalues: reads one past table array part during atomic GC sweep of weak table"
+  },
+  {
+    "id": "T1_lua_0194",
+    "project": "lua",
+    "diff": {
+      "file": "ltable.c",
+      "line": 694,
+      "before": "for (; oldasize < newasize; oldasize++)",
+      "after": "for (; oldasize <= newasize; oldasize++)"
+    },
+    "crash_type": "heap-buffer-overflow-write",
+    "family": "F1.g",
+    "explanation": "Flipping < to <= in clearNewSlice writes one element past the table array allocation during resize."
+  },
+  {
+    "id": "T1_lua_0195",
+    "project": "lua",
+    "diff": {
+      "file": "lvm.c",
+      "line": 842,
+      "before": "for (i = 0; i < nup; i++) {",
+      "after": "for (i = 0; i <= nup; i++) {"
+    },
+    "crash_type": "heap-buffer-overflow-read",
+    "family": "F1.g",
+    "explanation": "Flipping < to <= in pushclosure upvalue loop reads one past the upvalues descriptor array."
+  },
+  {
+    "id": "T1_lua_0196",
+    "project": "lua",
+    "diff": {
+      "file": "ltable.c",
+      "line": 640,
+      "before": "for (j = 0; j < size; j++) {",
+      "after": "for (j = 0; j <= size; j++) {"
+    },
+    "crash_type": "global-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one in table rehash reads past hash node array."
+  },
+  {
+    "id": "T1_lua_0197",
+    "project": "lua",
+    "diff": {
+      "file": "lparser.c",
+      "line": 332,
+      "before": "for (i = 0; i < nvars; i++) {",
+      "after": "for (i = 0; i <= nvars; i++) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one in local variable adjustment reads past descriptor array."
+  },
+  {
+    "id": "T1_lua_0198",
+    "project": "lua",
+    "diff": {
+      "file": "lstring.c",
+      "line": 297,
+      "before": "for (i = 0; i < nuvalue; i++)",
+      "after": "for (i = 0; i <= nuvalue; i++)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one in userdata init writes past uvalue array."
+  },
+  {
+    "id": "T1_lua_0566",
+    "project": "lua",
+    "diff": {
+      "file": "lstring.c",
+      "line": 0,
+      "before": "return offsetof(TString, falloc) + (len + 1) * sizeof(char);",
+      "after": "return offsetof(TString, falloc) + (len) * sizeof(char);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F1",
+    "explanation": "Off-by-one under-allocation: removing +1 for NUL terminator in luaS_sizelngstr causes luaS_createlngstrobj to write ts->contents[l]=0 one byte past the allocated buffer for long strings."
+  },
+  {
+    "id": "T1_lua_0567",
+    "project": "lua",
+    "diff": {
+      "file": "ldo.c",
+      "line": 351,
+      "before": "for (i = oldsize + EXTRA_STACK; i < newsize + EXTRA_STACK; i++)",
+      "after": "for (i = oldsize + EXTRA_STACK; i <= newsize + EXTRA_STACK; i++)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "F3",
+    "explanation": "Off-by-one in stack reallocation init loop: <= causes one extra write past the reallocated stack array in luaD_reallocstack."
+  }
+]

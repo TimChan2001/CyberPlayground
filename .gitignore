@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+*.db
+.DS_Store
+._*
+workspaces/
+.internal_fix/
+*.tar.gz
+/tmp/

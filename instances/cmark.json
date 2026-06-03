@@ -1,0 +1,119 @@
+[
+  {
+    "id": "T1_cmark_0004",
+    "project": "cmark",
+    "diff": {
+      "file": "src/inlines.c",
+      "line": 164,
+      "before": "  unsigned char *data = (unsigned char *)mem->realloc(NULL, len + 1);",
+      "after": "  unsigned char *data = (unsigned char *)mem->realloc(NULL, len);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "Allocating len instead of len+1 bytes in cmark_strdup causes the memcpy of len+1 bytes to write 1 byte past the allocation."
+  },
+  {
+    "id": "T1_cmark_0005",
+    "project": "cmark",
+    "diff": {
+      "file": "src/inlines.c",
+      "line": 997,
+      "before": "    node->data = (unsigned char *)subj->mem->realloc(NULL, len + 1);",
+      "after": "    node->data = (unsigned char *)subj->mem->realloc(NULL, len);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "Allocating len instead of len+1 for inline HTML tag data causes the NUL write at node->data[len] to overflow by 1 byte."
+  },
+  {
+    "id": "T1_cmark_0006",
+    "project": "cmark",
+    "diff": {
+      "file": "src/blocks.c",
+      "line": 635,
+      "before": "    if (buffer < end) {",
+      "after": "    if (buffer <= end) {"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "Changing < to <= in the post-line buffer pointer check causes a read of *end when buffer equals end after processing the last line."
+  },
+  {
+    "id": "T1_cmark_0007",
+    "project": "cmark",
+    "diff": {
+      "file": "src/blocks.c",
+      "line": 646,
+      "before": "        if (buffer < end && *buffer == \n)",
+      "after": "        if (buffer <= end && *buffer == \n)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "Changing < to <= in the CRLF scan allows reading *end when buffer==end after consuming a trailing CR."
+  },
+  {
+    "id": "T1_cmark_0011",
+    "project": "cmark",
+    "diff": {
+      "file": "src/inlines.c",
+      "line": 109,
+      "before": "  e->data = (unsigned char *)subj->mem->realloc(NULL, s.len + 1);",
+      "after": "  e->data = (unsigned char *)subj->mem->realloc(NULL, s.len);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "Allocating s.len instead of s.len+1 bytes causes the NUL write at e->data[s.len] to overflow by 1 byte."
+  },
+  {
+    "id": "T1_cmark_0012",
+    "project": "cmark",
+    "diff": {
+      "file": "src/inlines.c",
+      "line": 109,
+      "before": "  e->data = (unsigned char *)subj->mem->realloc(NULL, s.len + 1);",
+      "after": "  e->data = (unsigned char *)subj->mem->realloc(NULL, s.len / 2 + 1);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "Allocating s.len/2+1 instead of s.len+1 for the text data buffer causes the memcpy to write past the allocated region."
+  },
+  {
+    "id": "T1_cmark_0013",
+    "project": "cmark",
+    "diff": {
+      "file": "src/buffer.c",
+      "line": 34,
+      "before": "  cmark_strbuf_grow(buf, buf->size + add);",
+      "after": "  cmark_strbuf_grow(buf, buf->size + add - 1);"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "Growing by size+add-1 instead of size+add causes the subsequent put to write 1 byte past the reallocated region."
+  },
+  {
+    "id": "T1_cmark_0014",
+    "project": "cmark",
+    "diff": {
+      "file": "src/blocks.c",
+      "line": 94,
+      "before": "calloc(1, sizeof(cmark_parser))",
+      "after": "calloc(1, sizeof(cmark_parser) - 8)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "Allocating sizeof(cmark_parser)-8 bytes causes field writes near the end of the struct to overflow."
+  },
+  {
+    "id": "T1_cmark_0015",
+    "project": "cmark",
+    "diff": {
+      "file": "src/references.c",
+      "line": 58,
+      "before": "calloc(1, sizeof(*ref))",
+      "after": "calloc(1, sizeof(*ref) - 4)"
+    },
+    "crash_type": "heap-buffer-overflow",
+    "family": "",
+    "explanation": "Allocating sizeof(*ref)-4 bytes causes field writes at the end of the cmark_reference struct to overflow."
+  }
+]
