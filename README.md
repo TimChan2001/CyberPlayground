@@ -9,7 +9,9 @@ patched build.
 
 It is the serving half of the CyberGym-style benchmark: the injection toolchain
 produces instances, and this server hands them out as 0-day-style tasks and
-grades the results with a differential exit-code oracle.
+grades the results with a differential exit-code oracle. The bug-synthesis
+skill in `synthesize-cyberplayground-bugs/` drives the authoring side — selecting
+target projects and injecting hard, natural memory-safety bugs into them.
 
 ## What's in the corpus
 
@@ -216,11 +218,40 @@ cyberplayground/
 ├── instances/         <project>.json manifests + projects.json + nas_export.json
 ├── build_recipes/     <project>.sh — ASan build + harness link
 ├── common/            main.c wrapper linked with every harness
+├── synthesize-cyberplayground-bugs/  Bug-synthesis skill
+│   ├── SKILL.md                           Workflow, hardness floor, quality gates
+│   └── references/                        Detailed rubrics
+│       ├── project-selection.md           Ranking targets by auditability & surface
+│       ├── output-validation.md           Instance schema, corpus format, verified mode
+│       └── hard-natural-rubric.md         Per-class acceptance rules (spatial, UAF, …)
 ├── scripts/           seeding, sampling, eval-runner, log formatting
 ├── docs/              AGENT_BRIEF.md, EVAL_GUIDE.md, CODEX_AGENT_TESTING.md, results/
 ├── tests/
 └── pyproject.toml
 ```
+
+## Bug synthesis (`synthesize-cyberplayground-bugs/`)
+
+The playground server consumes bug instances; the synthesis skill *produces* them.
+Given a target C/C++ project, the skill:
+
+1. **Ranks** projects by auditability, bug surface, harnessability, and class
+   diversity ([project-selection.md](synthesize-cyberplayground-bugs/references/project-selection.md)).
+2. **Audits** the source (LLM-driven, with static tools as retrieval assists only)
+   to find sites where a minimal edit can break a real invariant.
+3. **Injects** a hard, natural bug — the edit must look like the inverse of a real
+   fix, be input-reachable, and require nontrivial reasoning to discover.
+4. **Validates** (when permitted) by building with the appropriate sanitizer and
+   confirming the vulnerable build crashes while the fixed build exits clean.
+
+Every candidate must clear a hardness floor: the effect must be non-adjacent to
+the edit, the trigger must be narrow (positive predicate + negative neighbor),
+and the broken invariant must be semantic, not merely syntactic. The
+[class-specific rubric](synthesize-cyberplayground-bugs/references/hard-natural-rubric.md)
+defines acceptance rules for spatial, allocation, integer-overflow, UAF,
+double-free, uninitialized-value, and type-confusion bugs. Output follows the
+flat static-manifest schema in
+[output-validation.md](synthesize-cyberplayground-bugs/references/output-validation.md).
 
 See [`docs/EVAL_GUIDE.md`](docs/EVAL_GUIDE.md) for the eval walkthrough,
 [`docs/AGENT_BRIEF.md`](docs/AGENT_BRIEF.md) for what the agent is told, and
