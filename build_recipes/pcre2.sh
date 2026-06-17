@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
+# CyberPlayground source revisions:
+#   hard_instances/pcre2: https://github.com/PCRE2Project/pcre2 @ release_tag pcre2-10.47
+#   instances/pcre2: https://github.com/PCRE2Project/pcre2.git @ git_commit 4f460e5edaa698bda57a93e044ca811fe64e93f8
+# Branch-tip source references are forbidden.
 # Build recipe for pcre2 (Tier 1 CyberGym project)
 #
 # Env vars (set by caller):

@@ -1,0 +1,362 @@
+[
+  {
+    "project": "cgltf",
+    "recipe": "build_recipes/cgltf.sh",
+    "source_kind": "git_commit",
+    "source_revision": "85cd62382dfea638278962690cf515023f33ed00",
+    "status": "pass",
+    "elapsed_seconds": 2.946,
+    "reason": "exit=0, out_exists=True"
+  },
+  {
+    "project": "cjson",
+    "recipe": "build_recipes/cjson.sh",
+    "source_kind": "git_commit",
+    "source_revision": "c859b25da02955fef659d658b8f324b5cde87be3",
+    "status": "pass",
+    "elapsed_seconds": 0.352,
+    "reason": "exit=0, out_exists=True"
+  },
+  {
+    "project": "dr_flac",
+    "recipe": "build_recipes/dr_flac.sh",
+    "source_kind": "git_commit",
+    "source_revision": "243e26ffa08a24dc8ae2e7a8c57123d9e504690c",
+    "status": "pass",
+    "elapsed_seconds": 2.145,
+    "reason": "exit=0, out_exists=True"
+  },
+  {
+    "project": "dr_mp3",
+    "recipe": "build_recipes/dr_mp3.sh",
+    "source_kind": "git_commit",
+    "source_revision": "243e26ffa08a24dc8ae2e7a8c57123d9e504690c",
+    "status": "pass",
+    "elapsed_seconds": 0.756,
+    "reason": "exit=0, out_exists=True"
+  },
+  {
+    "project": "dr_wav",
+    "recipe": "build_recipes/dr_wav.sh",
+    "source_kind": "git_commit",
+    "source_revision": "243e26ffa08a24dc8ae2e7a8c57123d9e504690c",
+    "status": "pass",
+    "elapsed_seconds": 1.069,
+    "reason": "exit=0, out_exists=True"
+  },
+  {
+    "project": "expat",
+    "recipe": "build_recipes/expat.sh",
+    "source_kind": "release_tag",
+    "source_revision": "R_2_8_1",
+    "status": "pass",
+    "elapsed_seconds": 4.849,
+    "reason": "exit=0, out_exists=True"
+  },
+  {
+    "project": "ezxml",
+    "recipe": "build_recipes/ezxml.sh",
+    "source_kind": "git_commit",
+    "source_revision": "dcb17484da2591e42c739598729fe5bdf687cca6",
+    "status": "pass",
+    "elapsed_seconds": 0.3,
+    "reason": "exit=0, out_exists=True"
+  },
+  {
+    "project": "freetype",
+    "recipe": "build_recipes/freetype.sh",
+    "source_kind": "release_tag",
+    "source_revision": "VER-2-14-3",
+    "status": "pass",
+    "elapsed_seconds": 6.322,
+    "reason": "exit=0, out_exists=True"
+  },
+  {
+    "project": "frozen",
+    "recipe": "build_recipes/frozen.sh",
+    "source_kind": "git_commit",
+    "source_revision": "a42fc3365d7d4e96a5be146b88870dabc794bbc8",
+    "status": "pass",
+    "elapsed_seconds": 0.305,
+    "reason": "exit=0, out_exists=True"
+  },
+  {
+    "project": "giflib",
+    "recipe": "build_recipes/giflib.sh",
+    "source_kind": "release_archive",
+    "source_revision": "giflib-5.2.2",
+    "status": "pass",
+    "elapsed_seconds": 0.683,
+    "reason": "exit=0, out_exists=True"
+  },
+  {
+    "project": "heatshrink",
+    "recipe": "build_recipes/heatshrink.sh",
+    "source_kind": "git_commit",
+    "source_revision": "7d419e1fa4830d0b919b9b6a91fe2fb786cf3280",
+    "status": "pass",
+    "elapsed_seconds": 0.232,
+    "reason": "exit=0, out_exists=True"
+  },
+  {
+    "project": "http_parser",
+    "recipe": "build_recipes/http_parser.sh",
+    "source_kind": "git_commit",
+    "source_revision": "ec8b5ee63f0e51191ea43bb0c6eac7bfbff3141d",
+    "status": "pass",
+    "elapsed_seconds": 0.378,
+    "reason": "exit=0, out_exists=True"
+  },
+  {
+    "project": "inih",
+    "recipe": "build_recipes/inih.sh",
+    "source_kind": "git_commit",
+    "source_revision": "577ae2dee1f0d9c2d11c7f10375c1715f3d6940c",
+    "status": "pass",
+    "elapsed_seconds": 0.167,
+    "reason": "exit=0, out_exists=True"
+  },
+  {
+    "project": "iniparser",
+    "recipe": "build_recipes/iniparser.sh",
+    "source_kind": "git_commit",
+    "source_revision": "4bef811283e0ec1658c60e09950bd5a1ddc92e4b",
+    "status": "pass",
+    "elapsed_seconds": 0.264,
+    "reason": "exit=0, out_exists=True"
+  },
+  {
+    "project": "jsmn",
+    "recipe": "build_recipes/jsmn.sh",
+    "source_kind": "git_commit",
+    "source_revision": "25647e692c7906b96ffd2b05ca54c097948e879c",
+    "status": "pass",
+    "elapsed_seconds": 0.154,
+    "reason": "exit=0, out_exists=True"
+  },
+  {
+    "project": "json-c",
+    "recipe": "build_recipes/json-c.sh",
+    "source_kind": "release_tag",
+    "source_revision": "json-c-0.18-20240915",
+    "status": "pass",
+    "elapsed_seconds": 8.72,
+    "reason": "exit=0, out_exists=True"
+  },
+  {
+    "project": "json_parser",
+    "recipe": "build_recipes/json_parser.sh",
+    "source_kind": "git_commit",
+    "source_revision": "8ac4477ad3e63dc107e17ad49484edaa17d18d35",
+    "status": "pass",
+    "elapsed_seconds": 0.242,
+    "reason": "exit=0, out_exists=True"
+  },
+  {
+    "project": "lcms",
+    "recipe": "build_recipes/lcms.sh",
+    "source_kind": "git_commit",
+    "source_revision": "21c582a594fe5279f90c0b93437c398f93bf62b0",
+    "status": "pass",
+    "elapsed_seconds": 6.638,
+    "reason": "exit=0, out_exists=True"
+  },
+  {
+    "project": "libconfini",
+    "recipe": "build_recipes/libconfini.sh",
+    "source_kind": "git_commit",
+    "source_revision": "607241689ff0da8b88bb63fb293dc7efa4770f0d",
+    "status": "pass",
+    "elapsed_seconds": 0.388,
+    "reason": "exit=0, out_exists=True"
+  },
+  {
+    "project": "libcsv",
+    "recipe": "build_recipes/libcsv.sh",
+    "source_kind": "git_commit",
+    "source_revision": "b1d5212831842ee5869d99bc208a21837e4037d5",
+    "status": "pass",
+    "elapsed_seconds": 0.154,
+    "reason": "exit=0, out_exists=True"
+  },
+  {
+    "project": "libpng",
+    "recipe": "build_recipes/libpng.sh",
+    "source_kind": "release_tag",
+    "source_revision": "v1.6.58",
+    "status": "pass",
+    "elapsed_seconds": 2.452,
+    "reason": "exit=0, out_exists=True"
+  },
+  {
+    "project": "libtiff",
+    "recipe": "build_recipes/libtiff.sh",
+    "source_kind": "release_tag",
+    "source_revision": "v4.7.1",
+    "status": "pass",
+    "elapsed_seconds": 9.8,
+    "reason": "exit=0, out_exists=True"
+  },
+  {
+    "project": "libucl",
+    "recipe": "build_recipes/libucl.sh",
+    "source_kind": "release_tag",
+    "source_revision": "0.9.4",
+    "status": "pass",
+    "elapsed_seconds": 11.162,
+    "reason": "exit=0, out_exists=True"
+  },
+  {
+    "project": "libxml2",
+    "recipe": "build_recipes/libxml2.sh",
+    "source_kind": "release_tag",
+    "source_revision": "v2.15.3",
+    "status": "pass",
+    "elapsed_seconds": 7.489,
+    "reason": "exit=0, out_exists=True"
+  },
+  {
+    "project": "lua",
+    "recipe": "build_recipes/lua.sh",
+    "source_kind": "release_archive",
+    "source_revision": "lua-5.5.0",
+    "status": "pass",
+    "elapsed_seconds": 2.18,
+    "reason": "exit=0, out_exists=True"
+  },
+  {
+    "project": "lz4",
+    "recipe": "build_recipes/lz4.sh",
+    "source_kind": "release_tag",
+    "source_revision": "v1.10.0",
+    "status": "pass",
+    "elapsed_seconds": 3.665,
+    "reason": "exit=0, out_exists=True"
+  },
+  {
+    "project": "md4c",
+    "recipe": "build_recipes/md4c.sh",
+    "source_kind": "git_commit",
+    "source_revision": "81b871f917ec97b94322f3890fc12f0657ed3d94",
+    "status": "pass",
+    "elapsed_seconds": 1.429,
+    "reason": "exit=0, out_exists=True"
+  },
+  {
+    "project": "miniz",
+    "recipe": "build_recipes/miniz.sh",
+    "source_kind": "git_commit",
+    "source_revision": "5cf1e56a9c968c11fdd1a6414f3a95f84314c437",
+    "status": "pass",
+    "elapsed_seconds": 1.278,
+    "reason": "exit=0, out_exists=True"
+  },
+  {
+    "project": "mjson",
+    "recipe": "build_recipes/mjson.sh",
+    "source_kind": "release_tag",
+    "source_revision": "1.2.7",
+    "status": "pass",
+    "elapsed_seconds": 0.499,
+    "reason": "exit=0, out_exists=True"
+  },
+  {
+    "project": "nanosvg",
+    "recipe": "build_recipes/nanosvg.sh",
+    "source_kind": "git_commit",
+    "source_revision": "5cefd9847949af6df13f65027fd43af5a7513633",
+    "status": "pass",
+    "elapsed_seconds": 0.902,
+    "reason": "exit=0, out_exists=True"
+  },
+  {
+    "project": "oniguruma",
+    "recipe": "build_recipes/oniguruma.sh",
+    "source_kind": "release_tag",
+    "source_revision": "v6.9.10",
+    "status": "pass",
+    "elapsed_seconds": 13.398,
+    "reason": "exit=0, out_exists=True"
+  },
+  {
+    "project": "parson",
+    "recipe": "build_recipes/parson.sh",
+    "source_kind": "git_commit",
+    "source_revision": "ba29f4eda9ea7703a9f6a9cf2b0532a2605723c3",
+    "status": "pass",
+    "elapsed_seconds": 0.388,
+    "reason": "exit=0, out_exists=True"
+  },
+  {
+    "project": "pcre2",
+    "recipe": "build_recipes/pcre2.sh",
+    "source_kind": "release_tag",
+    "source_revision": "pcre2-10.47",
+    "status": "pass",
+    "elapsed_seconds": 9.128,
+    "reason": "exit=0, out_exists=True"
+  },
+  {
+    "project": "slre",
+    "recipe": "build_recipes/slre.sh",
+    "source_kind": "git_commit",
+    "source_revision": "9075c67cad47d62ba4a4f8f452ae46bb21124f7b",
+    "status": "pass",
+    "elapsed_seconds": 0.168,
+    "reason": "exit=0, out_exists=True"
+  },
+  {
+    "project": "stb",
+    "recipe": "build_recipes/stb_image.sh",
+    "source_kind": "git_commit",
+    "source_revision": "31c1ad37456438565541f4919958214b6e762fb4",
+    "status": "pass",
+    "elapsed_seconds": 1.716,
+    "reason": "exit=0, out_exists=True"
+  },
+  {
+    "project": "tomlc99",
+    "recipe": "build_recipes/tomlc99.sh",
+    "source_kind": "git_commit",
+    "source_revision": "29076dfd095bbbbd50a3c1b2760d29f4b83e74ac",
+    "status": "pass",
+    "elapsed_seconds": 0.388,
+    "reason": "exit=0, out_exists=True"
+  },
+  {
+    "project": "utf8proc",
+    "recipe": "build_recipes/utf8proc.sh",
+    "source_kind": "git_commit",
+    "source_revision": "b3e0f28adaec943ac25e3e27514dd6037e7a022e",
+    "status": "pass",
+    "elapsed_seconds": 0.417,
+    "reason": "exit=0, out_exists=True"
+  },
+  {
+    "project": "yyjson",
+    "recipe": "build_recipes/yyjson.sh",
+    "source_kind": "git_commit",
+    "source_revision": "f0fbeae7cc40218fd1af310391cdf83cfc1abff1",
+    "status": "pass",
+    "elapsed_seconds": 6.479,
+    "reason": "exit=0, out_exists=True"
+  },
+  {
+    "project": "zlib",
+    "recipe": "build_recipes/zlib.sh",
+    "source_kind": "release_tag",
+    "source_revision": "v1.3.2",
+    "status": "pass",
+    "elapsed_seconds": 1.611,
+    "reason": "exit=0, out_exists=True"
+  },
+  {
+    "project": "zstd",
+    "recipe": "build_recipes/zstd.sh",
+    "source_kind": "release_tag",
+    "source_revision": "v1.5.7",
+    "status": "pass",
+    "elapsed_seconds": 7.945,
+    "reason": "exit=0, out_exists=True"
+  }
+]

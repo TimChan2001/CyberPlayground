@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# CyberPlayground source revisions:
+#   instances/mbedtls: https://github.com/Mbed-TLS/mbedtls.git @ git_commit 902b012537b630824a7c76f5a755c10b33361d44
+# Branch-tip source references are forbidden.
 set -euo pipefail
 
 cd "$SRC"

@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# CyberPlayground source revisions:
+#   instances/lwan: https://github.com/lpereira/lwan.git @ git_commit a32f4885999323b097555e93e6a174fdbb69886e
+# Branch-tip source references are forbidden.
 set -euo pipefail
 
 cd "$SRC"

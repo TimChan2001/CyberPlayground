@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# CyberPlayground source revisions:
+#   instances/cmark: https://github.com/commonmark/cmark.git @ git_commit a6b6b99a0345ddac35b23fb60270e724f2a3ab18
+# Branch-tip source references are forbidden.
 set -euo pipefail
 
 cd "$SRC"

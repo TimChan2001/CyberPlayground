@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
+# CyberPlayground source revisions:
+#   hard_instances/giflib: https://sourceforge.net/projects/giflib/files/giflib-5.2.2.tar.gz/download @ release_archive giflib-5.2.2
+#   instances/giflib: https://git.code.sf.net/p/giflib/code @ git_commit edff4aed17f857442ab0cac31566572ba08f93d3
+# Branch-tip source references are forbidden.
 set -euo pipefail
 
 cd "$SRC"

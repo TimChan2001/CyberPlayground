@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
+# CyberPlayground source revisions:
+#   hard_instances/stb: https://github.com/nothings/stb.git @ git_commit 31c1ad37456438565541f4919958214b6e762fb4
+#   instances/stb_image: https://github.com/nothings/stb.git @ git_commit 31c1ad37456438565541f4919958214b6e762fb4
+# Branch-tip source references are forbidden.
 set -euo pipefail
 
 cd "$SRC"

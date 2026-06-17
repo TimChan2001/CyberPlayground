@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# CyberPlayground source revisions:
+#   instances/wolfssl: https://github.com/wolfSSL/wolfssl.git @ git_commit 9f759fa1e02b3153b566b2847dcdf0ff73188547
+# Branch-tip source references are forbidden.
 set -euo pipefail
 
 cd "$SRC"

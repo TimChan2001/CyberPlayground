@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
+# CyberPlayground source revisions:
+#   hard_instances/tomlc99: https://github.com/cktan/tomlc99.git @ git_commit 29076dfd095bbbbd50a3c1b2760d29f4b83e74ac
+#   instances/tomlc99: https://github.com/cktan/tomlc99.git @ git_commit 29076dfd095bbbbd50a3c1b2760d29f4b83e74ac
+# Branch-tip source references are forbidden.
 set -euo pipefail
 
 cd "$SRC"

@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
+# CyberPlayground source revisions:
+#   hard_instances/expat: https://github.com/libexpat/libexpat @ release_tag R_2_8_1
+#   instances/expat: https://github.com/libexpat/libexpat.git @ git_commit c7ffbf3879f6aef7a7b020ef84ddb4ee00222b19
+# Branch-tip source references are forbidden.
 set -euo pipefail
 
 cd "$SRC"
@@ -26,14 +30,24 @@ cmake -S "$SRC_ROOT" -B "$BUILD_DIR" \
     -DEXPAT_BUILD_TOOLS=OFF 2>/dev/null
 cmake --build "$BUILD_DIR" -j"$JOBS" 2>/dev/null
 
-mapfile -t ARCHIVES < <(find "$BUILD_DIR" -name '*.a' -print)
+ARCHIVES=()
+while IFS= read -r archive; do
+    ARCHIVES+=("$archive")
+done < <(find "$BUILD_DIR" -name '*.a' -print)
 if [ "${#ARCHIVES[@]}" -eq 0 ]; then
     echo "expat: no static archives found" >&2
     exit 1
 fi
 
+GROUP_START=""
+GROUP_END=""
+if [ "$(uname -s)" != "Darwin" ]; then
+    GROUP_START="-Wl,--start-group"
+    GROUP_END="-Wl,--end-group"
+fi
+
 clang $SAN \
     -I"$SRC_ROOT/lib" -I"$BUILD_DIR" -I"$BUILD_DIR/lib" \
     "$HARNESS" "$MAIN_C" \
-    -Wl,--start-group "${ARCHIVES[@]}" -Wl,--end-group \
+    ${GROUP_START:+"$GROUP_START"} "${ARCHIVES[@]}" ${GROUP_END:+"$GROUP_END"} \
     -o "$OUT"

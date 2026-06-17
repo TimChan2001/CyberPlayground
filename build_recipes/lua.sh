@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
+# CyberPlayground source revisions:
+#   hard_instances/lua: https://www.lua.org/ftp/ @ release_archive lua-5.5.0
+#   instances/lua: https://github.com/lua/lua.git @ git_commit 53b41d0cddd80bf33fdc631bdd32e3ba53842b89
+# Branch-tip source references are forbidden.
 # Build recipe for lua
 set -euo pipefail
 

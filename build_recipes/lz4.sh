@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
+# CyberPlayground source revisions:
+#   hard_instances/lz4: https://github.com/lz4/lz4 @ release_tag v1.10.0
+#   instances/lz4: https://github.com/lz4/lz4.git @ git_commit 1b0fc692949cf474eb0d89db5f0dfa3698e9aa56
+# Branch-tip source references are forbidden.
 set -euo pipefail
 
 cd "$SRC"

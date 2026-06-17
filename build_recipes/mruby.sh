@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# CyberPlayground source revisions:
+#   instances/mruby: https://github.com/mruby/mruby.git @ git_commit 16151a0daad0c74bcc502a790c83192d396717ab
+# Branch-tip source references are forbidden.
 set -euo pipefail
 
 cd "$SRC"

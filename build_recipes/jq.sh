@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# CyberPlayground source revisions:
+#   instances/jq: https://github.com/jqlang/jq.git @ git_commit 9761ceb7d6cc48c16b25f0ab1baaef0e701927e4
+# Branch-tip source references are forbidden.
 set -euo pipefail
 
 cd "$SRC"

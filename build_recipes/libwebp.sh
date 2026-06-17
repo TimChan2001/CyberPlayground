@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# CyberPlayground source revisions:
+#   instances/libwebp: https://github.com/webmproject/libwebp.git @ git_commit ed0fa1cb07b7ea473286df4908fff5f82aee8406
+# Branch-tip source references are forbidden.
 set -euo pipefail
 
 cd "$SRC"

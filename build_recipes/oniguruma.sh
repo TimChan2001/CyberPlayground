@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
+# CyberPlayground source revisions:
+#   hard_instances/oniguruma: https://github.com/kkos/oniguruma @ release_tag v6.9.10
+#   instances/oniguruma: https://github.com/kkos/oniguruma.git @ git_commit f95747b462de672b6f8dbdeb478245ddf061ca53
+# Branch-tip source references are forbidden.
 # Build recipe for oniguruma
 set -euo pipefail
 

@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# CyberPlayground source revisions:
+#   instances/ndpi: https://github.com/ntop/nDPI.git @ git_commit 24d88cf7843794afabdaf86c7975b4eeb1edab2a
+# Branch-tip source references are forbidden.
 set -euo pipefail
 
 cd "$SRC"

@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# CyberPlayground source revisions:
+#   instances/brotli: https://github.com/google/brotli.git @ git_commit af041f55e7bfa3e1bc502f234538e1d6dd6282bd
+# Branch-tip source references are forbidden.
 set -euo pipefail
 
 cd "$SRC"

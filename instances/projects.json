@@ -25,13 +25,13 @@
   },
   "zstd": {
     "repo_url": "https://github.com/facebook/zstd.git",
-    "commit": "885c79b",
+    "commit": "885c79ba4ae8345e006f61bc97b270d4cf7ff076",
     "build_recipe": "zstd",
     "description": ""
   },
   "mbedtls": {
     "repo_url": "https://github.com/Mbed-TLS/mbedtls.git",
-    "commit": "HEAD",
+    "commit": "902b012537b630824a7c76f5a755c10b33361d44",
     "build_recipe": "mbedtls",
     "description": ""
   },
@@ -55,25 +55,25 @@
   },
   "freetype": {
     "repo_url": "https://github.com/freetype/freetype.git",
-    "commit": "HEAD",
+    "commit": "fae1e3160e727ae1fc19c54e54d71e9bd1d0c917",
     "build_recipe": "freetype",
     "description": ""
   },
   "brotli": {
     "repo_url": "https://github.com/google/brotli.git",
-    "commit": "HEAD",
+    "commit": "af041f55e7bfa3e1bc502f234538e1d6dd6282bd",
     "build_recipe": "brotli",
     "description": ""
   },
   "libwebp": {
     "repo_url": "https://github.com/webmproject/libwebp.git",
-    "commit": "HEAD",
+    "commit": "ed0fa1cb07b7ea473286df4908fff5f82aee8406",
     "build_recipe": "libwebp",
     "description": ""
   },
   "lz4": {
     "repo_url": "https://github.com/lz4/lz4.git",
-    "commit": "HEAD",
+    "commit": "1b0fc692949cf474eb0d89db5f0dfa3698e9aa56",
     "build_recipe": "lz4",
     "description": ""
   },
@@ -85,7 +85,7 @@
   },
   "giflib": {
     "repo_url": "https://git.code.sf.net/p/giflib/code",
-    "commit": "HEAD",
+    "commit": "edff4aed17f857442ab0cac31566572ba08f93d3",
     "build_recipe": "giflib",
     "description": ""
   },
@@ -133,13 +133,13 @@
   },
   "yara": {
     "repo_url": "https://github.com/VirusTotal/yara.git",
-    "commit": "HEAD",
+    "commit": "7488ec7b42c0ce7b584ffccc8e739d95794943c5",
     "build_recipe": "yara",
     "description": ""
   },
   "mruby": {
     "repo_url": "https://github.com/mruby/mruby.git",
-    "commit": "HEAD",
+    "commit": "16151a0daad0c74bcc502a790c83192d396717ab",
     "build_recipe": "mruby",
     "description": ""
   },
@@ -151,19 +151,19 @@
   },
   "cmark": {
     "repo_url": "https://github.com/commonmark/cmark.git",
-    "commit": "HEAD",
+    "commit": "a6b6b99a0345ddac35b23fb60270e724f2a3ab18",
     "build_recipe": "cmark",
     "description": ""
   },
   "stb_image": {
     "repo_url": "https://github.com/nothings/stb.git",
-    "commit": "HEAD",
+    "commit": "31c1ad37456438565541f4919958214b6e762fb4",
     "build_recipe": "stb_image",
     "description": ""
   },
   "tomlc99": {
     "repo_url": "https://github.com/cktan/tomlc99.git",
-    "commit": "HEAD",
+    "commit": "29076dfd095bbbbd50a3c1b2760d29f4b83e74ac",
     "build_recipe": "tomlc99",
     "description": ""
   },
@@ -175,7 +175,7 @@
   },
   "json-c": {
     "repo_url": "https://github.com/json-c/json-c.git",
-    "commit": "HEAD",
+    "commit": "ccd2803b3d6152431fbb9c83000fc7f802b4727a",
     "build_recipe": "json-c",
     "description": ""
   },

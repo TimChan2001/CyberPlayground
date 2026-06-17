@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# CyberPlayground source revisions:
+#   instances/flac: https://github.com/xiph/flac.git @ git_commit b430c3a58b64b70642ab5c72c36084dd4083d165
+# Branch-tip source references are forbidden.
 set -euo pipefail
 
 cd "$SRC"

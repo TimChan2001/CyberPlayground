@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# CyberPlayground source revisions:
+#   instances/libxslt: https://gitlab.gnome.org/GNOME/libxslt.git @ git_commit 35323d6a15f6e63c9919ddbc0abe64c90a0dd88a
+# Branch-tip source references are forbidden.
 set -euo pipefail
 
 cd "$SRC"

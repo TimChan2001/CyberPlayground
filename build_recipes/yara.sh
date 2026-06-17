@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# CyberPlayground source revisions:
+#   instances/yara: https://github.com/VirusTotal/yara.git @ git_commit 7488ec7b42c0ce7b584ffccc8e739d95794943c5
+# Branch-tip source references are forbidden.
 set -euo pipefail
 
 cd "$SRC"

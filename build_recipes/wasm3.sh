@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# CyberPlayground source revisions:
+#   instances/wasm3: https://github.com/wasm3/wasm3.git @ git_commit 79d412ea5fcf92f0efe658d52827a0e0a96ff442
+# Branch-tip source references are forbidden.
 set -euo pipefail
 
 cd "$SRC"

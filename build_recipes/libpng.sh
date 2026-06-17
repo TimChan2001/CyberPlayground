@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
+# CyberPlayground source revisions:
+#   hard_instances/libpng: https://sourceforge.net/projects/libpng/files/libpng16/1.6.58/libpng-1.6.58.tar.gz/download @ release_tag v1.6.58
+#   instances/libpng: https://github.com/pnggroup/libpng.git @ git_commit 9ec49c2d56cec19107ddc458b648ce224c9697b3
+# Branch-tip source references are forbidden.
 set -euo pipefail
 
 cd "$SRC"
@@ -22,14 +26,24 @@ cmake -S "$SRC" -B "$BUILD_DIR" \
     -DPNG_FRAMEWORK=OFF 2>/dev/null
 cmake --build "$BUILD_DIR" -j"$JOBS" 2>/dev/null
 
-mapfile -t ARCHIVES < <(find "$BUILD_DIR" -name '*.a' -print)
+ARCHIVES=()
+while IFS= read -r archive; do
+    ARCHIVES+=("$archive")
+done < <(find "$BUILD_DIR" -name '*.a' -print)
 if [ "${#ARCHIVES[@]}" -eq 0 ]; then
     echo "libpng: no static archives found" >&2
     exit 1
 fi
 
+GROUP_START=""
+GROUP_END=""
+if [ "$(uname -s)" != "Darwin" ]; then
+    GROUP_START="-Wl,--start-group"
+    GROUP_END="-Wl,--end-group"
+fi
+
 clang $SAN \
     -I"$SRC" -I"$BUILD_DIR" \
     "$HARNESS" "$MAIN_C" \
-    -Wl,--start-group "${ARCHIVES[@]}" -Wl,--end-group \
+    ${GROUP_START:+"$GROUP_START"} "${ARCHIVES[@]}" ${GROUP_END:+"$GROUP_END"} \
     -lz -lm -o "$OUT"

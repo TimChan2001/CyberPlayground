@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# CyberPlayground source revisions:
+#   instances/harfbuzz: https://github.com/harfbuzz/harfbuzz.git @ git_commit da577bc545b1282f003b579189a6dcfb5a1eb6b1
+# Branch-tip source references are forbidden.
 set -euo pipefail
 
 cd "$SRC"
