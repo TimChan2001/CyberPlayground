@@ -1,29 +1,78 @@
 # CyberPlayground Hard Instances
 
-Imported from `/Users/yiyang/bug-synthesis/hard/hardness-review-20260616/at-or-above-hardness-bar/bugs.json`.
+Imported from `/Users/yiyang/bug-synthesis/hard/hardness-review-20260617-total1000/at-or-above-hardness-bar/bugs.json`.
 
 This directory contains the reviewed hard static corpus:
 
-- `bugs.json`: all 500 accepted hard bug records in the rich static-manifest schema.
-- `projects.json`: project metadata derived from the records.
+- `bugs.json`: all 1000 accepted hard bug records in the rich static-manifest schema.
+- `projects.json`: project metadata derived from pinned source revisions and build recipes.
 - `by_project/`: full records split by project.
 - `by_class/`: full records split by bug class.
-- `clearly-hard-enough/`: classification view; contains all 500 records.
-- `borderline-hard/`: classification view; empty for this review.
-- `playground_compatible/`: 497 single-hunk records that match the current CyberPlayground single-diff runtime loader, plus `excluded_multi_hunk.json` for the 3 preserved multi-hunk static records.
-- `review/`: review provenance and hint-comment scan artifacts.
+- `clearly-hard-enough/`: 536 records.
+- `borderline-hard/`: 464 records.
+- `playground_compatible/`: 997 single-hunk records that match the current CyberPlayground single-diff runtime loader, plus `excluded_multi_hunk.json`.
+- `review/`: review provenance and scratch-batch guardrail artifacts.
 - `MANIFEST.json`: machine-readable counts and import notes.
 - `build_recipe_tests/`: smoke-test runner, JSON results, and summary for the build recipes.
 
-The source review reported 500 clearly-hard-enough bugs, 0 borderline-hard bugs,
-0 below-bar bugs, and 0 injected hint-comment leaks. These are static candidates;
-no PoCs or sanitizer validation logs are bundled here.
+The current source review reports 1000 at-or-above-hardness-bar bugs, 0 below-bar bugs, and 0 scratch-batch hint-comment leaks.
+Build recipes remain the same 40 project recipes smoke-tested on 2026-06-17; the latest smoke run passed all 40 projects.
 
-Build recipes are present for all 40 projects and were smoke-tested with the
-CyberPlayground recipe contract (`SRC`, `OUT`, `SAN`, `HARNESS`, `COMMON`) on
-2026-06-17. The latest smoke run passed all 40 projects; see
-`build_recipe_tests/SUMMARY.md` and `build_recipe_tests/results.json`.
+Recipe and project metadata pin source identity explicitly: checkout-based sources use full git commit hashes, and archive-only sources use exact release tags or archive names. Branch-tip pseudo-references are not used.
 
-Recipe and project metadata pin source identity explicitly: checkout-based
-sources use full git commit hashes, and archive-only sources use exact release
-tags or archive names. Branch-tip pseudo-references are not used.
+## By Bug Class
+
+| bug_class | count |
+|---|---:|
+| alloc | 153 |
+| doublefree | 159 |
+| intover | 56 |
+| spatial | 403 |
+| typeconf | 21 |
+| uaf | 93 |
+| uninit | 115 |
+
+## By Project
+
+| project | count |
+|---|---:|
+| cgltf | 11 |
+| cjson | 33 |
+| dr_flac | 6 |
+| dr_mp3 | 4 |
+| dr_wav | 8 |
+| expat | 39 |
+| ezxml | 11 |
+| freetype | 49 |
+| frozen | 14 |
+| giflib | 14 |
+| heatshrink | 6 |
+| http_parser | 6 |
+| inih | 3 |
+| iniparser | 9 |
+| jsmn | 5 |
+| json-c | 43 |
+| json_parser | 5 |
+| lcms | 20 |
+| libconfini | 6 |
+| libcsv | 9 |
+| libpng | 38 |
+| libtiff | 59 |
+| libucl | 36 |
+| libxml2 | 125 |
+| lua | 41 |
+| lz4 | 40 |
+| md4c | 32 |
+| miniz | 13 |
+| mjson | 6 |
+| nanosvg | 13 |
+| oniguruma | 45 |
+| parson | 24 |
+| pcre2 | 44 |
+| slre | 4 |
+| stb | 27 |
+| tomlc99 | 15 |
+| utf8proc | 5 |
+| yyjson | 38 |
+| zlib | 18 |
+| zstd | 76 |

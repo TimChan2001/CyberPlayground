@@ -5,7 +5,7 @@
     "source_kind": "git_commit",
     "source_revision": "85cd62382dfea638278962690cf515023f33ed00",
     "status": "pass",
-    "elapsed_seconds": 2.946,
+    "elapsed_seconds": 2.61,
     "reason": "exit=0, out_exists=True"
   },
   {
@@ -14,7 +14,7 @@
     "source_kind": "git_commit",
     "source_revision": "c859b25da02955fef659d658b8f324b5cde87be3",
     "status": "pass",
-    "elapsed_seconds": 0.352,
+    "elapsed_seconds": 0.353,
     "reason": "exit=0, out_exists=True"
   },
   {
@@ -23,7 +23,7 @@
     "source_kind": "git_commit",
     "source_revision": "243e26ffa08a24dc8ae2e7a8c57123d9e504690c",
     "status": "pass",
-    "elapsed_seconds": 2.145,
+    "elapsed_seconds": 2.146,
     "reason": "exit=0, out_exists=True"
   },
   {
@@ -32,7 +32,7 @@
     "source_kind": "git_commit",
     "source_revision": "243e26ffa08a24dc8ae2e7a8c57123d9e504690c",
     "status": "pass",
-    "elapsed_seconds": 0.756,
+    "elapsed_seconds": 0.858,
     "reason": "exit=0, out_exists=True"
   },
   {
@@ -41,7 +41,7 @@
     "source_kind": "git_commit",
     "source_revision": "243e26ffa08a24dc8ae2e7a8c57123d9e504690c",
     "status": "pass",
-    "elapsed_seconds": 1.069,
+    "elapsed_seconds": 1.061,
     "reason": "exit=0, out_exists=True"
   },
   {
@@ -50,7 +50,7 @@
     "source_kind": "release_tag",
     "source_revision": "R_2_8_1",
     "status": "pass",
-    "elapsed_seconds": 4.849,
+    "elapsed_seconds": 4.769,
     "reason": "exit=0, out_exists=True"
   },
   {
@@ -59,7 +59,7 @@
     "source_kind": "git_commit",
     "source_revision": "dcb17484da2591e42c739598729fe5bdf687cca6",
     "status": "pass",
-    "elapsed_seconds": 0.3,
+    "elapsed_seconds": 0.292,
     "reason": "exit=0, out_exists=True"
   },
   {
@@ -68,7 +68,7 @@
     "source_kind": "release_tag",
     "source_revision": "VER-2-14-3",
     "status": "pass",
-    "elapsed_seconds": 6.322,
+    "elapsed_seconds": 6.478,
     "reason": "exit=0, out_exists=True"
   },
   {
@@ -77,7 +77,7 @@
     "source_kind": "git_commit",
     "source_revision": "a42fc3365d7d4e96a5be146b88870dabc794bbc8",
     "status": "pass",
-    "elapsed_seconds": 0.305,
+    "elapsed_seconds": 0.306,
     "reason": "exit=0, out_exists=True"
   },
   {
@@ -86,7 +86,7 @@
     "source_kind": "release_archive",
     "source_revision": "giflib-5.2.2",
     "status": "pass",
-    "elapsed_seconds": 0.683,
+    "elapsed_seconds": 0.812,
     "reason": "exit=0, out_exists=True"
   },
   {
@@ -95,7 +95,7 @@
     "source_kind": "git_commit",
     "source_revision": "7d419e1fa4830d0b919b9b6a91fe2fb786cf3280",
     "status": "pass",
-    "elapsed_seconds": 0.232,
+    "elapsed_seconds": 0.249,
     "reason": "exit=0, out_exists=True"
   },
   {
@@ -104,7 +104,7 @@
     "source_kind": "git_commit",
     "source_revision": "ec8b5ee63f0e51191ea43bb0c6eac7bfbff3141d",
     "status": "pass",
-    "elapsed_seconds": 0.378,
+    "elapsed_seconds": 0.369,
     "reason": "exit=0, out_exists=True"
   },
   {
@@ -113,7 +113,7 @@
     "source_kind": "git_commit",
     "source_revision": "577ae2dee1f0d9c2d11c7f10375c1715f3d6940c",
     "status": "pass",
-    "elapsed_seconds": 0.167,
+    "elapsed_seconds": 0.2,
     "reason": "exit=0, out_exists=True"
   },
   {
@@ -122,7 +122,7 @@
     "source_kind": "git_commit",
     "source_revision": "4bef811283e0ec1658c60e09950bd5a1ddc92e4b",
     "status": "pass",
-    "elapsed_seconds": 0.264,
+    "elapsed_seconds": 0.262,
     "reason": "exit=0, out_exists=True"
   },
   {
@@ -131,7 +131,7 @@
     "source_kind": "git_commit",
     "source_revision": "25647e692c7906b96ffd2b05ca54c097948e879c",
     "status": "pass",
-    "elapsed_seconds": 0.154,
+    "elapsed_seconds": 0.152,
     "reason": "exit=0, out_exists=True"
   },
   {
@@ -140,7 +140,7 @@
     "source_kind": "release_tag",
     "source_revision": "json-c-0.18-20240915",
     "status": "pass",
-    "elapsed_seconds": 8.72,
+    "elapsed_seconds": 8.173,
     "reason": "exit=0, out_exists=True"
   },
   {
@@ -149,7 +149,7 @@
     "source_kind": "git_commit",
     "source_revision": "8ac4477ad3e63dc107e17ad49484edaa17d18d35",
     "status": "pass",
-    "elapsed_seconds": 0.242,
+    "elapsed_seconds": 0.23,
     "reason": "exit=0, out_exists=True"
   },
   {
@@ -158,7 +158,7 @@
     "source_kind": "git_commit",
     "source_revision": "21c582a594fe5279f90c0b93437c398f93bf62b0",
     "status": "pass",
-    "elapsed_seconds": 6.638,
+    "elapsed_seconds": 6.784,
     "reason": "exit=0, out_exists=True"
   },
   {
@@ -167,7 +167,7 @@
     "source_kind": "git_commit",
     "source_revision": "607241689ff0da8b88bb63fb293dc7efa4770f0d",
     "status": "pass",
-    "elapsed_seconds": 0.388,
+    "elapsed_seconds": 0.382,
     "reason": "exit=0, out_exists=True"
   },
   {
@@ -176,7 +176,7 @@
     "source_kind": "git_commit",
     "source_revision": "b1d5212831842ee5869d99bc208a21837e4037d5",
     "status": "pass",
-    "elapsed_seconds": 0.154,
+    "elapsed_seconds": 0.153,
     "reason": "exit=0, out_exists=True"
   },
   {
@@ -185,7 +185,7 @@
     "source_kind": "release_tag",
     "source_revision": "v1.6.58",
     "status": "pass",
-    "elapsed_seconds": 2.452,
+    "elapsed_seconds": 2.367,
     "reason": "exit=0, out_exists=True"
   },
   {
@@ -194,7 +194,7 @@
     "source_kind": "release_tag",
     "source_revision": "v4.7.1",
     "status": "pass",
-    "elapsed_seconds": 9.8,
+    "elapsed_seconds": 9.079,
     "reason": "exit=0, out_exists=True"
   },
   {
@@ -203,7 +203,7 @@
     "source_kind": "release_tag",
     "source_revision": "0.9.4",
     "status": "pass",
-    "elapsed_seconds": 11.162,
+    "elapsed_seconds": 2.208,
     "reason": "exit=0, out_exists=True"
   },
   {
@@ -212,7 +212,7 @@
     "source_kind": "release_tag",
     "source_revision": "v2.15.3",
     "status": "pass",
-    "elapsed_seconds": 7.489,
+    "elapsed_seconds": 7.827,
     "reason": "exit=0, out_exists=True"
   },
   {
@@ -221,7 +221,7 @@
     "source_kind": "release_archive",
     "source_revision": "lua-5.5.0",
     "status": "pass",
-    "elapsed_seconds": 2.18,
+    "elapsed_seconds": 2.047,
     "reason": "exit=0, out_exists=True"
   },
   {
@@ -230,7 +230,7 @@
     "source_kind": "release_tag",
     "source_revision": "v1.10.0",
     "status": "pass",
-    "elapsed_seconds": 3.665,
+    "elapsed_seconds": 3.586,
     "reason": "exit=0, out_exists=True"
   },
   {
@@ -239,7 +239,7 @@
     "source_kind": "git_commit",
     "source_revision": "81b871f917ec97b94322f3890fc12f0657ed3d94",
     "status": "pass",
-    "elapsed_seconds": 1.429,
+    "elapsed_seconds": 1.409,
     "reason": "exit=0, out_exists=True"
   },
   {
@@ -248,7 +248,7 @@
     "source_kind": "git_commit",
     "source_revision": "5cf1e56a9c968c11fdd1a6414f3a95f84314c437",
     "status": "pass",
-    "elapsed_seconds": 1.278,
+    "elapsed_seconds": 1.24,
     "reason": "exit=0, out_exists=True"
   },
   {
@@ -257,7 +257,7 @@
     "source_kind": "release_tag",
     "source_revision": "1.2.7",
     "status": "pass",
-    "elapsed_seconds": 0.499,
+    "elapsed_seconds": 0.527,
     "reason": "exit=0, out_exists=True"
   },
   {
@@ -266,7 +266,7 @@
     "source_kind": "git_commit",
     "source_revision": "5cefd9847949af6df13f65027fd43af5a7513633",
     "status": "pass",
-    "elapsed_seconds": 0.902,
+    "elapsed_seconds": 0.853,
     "reason": "exit=0, out_exists=True"
   },
   {
@@ -275,7 +275,7 @@
     "source_kind": "release_tag",
     "source_revision": "v6.9.10",
     "status": "pass",
-    "elapsed_seconds": 13.398,
+    "elapsed_seconds": 10.11,
     "reason": "exit=0, out_exists=True"
   },
   {
@@ -284,7 +284,7 @@
     "source_kind": "git_commit",
     "source_revision": "ba29f4eda9ea7703a9f6a9cf2b0532a2605723c3",
     "status": "pass",
-    "elapsed_seconds": 0.388,
+    "elapsed_seconds": 0.379,
     "reason": "exit=0, out_exists=True"
   },
   {
@@ -293,7 +293,7 @@
     "source_kind": "release_tag",
     "source_revision": "pcre2-10.47",
     "status": "pass",
-    "elapsed_seconds": 9.128,
+    "elapsed_seconds": 9.082,
     "reason": "exit=0, out_exists=True"
   },
   {
@@ -302,7 +302,7 @@
     "source_kind": "git_commit",
     "source_revision": "9075c67cad47d62ba4a4f8f452ae46bb21124f7b",
     "status": "pass",
-    "elapsed_seconds": 0.168,
+    "elapsed_seconds": 0.164,
     "reason": "exit=0, out_exists=True"
   },
   {
@@ -311,7 +311,7 @@
     "source_kind": "git_commit",
     "source_revision": "31c1ad37456438565541f4919958214b6e762fb4",
     "status": "pass",
-    "elapsed_seconds": 1.716,
+    "elapsed_seconds": 1.71,
     "reason": "exit=0, out_exists=True"
   },
   {
@@ -320,7 +320,7 @@
     "source_kind": "git_commit",
     "source_revision": "29076dfd095bbbbd50a3c1b2760d29f4b83e74ac",
     "status": "pass",
-    "elapsed_seconds": 0.388,
+    "elapsed_seconds": 0.369,
     "reason": "exit=0, out_exists=True"
   },
   {
@@ -329,7 +329,7 @@
     "source_kind": "git_commit",
     "source_revision": "b3e0f28adaec943ac25e3e27514dd6037e7a022e",
     "status": "pass",
-    "elapsed_seconds": 0.417,
+    "elapsed_seconds": 0.375,
     "reason": "exit=0, out_exists=True"
   },
   {
@@ -338,7 +338,7 @@
     "source_kind": "git_commit",
     "source_revision": "f0fbeae7cc40218fd1af310391cdf83cfc1abff1",
     "status": "pass",
-    "elapsed_seconds": 6.479,
+    "elapsed_seconds": 6.527,
     "reason": "exit=0, out_exists=True"
   },
   {
@@ -347,7 +347,7 @@
     "source_kind": "release_tag",
     "source_revision": "v1.3.2",
     "status": "pass",
-    "elapsed_seconds": 1.611,
+    "elapsed_seconds": 1.649,
     "reason": "exit=0, out_exists=True"
   },
   {
@@ -356,7 +356,7 @@
     "source_kind": "release_tag",
     "source_revision": "v1.5.7",
     "status": "pass",
-    "elapsed_seconds": 7.945,
+    "elapsed_seconds": 7.674,
     "reason": "exit=0, out_exists=True"
   }
 ]

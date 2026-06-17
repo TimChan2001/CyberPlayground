@@ -1,322 +1,322 @@
 {
   "cgltf": {
-    "repo_url": "https://github.com/jkuhlmann/cgltf.git",
-    "commit": "85cd62382dfea638278962690cf515023f33ed00",
     "build_recipe": "cgltf",
-    "description": "Hard static CyberPlayground corpus for cgltf; source_version=Local checkout 85cd62382dfea638278962690cf515023f33ed00 reports Version 1.15 in cgltf.h and cgltf_write.h. Pinned source revision; branch-tip pseudo-references are forbidden.",
-    "source_revision": "85cd62382dfea638278962690cf515023f33ed00",
-    "source_kind": "git_commit"
+    "commit": "85cd62382dfea638278962690cf515023f33ed00",
+    "description": "Hard static CyberPlayground corpus for cgltf; source_revision=commit 85cd62382dfea638278962690cf515023f33ed00; headers report cgltf 1.15. Pinned source revision; branch-tip pseudo-references are forbidden.",
+    "repo_url": "https://github.com/jkuhlmann/cgltf.git",
+    "source_kind": "git_commit",
+    "source_revision": "85cd62382dfea638278962690cf515023f33ed00"
   },
   "cjson": {
-    "repo_url": "https://github.com/DaveGamble/cJSON",
-    "commit": "c859b25da02955fef659d658b8f324b5cde87be3",
     "build_recipe": "cjson",
-    "description": "Hard static CyberPlayground corpus for cjson; source_version=c859b25da02955fef659d658b8f324b5cde87be3. Pinned source revision; branch-tip pseudo-references are forbidden.",
-    "source_revision": "c859b25da02955fef659d658b8f324b5cde87be3",
-    "source_kind": "git_commit"
+    "commit": "c859b25da02955fef659d658b8f324b5cde87be3",
+    "description": "Hard static CyberPlayground corpus for cjson; source_revision=commit c859b25da02955fef659d658b8f324b5cde87be3. Pinned source revision; branch-tip pseudo-references are forbidden.",
+    "repo_url": "https://github.com/DaveGamble/cJSON",
+    "source_kind": "git_commit",
+    "source_revision": "c859b25da02955fef659d658b8f324b5cde87be3"
   },
   "dr_flac": {
-    "repo_url": "https://github.com/mackron/dr_libs.git",
-    "commit": "243e26ffa08a24dc8ae2e7a8c57123d9e504690c",
     "build_recipe": "dr_flac",
-    "description": "Hard static CyberPlayground corpus for dr_flac; source_version=Local checkout 243e26ffa08a24dc8ae2e7a8c57123d9e504690c declares DRFLAC_VERSION_STRING 0.13.4 in dr_flac.h. Pinned source revision; branch-tip pseudo-references are forbidden.",
-    "source_revision": "243e26ffa08a24dc8ae2e7a8c57123d9e504690c",
-    "source_kind": "git_commit"
+    "commit": "243e26ffa08a24dc8ae2e7a8c57123d9e504690c",
+    "description": "Hard static CyberPlayground corpus for dr_flac; source_revision=commit 243e26ffa08a24dc8ae2e7a8c57123d9e504690c; dr_flac.h declares 0.13.4. Pinned source revision; branch-tip pseudo-references are forbidden.",
+    "repo_url": "https://github.com/mackron/dr_libs.git",
+    "source_kind": "git_commit",
+    "source_revision": "243e26ffa08a24dc8ae2e7a8c57123d9e504690c"
   },
   "dr_mp3": {
-    "repo_url": "https://github.com/mackron/dr_libs.git",
-    "commit": "243e26ffa08a24dc8ae2e7a8c57123d9e504690c",
     "build_recipe": "dr_mp3",
-    "description": "Hard static CyberPlayground corpus for dr_mp3; source_version=Local checkout 243e26ffa08a24dc8ae2e7a8c57123d9e504690c declares dr_mp3 - v0.7.4 - TBD in dr_mp3.h. Pinned source revision; branch-tip pseudo-references are forbidden.",
-    "source_revision": "243e26ffa08a24dc8ae2e7a8c57123d9e504690c",
-    "source_kind": "git_commit"
+    "commit": "243e26ffa08a24dc8ae2e7a8c57123d9e504690c",
+    "description": "Hard static CyberPlayground corpus for dr_mp3; source_revision=commit 243e26ffa08a24dc8ae2e7a8c57123d9e504690c; dr_mp3.h declares 0.7.4. Pinned source revision; branch-tip pseudo-references are forbidden.",
+    "repo_url": "https://github.com/mackron/dr_libs.git",
+    "source_kind": "git_commit",
+    "source_revision": "243e26ffa08a24dc8ae2e7a8c57123d9e504690c"
   },
   "dr_wav": {
-    "repo_url": "https://github.com/mackron/dr_libs.git",
-    "commit": "243e26ffa08a24dc8ae2e7a8c57123d9e504690c",
     "build_recipe": "dr_wav",
-    "description": "Hard static CyberPlayground corpus for dr_wav; source_version=Local checkout 243e26ffa08a24dc8ae2e7a8c57123d9e504690c declares DRWAV_VERSION_STRING 0.14.6 in dr_wav.h. Pinned source revision; branch-tip pseudo-references are forbidden.",
-    "source_revision": "243e26ffa08a24dc8ae2e7a8c57123d9e504690c",
-    "source_kind": "git_commit"
+    "commit": "243e26ffa08a24dc8ae2e7a8c57123d9e504690c",
+    "description": "Hard static CyberPlayground corpus for dr_wav; source_revision=commit 243e26ffa08a24dc8ae2e7a8c57123d9e504690c; dr_wav.h declares 0.14.6. Pinned source revision; branch-tip pseudo-references are forbidden.",
+    "repo_url": "https://github.com/mackron/dr_libs.git",
+    "source_kind": "git_commit",
+    "source_revision": "243e26ffa08a24dc8ae2e7a8c57123d9e504690c"
   },
   "expat": {
-    "repo_url": "https://github.com/libexpat/libexpat",
-    "commit": "R_2_8_1",
     "build_recipe": "expat",
-    "description": "Hard static CyberPlayground corpus for expat; source_version=R_2_8_1. Pinned source revision; branch-tip pseudo-references are forbidden.",
-    "source_revision": "R_2_8_1",
-    "source_kind": "release_tag"
+    "commit": "R_2_8_1",
+    "description": "Hard static CyberPlayground corpus for expat; source_revision=release tag R_2_8_1 / expat 2.8.1 archive. Pinned source revision; branch-tip pseudo-references are forbidden.",
+    "repo_url": "https://github.com/libexpat/libexpat",
+    "source_kind": "release_tag",
+    "source_revision": "R_2_8_1"
   },
   "ezxml": {
-    "repo_url": "https://github.com/lxfontes/ezxml.git",
-    "commit": "dcb17484da2591e42c739598729fe5bdf687cca6",
     "build_recipe": "ezxml",
-    "description": "Hard static CyberPlayground corpus for ezxml; source_version=Local checkout of lxfontes/ezxml at commit dcb17484da2591e42c739598729fe5bdf687cca6. Pinned source revision; branch-tip pseudo-references are forbidden.",
-    "source_revision": "dcb17484da2591e42c739598729fe5bdf687cca6",
-    "source_kind": "git_commit"
+    "commit": "dcb17484da2591e42c739598729fe5bdf687cca6",
+    "description": "Hard static CyberPlayground corpus for ezxml; source_revision=commit dcb17484da2591e42c739598729fe5bdf687cca6. Pinned source revision; branch-tip pseudo-references are forbidden.",
+    "repo_url": "https://github.com/lxfontes/ezxml.git",
+    "source_kind": "git_commit",
+    "source_revision": "dcb17484da2591e42c739598729fe5bdf687cca6"
   },
   "freetype": {
-    "repo_url": "https://gitlab.freedesktop.org/freetype/freetype",
-    "commit": "VER-2-14-3",
     "build_recipe": "freetype",
-    "description": "Hard static CyberPlayground corpus for freetype; source_version=VER-2-14-3. Pinned source revision; branch-tip pseudo-references are forbidden.",
-    "source_revision": "VER-2-14-3",
-    "source_kind": "release_tag"
+    "commit": "VER-2-14-3",
+    "description": "Hard static CyberPlayground corpus for freetype; source_revision=release tag VER-2-14-3 / FreeType 2.14.3 archive. Pinned source revision; branch-tip pseudo-references are forbidden.",
+    "repo_url": "https://gitlab.freedesktop.org/freetype/freetype",
+    "source_kind": "release_tag",
+    "source_revision": "VER-2-14-3"
   },
   "frozen": {
-    "repo_url": "https://github.com/cesanta/frozen.git",
-    "commit": "a42fc3365d7d4e96a5be146b88870dabc794bbc8",
     "build_recipe": "frozen",
-    "description": "Hard static CyberPlayground corpus for frozen; source_version=Local checkout of cesanta/frozen at commit a42fc3365d7d4e96a5be146b88870dabc794bbc8. Pinned source revision; branch-tip pseudo-references are forbidden.",
-    "source_revision": "a42fc3365d7d4e96a5be146b88870dabc794bbc8",
-    "source_kind": "git_commit"
+    "commit": "a42fc3365d7d4e96a5be146b88870dabc794bbc8",
+    "description": "Hard static CyberPlayground corpus for frozen; source_revision=commit a42fc3365d7d4e96a5be146b88870dabc794bbc8. Pinned source revision; branch-tip pseudo-references are forbidden.",
+    "repo_url": "https://github.com/cesanta/frozen.git",
+    "source_kind": "git_commit",
+    "source_revision": "a42fc3365d7d4e96a5be146b88870dabc794bbc8"
   },
   "giflib": {
-    "repo_url": "https://sourceforge.net/projects/giflib/files/giflib-5.2.2.tar.gz/download",
-    "commit": "giflib-5.2.2",
     "build_recipe": "giflib",
-    "description": "Hard static CyberPlayground corpus for giflib; source_version=giflib-5.2.2. Pinned source revision; branch-tip pseudo-references are forbidden.",
-    "source_revision": "giflib-5.2.2",
-    "source_kind": "release_archive"
+    "commit": "giflib-5.2.2",
+    "description": "Hard static CyberPlayground corpus for giflib; source_revision=release archive giflib-5.2.2. Pinned source revision; branch-tip pseudo-references are forbidden.",
+    "repo_url": "https://sourceforge.net/projects/giflib/files/giflib-5.2.2.tar.gz/download",
+    "source_kind": "release_archive",
+    "source_revision": "giflib-5.2.2"
   },
   "heatshrink": {
-    "repo_url": "https://github.com/atomicobject/heatshrink.git",
-    "commit": "7d419e1fa4830d0b919b9b6a91fe2fb786cf3280",
     "build_recipe": "heatshrink",
-    "description": "Hard static CyberPlayground corpus for heatshrink; source_version=Local checkout of atomicobject/heatshrink at commit 7d419e1fa4830d0b919b9b6a91fe2fb786cf3280. Pinned source revision; branch-tip pseudo-references are forbidden.",
-    "source_revision": "7d419e1fa4830d0b919b9b6a91fe2fb786cf3280",
-    "source_kind": "git_commit"
+    "commit": "7d419e1fa4830d0b919b9b6a91fe2fb786cf3280",
+    "description": "Hard static CyberPlayground corpus for heatshrink; source_revision=commit 7d419e1fa4830d0b919b9b6a91fe2fb786cf3280. Pinned source revision; branch-tip pseudo-references are forbidden.",
+    "repo_url": "https://github.com/atomicobject/heatshrink.git",
+    "source_kind": "git_commit",
+    "source_revision": "7d419e1fa4830d0b919b9b6a91fe2fb786cf3280"
   },
   "http_parser": {
-    "repo_url": "https://github.com/nodejs/http-parser.git",
-    "commit": "ec8b5ee63f0e51191ea43bb0c6eac7bfbff3141d",
     "build_recipe": "http_parser",
-    "description": "Hard static CyberPlayground corpus for http_parser; source_version=Local checkout of nodejs/http-parser with header version 2.9.4 at commit ec8b5ee63f0e51191ea43bb0c6eac7bfbff3141d. Pinned source revision; branch-tip pseudo-references are forbidden.",
-    "source_revision": "ec8b5ee63f0e51191ea43bb0c6eac7bfbff3141d",
-    "source_kind": "git_commit"
+    "commit": "ec8b5ee63f0e51191ea43bb0c6eac7bfbff3141d",
+    "description": "Hard static CyberPlayground corpus for http_parser; source_revision=commit ec8b5ee63f0e51191ea43bb0c6eac7bfbff3141d; header version 2.9.4. Pinned source revision; branch-tip pseudo-references are forbidden.",
+    "repo_url": "https://github.com/nodejs/http-parser.git",
+    "source_kind": "git_commit",
+    "source_revision": "ec8b5ee63f0e51191ea43bb0c6eac7bfbff3141d"
   },
   "inih": {
-    "repo_url": "https://github.com/benhoyt/inih.git",
-    "commit": "577ae2dee1f0d9c2d11c7f10375c1715f3d6940c",
     "build_recipe": "inih",
-    "description": "Hard static CyberPlayground corpus for inih; source_version=Local checkout of benhoyt/inih at commit 577ae2dee1f0d9c2d11c7f10375c1715f3d6940c. Pinned source revision; branch-tip pseudo-references are forbidden.",
-    "source_revision": "577ae2dee1f0d9c2d11c7f10375c1715f3d6940c",
-    "source_kind": "git_commit"
+    "commit": "577ae2dee1f0d9c2d11c7f10375c1715f3d6940c",
+    "description": "Hard static CyberPlayground corpus for inih; source_revision=commit 577ae2dee1f0d9c2d11c7f10375c1715f3d6940c. Pinned source revision; branch-tip pseudo-references are forbidden.",
+    "repo_url": "https://github.com/benhoyt/inih.git",
+    "source_kind": "git_commit",
+    "source_revision": "577ae2dee1f0d9c2d11c7f10375c1715f3d6940c"
   },
   "iniparser": {
-    "repo_url": "https://github.com/ndevilla/iniparser.git",
-    "commit": "4bef811283e0ec1658c60e09950bd5a1ddc92e4b",
     "build_recipe": "iniparser",
-    "description": "Hard static CyberPlayground corpus for iniparser; source_version=Local checkout 4bef811283e0ec1658c60e09950bd5a1ddc92e4b is tagged v4.2.6 and CMakeLists.txt declares VERSION 4.2.6. Pinned source revision; branch-tip pseudo-references are forbidden.",
-    "source_revision": "4bef811283e0ec1658c60e09950bd5a1ddc92e4b",
-    "source_kind": "git_commit"
+    "commit": "4bef811283e0ec1658c60e09950bd5a1ddc92e4b",
+    "description": "Hard static CyberPlayground corpus for iniparser; source_revision=commit 4bef811283e0ec1658c60e09950bd5a1ddc92e4b; tagged v4.2.6. Pinned source revision; branch-tip pseudo-references are forbidden.",
+    "repo_url": "https://github.com/ndevilla/iniparser.git",
+    "source_kind": "git_commit",
+    "source_revision": "4bef811283e0ec1658c60e09950bd5a1ddc92e4b"
   },
   "jsmn": {
-    "repo_url": "https://github.com/zserge/jsmn.git",
-    "commit": "25647e692c7906b96ffd2b05ca54c097948e879c",
     "build_recipe": "jsmn",
-    "description": "Hard static CyberPlayground corpus for jsmn; source_version=Local checkout of zserge/jsmn at commit 25647e692c7906b96ffd2b05ca54c097948e879c. Pinned source revision; branch-tip pseudo-references are forbidden.",
-    "source_revision": "25647e692c7906b96ffd2b05ca54c097948e879c",
-    "source_kind": "git_commit"
+    "commit": "25647e692c7906b96ffd2b05ca54c097948e879c",
+    "description": "Hard static CyberPlayground corpus for jsmn; source_revision=commit 25647e692c7906b96ffd2b05ca54c097948e879c. Pinned source revision; branch-tip pseudo-references are forbidden.",
+    "repo_url": "https://github.com/zserge/jsmn.git",
+    "source_kind": "git_commit",
+    "source_revision": "25647e692c7906b96ffd2b05ca54c097948e879c"
   },
   "json-c": {
-    "repo_url": "https://github.com/json-c/json-c",
-    "commit": "json-c-0.18-20240915",
     "build_recipe": "json-c",
-    "description": "Hard static CyberPlayground corpus for json-c; source_version=json-c-0.18-20240915. Pinned source revision; branch-tip pseudo-references are forbidden.",
-    "source_revision": "json-c-0.18-20240915",
-    "source_kind": "release_tag"
+    "commit": "json-c-0.18-20240915",
+    "description": "Hard static CyberPlayground corpus for json-c; source_revision=release tag json-c-0.18-20240915 / json-c 0.18 archive. Pinned source revision; branch-tip pseudo-references are forbidden.",
+    "repo_url": "https://github.com/json-c/json-c",
+    "source_kind": "release_tag",
+    "source_revision": "json-c-0.18-20240915"
   },
   "json_parser": {
-    "repo_url": "https://github.com/udp/json-parser.git",
-    "commit": "8ac4477ad3e63dc107e17ad49484edaa17d18d35",
     "build_recipe": "json_parser",
-    "description": "Hard static CyberPlayground corpus for json_parser; source_version=Local checkout of udp/json-parser at commit 8ac4477ad3e63dc107e17ad49484edaa17d18d35. Pinned source revision; branch-tip pseudo-references are forbidden.",
-    "source_revision": "8ac4477ad3e63dc107e17ad49484edaa17d18d35",
-    "source_kind": "git_commit"
+    "commit": "8ac4477ad3e63dc107e17ad49484edaa17d18d35",
+    "description": "Hard static CyberPlayground corpus for json_parser; source_revision=commit 8ac4477ad3e63dc107e17ad49484edaa17d18d35. Pinned source revision; branch-tip pseudo-references are forbidden.",
+    "repo_url": "https://github.com/udp/json-parser.git",
+    "source_kind": "git_commit",
+    "source_revision": "8ac4477ad3e63dc107e17ad49484edaa17d18d35"
   },
   "lcms": {
-    "repo_url": "https://github.com/mm2/Little-CMS.git",
-    "commit": "21c582a594fe5279f90c0b93437c398f93bf62b0",
     "build_recipe": "lcms",
-    "description": "Hard static CyberPlayground corpus for lcms; source_version=Local checkout at tag lcms2.19.1, commit 21c582a594fe5279f90c0b93437c398f93bf62b0. The tree carries the 2.19.1 hot-fix changelog while CMake/configure still report 2.19. Pinned source revision; branch-tip pseudo-references are forbidden.",
-    "source_revision": "21c582a594fe5279f90c0b93437c398f93bf62b0",
-    "source_kind": "git_commit"
+    "commit": "21c582a594fe5279f90c0b93437c398f93bf62b0",
+    "description": "Hard static CyberPlayground corpus for lcms; source_revision=commit 21c582a594fe5279f90c0b93437c398f93bf62b0; tag lcms2.19.1. Pinned source revision; branch-tip pseudo-references are forbidden.",
+    "repo_url": "https://github.com/mm2/Little-CMS.git",
+    "source_kind": "git_commit",
+    "source_revision": "21c582a594fe5279f90c0b93437c398f93bf62b0"
   },
   "libconfini": {
-    "repo_url": "https://github.com/madmurphy/libconfini.git",
-    "commit": "607241689ff0da8b88bb63fb293dc7efa4770f0d",
     "build_recipe": "libconfini",
-    "description": "Hard static CyberPlayground corpus for libconfini; source_version=Local checkout of madmurphy/libconfini at tag 1.16.4, commit 607241689ff0da8b88bb63fb293dc7efa4770f0d. Pinned source revision; branch-tip pseudo-references are forbidden.",
-    "source_revision": "607241689ff0da8b88bb63fb293dc7efa4770f0d",
-    "source_kind": "git_commit"
+    "commit": "607241689ff0da8b88bb63fb293dc7efa4770f0d",
+    "description": "Hard static CyberPlayground corpus for libconfini; source_revision=commit 607241689ff0da8b88bb63fb293dc7efa4770f0d; tag 1.16.4. Pinned source revision; branch-tip pseudo-references are forbidden.",
+    "repo_url": "https://github.com/madmurphy/libconfini.git",
+    "source_kind": "git_commit",
+    "source_revision": "607241689ff0da8b88bb63fb293dc7efa4770f0d"
   },
   "libcsv": {
-    "repo_url": "https://github.com/rgamble/libcsv.git",
-    "commit": "b1d5212831842ee5869d99bc208a21837e4037d5",
     "build_recipe": "libcsv",
-    "description": "Hard static CyberPlayground corpus for libcsv; source_version=Local checkout b1d5212831842ee5869d99bc208a21837e4037d5 declares VERSION 3.0.3 in libcsv.c and CSV_MAJOR 3, CSV_MINOR 0, CSV_RELEASE 3 in csv.h; GitHub releases/latest returns 404 for this repository. Pinned source revision; branch-tip pseudo-references are forbidden.",
-    "source_revision": "b1d5212831842ee5869d99bc208a21837e4037d5",
-    "source_kind": "git_commit"
+    "commit": "b1d5212831842ee5869d99bc208a21837e4037d5",
+    "description": "Hard static CyberPlayground corpus for libcsv; source_revision=commit b1d5212831842ee5869d99bc208a21837e4037d5; source declares 3.0.3. Pinned source revision; branch-tip pseudo-references are forbidden.",
+    "repo_url": "https://github.com/rgamble/libcsv.git",
+    "source_kind": "git_commit",
+    "source_revision": "b1d5212831842ee5869d99bc208a21837e4037d5"
   },
   "libpng": {
-    "repo_url": "https://sourceforge.net/projects/libpng/files/libpng16/1.6.58/libpng-1.6.58.tar.gz/download",
-    "commit": "v1.6.58",
     "build_recipe": "libpng",
-    "description": "Hard static CyberPlayground corpus for libpng; source_version=v1.6.58. Pinned source revision; branch-tip pseudo-references are forbidden.",
-    "source_revision": "v1.6.58",
-    "source_kind": "release_tag"
+    "commit": "v1.6.58",
+    "description": "Hard static CyberPlayground corpus for libpng; source_revision=release tag/archive v1.6.58. Pinned source revision; branch-tip pseudo-references are forbidden.",
+    "repo_url": "https://sourceforge.net/projects/libpng/files/libpng16/1.6.58/libpng-1.6.58.tar.gz/download",
+    "source_kind": "release_tag",
+    "source_revision": "v1.6.58"
   },
   "libtiff": {
-    "repo_url": "https://gitlab.com/libtiff/libtiff",
-    "commit": "v4.7.1",
     "build_recipe": "libtiff",
-    "description": "Hard static CyberPlayground corpus for libtiff; source_version=v4.7.1. Pinned source revision; branch-tip pseudo-references are forbidden.",
-    "source_revision": "v4.7.1",
-    "source_kind": "release_tag"
+    "commit": "v4.7.1",
+    "description": "Hard static CyberPlayground corpus for libtiff; source_revision=release tag/archive v4.7.1. Pinned source revision; branch-tip pseudo-references are forbidden.",
+    "repo_url": "https://gitlab.com/libtiff/libtiff",
+    "source_kind": "release_tag",
+    "source_revision": "v4.7.1"
   },
   "libucl": {
-    "repo_url": "https://github.com/vstakhov/libucl",
-    "commit": "0.9.4",
     "build_recipe": "libucl",
-    "description": "Hard static CyberPlayground corpus for libucl; source_version=0.9.4. Pinned source revision; branch-tip pseudo-references are forbidden.",
-    "source_revision": "0.9.4",
-    "source_kind": "release_tag"
+    "commit": "0.9.4",
+    "description": "Hard static CyberPlayground corpus for libucl; source_revision=release tag/archive 0.9.4. Pinned source revision; branch-tip pseudo-references are forbidden.",
+    "repo_url": "https://github.com/vstakhov/libucl",
+    "source_kind": "release_tag",
+    "source_revision": "0.9.4"
   },
   "libxml2": {
-    "repo_url": "https://gitlab.gnome.org/GNOME/libxml2",
-    "commit": "v2.15.3",
     "build_recipe": "libxml2",
-    "description": "Hard static CyberPlayground corpus for libxml2; source_version=v2.15.3. Pinned source revision; branch-tip pseudo-references are forbidden.",
-    "source_revision": "v2.15.3",
-    "source_kind": "release_tag"
+    "commit": "v2.15.3",
+    "description": "Hard static CyberPlayground corpus for libxml2; source_revision=release tag/archive v2.15.3. Pinned source revision; branch-tip pseudo-references are forbidden.",
+    "repo_url": "https://gitlab.gnome.org/GNOME/libxml2",
+    "source_kind": "release_tag",
+    "source_revision": "v2.15.3"
   },
   "lua": {
-    "repo_url": "https://www.lua.org/ftp/",
-    "commit": "lua-5.5.0",
     "build_recipe": "lua",
-    "description": "Hard static CyberPlayground corpus for lua; source_version=lua-5.5.0. Pinned source revision; branch-tip pseudo-references are forbidden.",
-    "source_revision": "lua-5.5.0",
-    "source_kind": "release_archive"
+    "commit": "lua-5.5.0",
+    "description": "Hard static CyberPlayground corpus for lua; source_revision=release archive lua-5.5.0. Pinned source revision; branch-tip pseudo-references are forbidden.",
+    "repo_url": "https://www.lua.org/ftp/",
+    "source_kind": "release_archive",
+    "source_revision": "lua-5.5.0"
   },
   "lz4": {
-    "repo_url": "https://github.com/lz4/lz4",
-    "commit": "v1.10.0",
     "build_recipe": "lz4",
-    "description": "Hard static CyberPlayground corpus for lz4; source_version=v1.10.0. Pinned source revision; branch-tip pseudo-references are forbidden.",
-    "source_revision": "v1.10.0",
-    "source_kind": "release_tag"
+    "commit": "v1.10.0",
+    "description": "Hard static CyberPlayground corpus for lz4; source_revision=release tag/archive v1.10.0. Pinned source revision; branch-tip pseudo-references are forbidden.",
+    "repo_url": "https://github.com/lz4/lz4",
+    "source_kind": "release_tag",
+    "source_revision": "v1.10.0"
   },
   "md4c": {
-    "repo_url": "https://github.com/mity/md4c.git",
-    "commit": "81b871f917ec97b94322f3890fc12f0657ed3d94",
     "build_recipe": "md4c",
-    "description": "Hard static CyberPlayground corpus for md4c; source_version=Local checkout 81b871f917ec97b94322f3890fc12f0657ed3d94 declares project version 0.5.3 in CMakeLists.txt. Pinned source revision; branch-tip pseudo-references are forbidden.",
-    "source_revision": "81b871f917ec97b94322f3890fc12f0657ed3d94",
-    "source_kind": "git_commit"
+    "commit": "81b871f917ec97b94322f3890fc12f0657ed3d94",
+    "description": "Hard static CyberPlayground corpus for md4c; source_revision=commit 81b871f917ec97b94322f3890fc12f0657ed3d94; CMake version 0.5.3. Pinned source revision; branch-tip pseudo-references are forbidden.",
+    "repo_url": "https://github.com/mity/md4c.git",
+    "source_kind": "git_commit",
+    "source_revision": "81b871f917ec97b94322f3890fc12f0657ed3d94"
   },
   "miniz": {
-    "repo_url": "https://github.com/richgel999/miniz.git",
-    "commit": "5cf1e56a9c968c11fdd1a6414f3a95f84314c437",
     "build_recipe": "miniz",
-    "description": "Hard static CyberPlayground corpus for miniz; source_version=Local checkout 5cf1e56a9c968c11fdd1a6414f3a95f84314c437 declares MINIZ_VERSION 3.1.1 in CMakeLists.txt. Pinned source revision; branch-tip pseudo-references are forbidden.",
-    "source_revision": "5cf1e56a9c968c11fdd1a6414f3a95f84314c437",
-    "source_kind": "git_commit"
+    "commit": "5cf1e56a9c968c11fdd1a6414f3a95f84314c437",
+    "description": "Hard static CyberPlayground corpus for miniz; source_revision=commit 5cf1e56a9c968c11fdd1a6414f3a95f84314c437; CMake MINIZ_VERSION 3.1.1. Pinned source revision; branch-tip pseudo-references are forbidden.",
+    "repo_url": "https://github.com/richgel999/miniz.git",
+    "source_kind": "git_commit",
+    "source_revision": "5cf1e56a9c968c11fdd1a6414f3a95f84314c437"
   },
   "mjson": {
-    "repo_url": "https://github.com/cesanta/mjson.git",
-    "commit": "1.2.7",
     "build_recipe": "mjson",
-    "description": "Hard static CyberPlayground corpus for mjson; source_version=GitHub releases API reports latest release tag 1.2.7; source was downloaded from the 1.2.7 tarball, extracted as cesanta-mjson-032a2ea. Pinned source revision; branch-tip pseudo-references are forbidden.",
-    "source_revision": "1.2.7",
-    "source_kind": "release_tag"
+    "commit": "1.2.7",
+    "description": "Hard static CyberPlayground corpus for mjson; source_revision=release tag/archive 1.2.7; extracted tree cesanta-mjson-032a2ea. Pinned source revision; branch-tip pseudo-references are forbidden.",
+    "repo_url": "https://github.com/cesanta/mjson.git",
+    "source_kind": "release_tag",
+    "source_revision": "1.2.7"
   },
   "nanosvg": {
-    "repo_url": "https://github.com/memononen/nanosvg.git",
-    "commit": "5cefd9847949af6df13f65027fd43af5a7513633",
     "build_recipe": "nanosvg",
-    "description": "Hard static CyberPlayground corpus for nanosvg; source_version=Local checkout of memononen/nanosvg at commit 5cefd9847949af6df13f65027fd43af5a7513633. Pinned source revision; branch-tip pseudo-references are forbidden.",
-    "source_revision": "5cefd9847949af6df13f65027fd43af5a7513633",
-    "source_kind": "git_commit"
+    "commit": "5cefd9847949af6df13f65027fd43af5a7513633",
+    "description": "Hard static CyberPlayground corpus for nanosvg; source_revision=commit 5cefd9847949af6df13f65027fd43af5a7513633. Pinned source revision; branch-tip pseudo-references are forbidden.",
+    "repo_url": "https://github.com/memononen/nanosvg.git",
+    "source_kind": "git_commit",
+    "source_revision": "5cefd9847949af6df13f65027fd43af5a7513633"
   },
   "oniguruma": {
-    "repo_url": "https://github.com/kkos/oniguruma",
-    "commit": "v6.9.10",
     "build_recipe": "oniguruma",
-    "description": "Hard static CyberPlayground corpus for oniguruma; source_version=v6.9.10. Pinned source revision; branch-tip pseudo-references are forbidden.",
-    "source_revision": "v6.9.10",
-    "source_kind": "release_tag"
+    "commit": "v6.9.10",
+    "description": "Hard static CyberPlayground corpus for oniguruma; source_revision=release tag/archive v6.9.10. Pinned source revision; branch-tip pseudo-references are forbidden.",
+    "repo_url": "https://github.com/kkos/oniguruma",
+    "source_kind": "release_tag",
+    "source_revision": "v6.9.10"
   },
   "parson": {
-    "repo_url": "https://github.com/kgabis/parson.git",
-    "commit": "ba29f4eda9ea7703a9f6a9cf2b0532a2605723c3",
     "build_recipe": "parson",
-    "description": "Hard static CyberPlayground corpus for parson; source_version=Local checkout ba29f4eda9ea7703a9f6a9cf2b0532a2605723c3 declares PARSON_VERSION_STRING 1.5.3 in parson.h, PARSON_VERSION 1.5.3 in CMakeLists.txt, and package.json version 1.5.3. Pinned source revision; branch-tip pseudo-references are forbidden.",
-    "source_revision": "ba29f4eda9ea7703a9f6a9cf2b0532a2605723c3",
-    "source_kind": "git_commit"
+    "commit": "ba29f4eda9ea7703a9f6a9cf2b0532a2605723c3",
+    "description": "Hard static CyberPlayground corpus for parson; source_revision=commit ba29f4eda9ea7703a9f6a9cf2b0532a2605723c3; declares 1.5.3. Pinned source revision; branch-tip pseudo-references are forbidden.",
+    "repo_url": "https://github.com/kgabis/parson.git",
+    "source_kind": "git_commit",
+    "source_revision": "ba29f4eda9ea7703a9f6a9cf2b0532a2605723c3"
   },
   "pcre2": {
-    "repo_url": "https://github.com/PCRE2Project/pcre2",
-    "commit": "pcre2-10.47",
     "build_recipe": "pcre2",
-    "description": "Hard static CyberPlayground corpus for pcre2; source_version=pcre2-10.47. Pinned source revision; branch-tip pseudo-references are forbidden.",
-    "source_revision": "pcre2-10.47",
-    "source_kind": "release_tag"
+    "commit": "pcre2-10.47",
+    "description": "Hard static CyberPlayground corpus for pcre2; source_revision=release tag/archive pcre2-10.47. Pinned source revision; branch-tip pseudo-references are forbidden.",
+    "repo_url": "https://github.com/PCRE2Project/pcre2",
+    "source_kind": "release_tag",
+    "source_revision": "pcre2-10.47"
   },
   "slre": {
-    "repo_url": "https://github.com/cesanta/slre.git",
-    "commit": "9075c67cad47d62ba4a4f8f452ae46bb21124f7b",
     "build_recipe": "slre",
-    "description": "Hard static CyberPlayground corpus for slre; source_version=Local checkout of cesanta/slre at commit 9075c67cad47d62ba4a4f8f452ae46bb21124f7b. Pinned source revision; branch-tip pseudo-references are forbidden.",
-    "source_revision": "9075c67cad47d62ba4a4f8f452ae46bb21124f7b",
-    "source_kind": "git_commit"
+    "commit": "9075c67cad47d62ba4a4f8f452ae46bb21124f7b",
+    "description": "Hard static CyberPlayground corpus for slre; source_revision=commit 9075c67cad47d62ba4a4f8f452ae46bb21124f7b. Pinned source revision; branch-tip pseudo-references are forbidden.",
+    "repo_url": "https://github.com/cesanta/slre.git",
+    "source_kind": "git_commit",
+    "source_revision": "9075c67cad47d62ba4a4f8f452ae46bb21124f7b"
   },
   "stb": {
-    "repo_url": "https://github.com/nothings/stb.git",
-    "commit": "31c1ad37456438565541f4919958214b6e762fb4",
     "build_recipe": "stb_image",
-    "description": "Hard static CyberPlayground corpus for stb; source_version=Local checkout of nothings/stb at commit 31c1ad37456438565541f4919958214b6e762fb4; the project is distributed as single-file libraries and this batch records the exact latest-source checkout used for static audit. Pinned source revision; branch-tip pseudo-references are forbidden.",
-    "source_revision": "31c1ad37456438565541f4919958214b6e762fb4",
-    "source_kind": "git_commit"
+    "commit": "31c1ad37456438565541f4919958214b6e762fb4",
+    "description": "Hard static CyberPlayground corpus for stb; source_revision=commit 31c1ad37456438565541f4919958214b6e762fb4. Pinned source revision; branch-tip pseudo-references are forbidden.",
+    "repo_url": "https://github.com/nothings/stb.git",
+    "source_kind": "git_commit",
+    "source_revision": "31c1ad37456438565541f4919958214b6e762fb4"
   },
   "tomlc99": {
-    "repo_url": "https://github.com/cktan/tomlc99.git",
-    "commit": "29076dfd095bbbbd50a3c1b2760d29f4b83e74ac",
     "build_recipe": "tomlc99",
-    "description": "Hard static CyberPlayground corpus for tomlc99; source_version=local checkout 29076dfd095bbbbd50a3c1b2760d29f4b83e74ac; Makefile LIB_VERSION=1.0. Pinned source revision; branch-tip pseudo-references are forbidden.",
-    "source_revision": "29076dfd095bbbbd50a3c1b2760d29f4b83e74ac",
-    "source_kind": "git_commit"
+    "commit": "29076dfd095bbbbd50a3c1b2760d29f4b83e74ac",
+    "description": "Hard static CyberPlayground corpus for tomlc99; source_revision=commit 29076dfd095bbbbd50a3c1b2760d29f4b83e74ac; Makefile LIB_VERSION=1.0. Pinned source revision; branch-tip pseudo-references are forbidden.",
+    "repo_url": "https://github.com/cktan/tomlc99.git",
+    "source_kind": "git_commit",
+    "source_revision": "29076dfd095bbbbd50a3c1b2760d29f4b83e74ac"
   },
   "utf8proc": {
-    "repo_url": "https://github.com/JuliaStrings/utf8proc.git",
-    "commit": "b3e0f28adaec943ac25e3e27514dd6037e7a022e",
     "build_recipe": "utf8proc",
-    "description": "Hard static CyberPlayground corpus for utf8proc; source_version=Local checkout of JuliaStrings/utf8proc at commit b3e0f28adaec943ac25e3e27514dd6037e7a022e. Pinned source revision; branch-tip pseudo-references are forbidden.",
-    "source_revision": "b3e0f28adaec943ac25e3e27514dd6037e7a022e",
-    "source_kind": "git_commit"
+    "commit": "b3e0f28adaec943ac25e3e27514dd6037e7a022e",
+    "description": "Hard static CyberPlayground corpus for utf8proc; source_revision=commit b3e0f28adaec943ac25e3e27514dd6037e7a022e. Pinned source revision; branch-tip pseudo-references are forbidden.",
+    "repo_url": "https://github.com/JuliaStrings/utf8proc.git",
+    "source_kind": "git_commit",
+    "source_revision": "b3e0f28adaec943ac25e3e27514dd6037e7a022e"
   },
   "yyjson": {
-    "repo_url": "https://github.com/ibireme/yyjson.git",
-    "commit": "f0fbeae7cc40218fd1af310391cdf83cfc1abff1",
     "build_recipe": "yyjson",
-    "description": "Hard static CyberPlayground corpus for yyjson; source_version=GitHub release 0.12.0; local checkout f0fbeae7cc40218fd1af310391cdf83cfc1abff1 reports version 0.12.0. Pinned source revision; branch-tip pseudo-references are forbidden.",
-    "source_revision": "f0fbeae7cc40218fd1af310391cdf83cfc1abff1",
-    "source_kind": "git_commit"
+    "commit": "f0fbeae7cc40218fd1af310391cdf83cfc1abff1",
+    "description": "Hard static CyberPlayground corpus for yyjson; source_revision=commit f0fbeae7cc40218fd1af310391cdf83cfc1abff1; source reports 0.12.0. Pinned source revision; branch-tip pseudo-references are forbidden.",
+    "repo_url": "https://github.com/ibireme/yyjson.git",
+    "source_kind": "git_commit",
+    "source_revision": "f0fbeae7cc40218fd1af310391cdf83cfc1abff1"
   },
   "zlib": {
-    "repo_url": "https://github.com/madler/zlib/releases/download/v1.3.2/zlib-1.3.2.tar.xz",
-    "commit": "v1.3.2",
     "build_recipe": "zlib",
-    "description": "Hard static CyberPlayground corpus for zlib; source_version=v1.3.2. Pinned source revision; branch-tip pseudo-references are forbidden.",
-    "source_revision": "v1.3.2",
-    "source_kind": "release_tag"
+    "commit": "v1.3.2",
+    "description": "Hard static CyberPlayground corpus for zlib; source_revision=release tag/archive v1.3.2. Pinned source revision; branch-tip pseudo-references are forbidden.",
+    "repo_url": "https://github.com/madler/zlib/releases/download/v1.3.2/zlib-1.3.2.tar.xz",
+    "source_kind": "release_tag",
+    "source_revision": "v1.3.2"
   },
   "zstd": {
-    "repo_url": "https://github.com/facebook/zstd",
-    "commit": "v1.5.7",
     "build_recipe": "zstd",
-    "description": "Hard static CyberPlayground corpus for zstd; source_version=v1.5.7. Pinned source revision; branch-tip pseudo-references are forbidden.",
-    "source_revision": "v1.5.7",
-    "source_kind": "release_tag"
+    "commit": "v1.5.7",
+    "description": "Hard static CyberPlayground corpus for zstd; source_revision=release tag/archive v1.5.7. Pinned source revision; branch-tip pseudo-references are forbidden.",
+    "repo_url": "https://github.com/facebook/zstd",
+    "source_kind": "release_tag",
+    "source_revision": "v1.5.7"
   }
 }
