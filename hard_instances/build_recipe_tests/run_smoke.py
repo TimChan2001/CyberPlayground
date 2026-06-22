@@ -113,7 +113,7 @@ SOURCE_REVISIONS: dict[str, dict[str, str]] = {
     "tomlc99": {"kind": "git_commit", "revision": "29076dfd095bbbbd50a3c1b2760d29f4b83e74ac"},
     "utf8proc": {"kind": "git_commit", "revision": "b3e0f28adaec943ac25e3e27514dd6037e7a022e"},
     "yyjson": {"kind": "git_commit", "revision": "f0fbeae7cc40218fd1af310391cdf83cfc1abff1"},
-    "zlib": {"kind": "release_tag", "revision": "v1.3.2"},
+    "zlib": {"kind": "git_commit", "revision": "da607da739fa6047df13e66a2af6b8bec7c2a498"},
     "zstd": {"kind": "release_tag", "revision": "v1.5.7"},
 }
 

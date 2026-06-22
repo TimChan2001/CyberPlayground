@@ -305,11 +305,11 @@
   },
   "zlib": {
     "build_recipe": "zlib",
-    "commit": "v1.3.2",
-    "description": "Hard static CyberPlayground corpus for zlib; source_revision=release tag/archive v1.3.2. Pinned source revision; branch-tip pseudo-references are forbidden.",
-    "repo_url": "https://github.com/madler/zlib/releases/download/v1.3.2/zlib-1.3.2.tar.xz",
-    "source_kind": "release_tag",
-    "source_revision": "v1.3.2"
+    "commit": "da607da739fa6047df13e66a2af6b8bec7c2a498",
+    "description": "Hard static CyberPlayground corpus for zlib; source_revision=commit da607da739fa6047df13e66a2af6b8bec7c2a498 (release tag v1.3.2, tag object 216c70c020aa53f0c40920d155f808b6b59c9acb). Pinned source revision; branch-tip pseudo-references are forbidden.",
+    "repo_url": "https://github.com/madler/zlib.git",
+    "source_kind": "git_commit",
+    "source_revision": "da607da739fa6047df13e66a2af6b8bec7c2a498"
   },
   "zstd": {
     "build_recipe": "zstd",

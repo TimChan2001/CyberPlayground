@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # CyberPlayground source revisions:
-#   hard_instances/zlib: https://github.com/madler/zlib/releases/download/v1.3.2/zlib-1.3.2.tar.xz @ release_tag v1.3.2
+#   hard_instances/zlib: https://github.com/madler/zlib.git @ git_commit da607da739fa6047df13e66a2af6b8bec7c2a498
 # Branch-tip source references are forbidden.
 set -euo pipefail
 
