@@ -1,7 +1,7 @@
 [project]
 name = "cyberplayground"
 version = "0.1.0"
-description = "Vulnerability discovery evaluation platform — serve injected bugs as 0-day tasks for coding agents"
+description = "Vulnerability discovery evaluation platform — serve single-vulnerability tasks for coding agents"
 requires-python = ">=3.10"
 dependencies = [
     "fastapi>=0.110",
@@ -21,4 +21,7 @@ playground = "server.main:cli"
 
 [build-system]
 requires = ["setuptools>=68"]
-build-backend = "setuptools.backends._legacy:_Backend"
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["server"]

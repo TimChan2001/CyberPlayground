@@ -2,9 +2,9 @@
 
 Task lifecycle:
   1. POST /tasks/request     → ASSIGNED (agent gets source_dir only)
-  2. POST /tasks/{id}/identify → agent reports all findings
+  2. POST /tasks/{id}/identify → agent reports candidate findings
      → IDENTIFIED (fix revealed) or IDENTIFICATION_FAILED
-  3. POST /tasks/{id}/submit   → agent submits PoC + harness
+  3. POST /tasks/{id}/submit   → agent submits PoC + harness after IDENTIFIED
      → VERIFIED or EXPLOIT_FAILED
 """
 
@@ -57,7 +57,7 @@ scorer: Scorer
 
 DATA_DIR = Path(__file__).resolve().parent.parent
 INSTANCES_DIR = DATA_DIR / "instances"
-PROJECTS_FILE = DATA_DIR / "instances" / "projects.json"
+HARD_INSTANCES_DIR = DATA_DIR / "hard_instances" / "playground_compatible"
 RECIPES_DIR = DATA_DIR / "build_recipes"
 COMMON_DIR = DATA_DIR / "common"
 DB_PATH = DATA_DIR / "playground.db"
@@ -66,6 +66,28 @@ WORKSPACES_DIR = Path(os.environ.get(
     "PLAYGROUND_WORKSPACES", "/tmp/cyberplayground-workspaces"))
 INTERNAL_DIR = Path(os.environ.get(
     "PLAYGROUND_INTERNAL", "/tmp/cyberplayground-internal"))
+
+
+def _resolve_instance_dirs() -> list[Path]:
+    """Return configured corpus directories in load order.
+
+    The production Argus service-verifier path assigns tasks by explicit
+    instance_id. Loading the hard-compatible corpus alongside the base corpus
+    lets one CyberPlayground server serve both base and hard TaskSuites.
+    Operators can pin a narrower corpus with PLAYGROUND_INSTANCE_DIRS.
+    """
+    raw = os.environ.get("PLAYGROUND_INSTANCE_DIRS", "").strip()
+    if raw:
+        dirs: list[Path] = []
+        for part in raw.replace(",", os.pathsep).split(os.pathsep):
+            item = part.strip()
+            if not item:
+                continue
+            path = Path(item).expanduser()
+            dirs.append(path if path.is_absolute() else DATA_DIR / path)
+        return dirs
+
+    return [INSTANCES_DIR, HARD_INSTANCES_DIR]
 
 
 @asynccontextmanager
@@ -82,13 +104,23 @@ async def lifespan(app: FastAPI):
     logger.info("CyberPlayground starting")
     logger.info("=" * 60)
 
-    if PROJECTS_FILE.exists():
-        registry.load_projects(PROJECTS_FILE)
-    if INSTANCES_DIR.exists():
-        registry.load_instances_dir(INSTANCES_DIR)
+    loaded_dirs: list[Path] = []
+    for instances_dir in _resolve_instance_dirs():
+        projects_file = instances_dir / "projects.json"
+        if projects_file.exists():
+            registry.load_projects(projects_file)
+        else:
+            logger.warning("projects metadata missing: %s", projects_file)
+        if instances_dir.exists():
+            registry.load_instances_dir(instances_dir)
+            loaded_dirs.append(instances_dir)
+        else:
+            logger.warning("instances directory missing: %s", instances_dir)
     logger.info("registry: %d instances across %d projects",
                 registry.instance_count,
                 len(registry.projects()))
+    logger.info("instance dirs: %s",
+                ", ".join(str(p) for p in loaded_dirs) or "(none)")
 
     db = Database(DB_PATH)
     await db.connect()
@@ -262,7 +294,7 @@ async def get_hint(task_id: str, tier: HintTier):
         raise HTTPException(404, "task not found")
 
     # enforce tier ceiling — agent can only access hints up to assigned tier
-    tier_order = {"T0": 0, "T1": 1, "T3": 2}
+    tier_order = {"T0": 0, "T1": 1, "T2": 2}
     assigned = tier_order.get(detail.tier.value, 0)
     requested = tier_order.get(tier.value, 0)
     if requested > assigned:
@@ -385,6 +417,9 @@ async def identify_bugs(task_id: str, req: IdentifyRequest):
                 else TaskStatus.IDENTIFICATION_FAILED),
         total_findings=len(req.findings),
         matched_finding=matched_index,
+        matched_finding_detail=(
+            req.findings[matched_index] if matched_index is not None else None
+        ),
         judgements=judgements,
     )
 
@@ -492,9 +527,13 @@ async def ground_truth(task_id: str):
     detail = await db.get_task(task_id)
     if not detail:
         raise HTTPException(404, "task not found")
-    if detail.status in (TaskStatus.ASSIGNED,):
+    if detail.status not in (
+        TaskStatus.IDENTIFIED,
+        TaskStatus.VERIFIED,
+        TaskStatus.EXPLOIT_FAILED,
+    ):
         raise HTTPException(
-            400, "identify bugs before viewing ground truth")
+            400, "identify the vulnerability before viewing ground truth")
     instance = registry.get(detail.instance_id)
     if not instance:
         raise HTTPException(500, "instance not found")

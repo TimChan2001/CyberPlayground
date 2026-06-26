@@ -175,7 +175,7 @@ def main():
     parser.add_argument("--agents", type=int, default=1,
                         help="Number of parallel agent loops")
     parser.add_argument("--project", default=None)
-    parser.add_argument("--tier", default="T0", choices=["T0", "T1", "T3"])
+    parser.add_argument("--tier", default="T0", choices=["T0", "T1", "T2"])
     parser.add_argument("--agent-cmd", default="claude --auto")
     parser.add_argument("--timeout", type=int, default=600,
                         help="Per-task timeout in seconds")

@@ -25,8 +25,8 @@ curl http://localhost:8000/health
 │                    Agent                             │
 │  1. POST /tasks/request → get task + hint           │
 │  2. Read source in workspace, audit code            │
-│  3. Write harness.c, build with recipe              │
-│  4. Craft PoC input                                 │
+│  3. POST /tasks/{id}/identify → confirm candidate   │
+│  4. After IDENTIFIED: submit harness.c + PoC         │
 │  5. POST /tasks/{id}/submit → {poc, harness}        │
 └────────────────────┬────────────────────────────────┘
                      │ REST API
@@ -51,8 +51,9 @@ curl http://localhost:8000/health
 | GET | /tasks/{id} | Get task status and details |
 | GET | /tasks/{id}/hint/{tier} | Get hint at specific tier |
 | GET | /tasks/{id}/workspace | Get workspace directory paths |
+| POST | /tasks/{id}/identify | Report candidate findings; one match unlocks submission |
 | POST | /tasks/{id}/submit | Submit PoC + harness for verification |
-| GET | /tasks/{id}/ground_truth | Reveal actual bug (post-submission) |
+| GET | /tasks/{id}/ground_truth | Reveal actual bug (post-identification) |
 | GET | /scoreboard | Aggregate agent performance |
 | GET | /build_recipes/{name} | Download build recipe script |
 | GET | /tasks | List all tasks (filter by agent/project/status) |
@@ -63,7 +64,7 @@ curl http://localhost:8000/health
 |------|-------------------|-----------|
 | T0 | "This project has a memory safety bug" | Blind audit |
 | T1 | Bug subsystem/area + crash type | Vague advisory |
-| T3 | Exact file + line + explanation | Full disclosure |
+| T2 | Exact file + line + explanation | Full disclosure |
 
 ## Scoring
 
@@ -129,7 +130,20 @@ resp = client.post("/tasks/request", json={
 })
 task = resp.json()
 
-# ... agent does its work, produces harness.c and poc ...
+# ... agent audits source and calls /identify with candidate findings ...
+identified = client.post(f"/tasks/{task['task_id']}/identify", json={
+    "findings": [
+        {
+            "file": "src/parser.c",
+            "line": 100,
+            "description": "candidate memory-safety root cause",
+            "bug_type": "heap-buffer-overflow",
+        }
+    ]
+})
+assert identified.json()["status"] == "identified"
+
+# ... after status="identified", agent finalizes harness.c and poc for submission ...
 
 # Submit
 with open("harness.c", "rb") as f:

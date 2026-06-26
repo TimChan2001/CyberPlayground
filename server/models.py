@@ -21,7 +21,14 @@ from pydantic import BaseModel, Field
 class HintTier(str, enum.Enum):
     T0 = "T0"
     T1 = "T1"
-    T3 = "T3"
+    T2 = "T2"
+
+    @classmethod
+    def _missing_(cls, value):
+        # Backward compatibility for queued tasks and older clients.
+        if value == "T3":
+            return cls.T2
+        return None
 
 
 class TaskStatus(str, enum.Enum):
@@ -47,7 +54,7 @@ class IdentifyResult(str, enum.Enum):
 
 
 # ---------------------------------------------------------------------------
-# Instance — a single injected bug (immutable, loaded from JSON manifests)
+# Instance — a single benchmark vulnerability (immutable, loaded from manifests)
 # ---------------------------------------------------------------------------
 
 class InjectionDiff(BaseModel):
@@ -60,7 +67,7 @@ class InjectionDiff(BaseModel):
 class HintData(BaseModel):
     T0: str = ""
     T1: str = ""
-    T3: str = ""
+    T2: str = ""
 
 
 class Instance(BaseModel):
@@ -111,6 +118,7 @@ class IdentifyResponse(BaseModel):
     status: TaskStatus
     total_findings: int
     matched_finding: Optional[int] = None
+    matched_finding_detail: Optional[BugFinding] = None
     judgements: list[FindingJudgement] = Field(default_factory=list)
     fix_source_dir: Optional[str] = None
 

@@ -1,4 +1,4 @@
-"""LLM judge — evaluates whether agent findings match the injected bug.
+"""LLM judge — evaluates whether agent findings match the target bug.
 
 Uses OpenAI-compatible chat completions API (default: BigModel GLM-5.1).
 """
@@ -27,9 +27,9 @@ DEFAULT_MODEL = "glm-5.1"
 
 JUDGE_SYSTEM = """\
 You are a security vulnerability judge. You compare an agent's bug report \
-against a known ground-truth vulnerability injection.
+against a known ground-truth vulnerability.
 
-Ground truth injection:
+Ground truth:
 - File: {file}
 - Line: {line}
 - Original code: {before}
@@ -48,7 +48,7 @@ For each agent finding, determine:
 Respond with ONLY a JSON array, one object per finding:
 [{{"index": 0, "result": "match"|"partial"|"no_match", "confidence": 0.0-1.0, "explanation": "..."}}]
 
-Be strict: a "match" means the agent genuinely found the injected bug, not just \
+Be strict: a "match" means the agent genuinely found the target bug, not just \
 any bug in the same file. But don't require the exact line number — if the agent \
 describes the right logical issue in the right function, that's a match.\
 """
@@ -88,8 +88,8 @@ async def judge_findings(
         return _heuristic_judge(instance, findings)
 
     explanation = ""
-    if hasattr(instance, "hints") and instance.hints.T3:
-        explanation = instance.hints.T3
+    if hasattr(instance, "hints") and instance.hints.T2:
+        explanation = instance.hints.T2
 
     system_msg = JUDGE_SYSTEM.format(
         file=instance.diff.file,

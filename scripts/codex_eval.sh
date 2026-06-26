@@ -17,7 +17,7 @@ usage() {
 Usage:
   scripts/codex_eval.sh doctor
   scripts/codex_eval.sh sample [sample_instances.py options]
-  scripts/codex_eval.sh queue <agent_id> [--tier T0|T1|T3] [--project NAME] [--ids-file FILE]
+  scripts/codex_eval.sh queue <agent_id> [--tier T0|T1|T2] [--project NAME] [--ids-file FILE]
   scripts/codex_eval.sh start <agent_id> [--timeout SEC] [--result-wait SEC] [--sandbox NAME]
   scripts/codex_eval.sh status <agent_id>
   scripts/codex_eval.sh report <agent_id>
