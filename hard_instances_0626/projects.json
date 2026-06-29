@@ -1,0 +1,232 @@
+{
+  "brotli": {
+    "repo_url": "https://github.com/google/brotli.git",
+    "commit": "af041f55e7bfa3e1bc502f234538e1d6dd6282bd",
+    "build_recipe": "brotli"
+  },
+  "cgltf": {
+    "repo_url": "https://github.com/jkuhlmann/cgltf.git",
+    "commit": "85cd62382dfea638278962690cf515023f33ed00",
+    "build_recipe": "cgltf"
+  },
+  "cjson": {
+    "repo_url": "https://github.com/DaveGamble/cJSON",
+    "commit": "c859b25da02955fef659d658b8f324b5cde87be3",
+    "build_recipe": "cjson"
+  },
+  "cmark": {
+    "repo_url": "https://github.com/commonmark/cmark.git",
+    "commit": "a6b6b99a0345ddac35b23fb60270e724f2a3ab18",
+    "build_recipe": "cmark"
+  },
+  "dr_flac": {
+    "repo_url": "https://github.com/mackron/dr_libs.git",
+    "commit": "243e26ffa08a24dc8ae2e7a8c57123d9e504690c",
+    "build_recipe": "dr_flac"
+  },
+  "dr_mp3": {
+    "repo_url": "https://github.com/mackron/dr_libs.git",
+    "commit": "243e26ffa08a24dc8ae2e7a8c57123d9e504690c",
+    "build_recipe": "dr_mp3"
+  },
+  "dr_wav": {
+    "repo_url": "https://github.com/mackron/dr_libs.git",
+    "commit": "243e26ffa08a24dc8ae2e7a8c57123d9e504690c",
+    "build_recipe": "dr_wav"
+  },
+  "expat": {
+    "repo_url": "https://github.com/libexpat/libexpat",
+    "commit": "R_2_8_1",
+    "build_recipe": "expat"
+  },
+  "ezxml": {
+    "repo_url": "https://github.com/lxfontes/ezxml.git",
+    "commit": "dcb17484da2591e42c739598729fe5bdf687cca6",
+    "build_recipe": "ezxml"
+  },
+  "flac": {
+    "repo_url": "https://github.com/xiph/flac.git",
+    "commit": "b430c3a58b64b70642ab5c72c36084dd4083d165",
+    "build_recipe": "flac"
+  },
+  "freetype": {
+    "repo_url": "https://gitlab.freedesktop.org/freetype/freetype",
+    "commit": "VER-2-14-3",
+    "build_recipe": "freetype"
+  },
+  "frozen": {
+    "repo_url": "https://github.com/cesanta/frozen.git",
+    "commit": "a42fc3365d7d4e96a5be146b88870dabc794bbc8",
+    "build_recipe": "frozen"
+  },
+  "giflib": {
+    "repo_url": "https://sourceforge.net/projects/giflib/",
+    "commit": "giflib-5.2.2",
+    "build_recipe": "giflib"
+  },
+  "heatshrink": {
+    "repo_url": "https://github.com/atomicobject/heatshrink.git",
+    "commit": "7d419e1fa4830d0b919b9b6a91fe2fb786cf3280",
+    "build_recipe": "heatshrink"
+  },
+  "http_parser": {
+    "repo_url": "https://github.com/nodejs/http-parser.git",
+    "commit": "ec8b5ee63f0e51191ea43bb0c6eac7bfbff3141d",
+    "build_recipe": "http_parser"
+  },
+  "inih": {
+    "repo_url": "https://github.com/benhoyt/inih.git",
+    "commit": "577ae2dee1f0d9c2d11c7f10375c1715f3d6940c",
+    "build_recipe": "inih"
+  },
+  "iniparser": {
+    "repo_url": "https://github.com/ndevilla/iniparser.git",
+    "commit": "4bef811283e0ec1658c60e09950bd5a1ddc92e4b",
+    "build_recipe": "iniparser"
+  },
+  "jq": {
+    "repo_url": "https://github.com/jqlang/jq.git",
+    "commit": "9761ceb7d6cc48c16b25f0ab1baaef0e701927e4",
+    "build_recipe": "jq"
+  },
+  "jsmn": {
+    "repo_url": "https://github.com/zserge/jsmn.git",
+    "commit": "25647e692c7906b96ffd2b05ca54c097948e879c",
+    "build_recipe": "jsmn"
+  },
+  "json-c": {
+    "repo_url": "https://github.com/json-c/json-c",
+    "commit": "json-c-0.18-20240915",
+    "build_recipe": "json-c"
+  },
+  "json_parser": {
+    "repo_url": "https://github.com/udp/json-parser.git",
+    "commit": "8ac4477ad3e63dc107e17ad49484edaa17d18d35",
+    "build_recipe": "json_parser"
+  },
+  "lcms": {
+    "repo_url": "https://github.com/mm2/Little-CMS.git",
+    "commit": "21c582a594fe5279f90c0b93437c398f93bf62b0",
+    "build_recipe": "lcms"
+  },
+  "libconfini": {
+    "repo_url": "https://github.com/madmurphy/libconfini.git",
+    "commit": "607241689ff0da8b88bb63fb293dc7efa4770f0d",
+    "build_recipe": "libconfini"
+  },
+  "libcsv": {
+    "repo_url": "https://github.com/rgamble/libcsv.git",
+    "commit": "b1d5212831842ee5869d99bc208a21837e4037d5",
+    "build_recipe": "libcsv"
+  },
+  "libpng": {
+    "repo_url": "https://github.com/pnggroup/libpng",
+    "commit": "v1.6.58",
+    "build_recipe": "libpng"
+  },
+  "libtiff": {
+    "repo_url": "https://gitlab.com/libtiff/libtiff",
+    "commit": "v4.7.1",
+    "build_recipe": "libtiff"
+  },
+  "libucl": {
+    "repo_url": "https://github.com/vstakhov/libucl",
+    "commit": "0.9.4",
+    "build_recipe": "libucl"
+  },
+  "libwebp": {
+    "repo_url": "https://github.com/webmproject/libwebp.git",
+    "commit": "ed0fa1cb07b7ea473286df4908fff5f82aee8406",
+    "build_recipe": "libwebp"
+  },
+  "libxml2": {
+    "repo_url": "https://gitlab.gnome.org/GNOME/libxml2",
+    "commit": "v2.15.3",
+    "build_recipe": "libxml2"
+  },
+  "lua": {
+    "repo_url": "https://www.lua.org/ftp/",
+    "commit": "lua-5.5.0",
+    "build_recipe": "lua"
+  },
+  "lz4": {
+    "repo_url": "https://github.com/lz4/lz4",
+    "commit": "v1.10.0",
+    "build_recipe": "lz4"
+  },
+  "mbedtls": {
+    "repo_url": "https://github.com/Mbed-TLS/mbedtls.git",
+    "commit": "902b012537b630824a7c76f5a755c10b33361d44",
+    "build_recipe": "mbedtls"
+  },
+  "md4c": {
+    "repo_url": "https://github.com/mity/md4c.git",
+    "commit": "81b871f917ec97b94322f3890fc12f0657ed3d94",
+    "build_recipe": "md4c"
+  },
+  "miniz": {
+    "repo_url": "https://github.com/richgel999/miniz.git",
+    "commit": "5cf1e56a9c968c11fdd1a6414f3a95f84314c437",
+    "build_recipe": "miniz"
+  },
+  "mjson": {
+    "repo_url": "https://github.com/cesanta/mjson.git",
+    "commit": "1.2.7",
+    "build_recipe": "mjson"
+  },
+  "nanosvg": {
+    "repo_url": "https://github.com/memononen/nanosvg.git",
+    "commit": "5cefd9847949af6df13f65027fd43af5a7513633",
+    "build_recipe": "nanosvg"
+  },
+  "oniguruma": {
+    "repo_url": "https://github.com/kkos/oniguruma",
+    "commit": "v6.9.10",
+    "build_recipe": "oniguruma"
+  },
+  "parson": {
+    "repo_url": "https://github.com/kgabis/parson.git",
+    "commit": "ba29f4eda9ea7703a9f6a9cf2b0532a2605723c3",
+    "build_recipe": "parson"
+  },
+  "pcre2": {
+    "repo_url": "https://github.com/PCRE2Project/pcre2",
+    "commit": "pcre2-10.47",
+    "build_recipe": "pcre2"
+  },
+  "slre": {
+    "repo_url": "https://github.com/cesanta/slre.git",
+    "commit": "9075c67cad47d62ba4a4f8f452ae46bb21124f7b",
+    "build_recipe": "slre"
+  },
+  "stb": {
+    "repo_url": "https://github.com/nothings/stb.git",
+    "commit": "31c1ad37456438565541f4919958214b6e762fb4",
+    "build_recipe": "stb_image"
+  },
+  "tomlc99": {
+    "repo_url": "https://github.com/cktan/tomlc99.git",
+    "commit": "29076dfd095bbbbd50a3c1b2760d29f4b83e74ac",
+    "build_recipe": "tomlc99"
+  },
+  "utf8proc": {
+    "repo_url": "https://github.com/JuliaStrings/utf8proc.git",
+    "commit": "b3e0f28adaec943ac25e3e27514dd6037e7a022e",
+    "build_recipe": "utf8proc"
+  },
+  "yyjson": {
+    "repo_url": "https://github.com/ibireme/yyjson.git",
+    "commit": "f0fbeae7cc40218fd1af310391cdf83cfc1abff1",
+    "build_recipe": "yyjson"
+  },
+  "zlib": {
+    "repo_url": "https://github.com/madler/zlib/releases/download/v1.3.2/zlib-1.3.2.tar.xz",
+    "commit": "v1.3.2",
+    "build_recipe": "zlib"
+  },
+  "zstd": {
+    "repo_url": "https://github.com/facebook/zstd",
+    "commit": "v1.5.7",
+    "build_recipe": "zstd"
+  }
+}

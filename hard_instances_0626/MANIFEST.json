@@ -1,0 +1,98 @@
+{
+  "source": "/Users/yiyang/bug-synthesis",
+  "selection": "conservative clearly-hard-enough after exact-diff dedupe and site/root-cause dedupe",
+  "record_count": 3467,
+  "project_count": 46,
+  "bug_class_count": 7,
+  "project_counts": {
+    "brotli": 1,
+    "cgltf": 19,
+    "cjson": 43,
+    "cmark": 62,
+    "dr_flac": 5,
+    "dr_mp3": 7,
+    "dr_wav": 4,
+    "expat": 77,
+    "ezxml": 16,
+    "flac": 2,
+    "freetype": 276,
+    "frozen": 29,
+    "giflib": 60,
+    "heatshrink": 13,
+    "http_parser": 4,
+    "inih": 7,
+    "iniparser": 13,
+    "jq": 84,
+    "jsmn": 6,
+    "json-c": 52,
+    "json_parser": 7,
+    "lcms": 59,
+    "libconfini": 7,
+    "libcsv": 10,
+    "libpng": 103,
+    "libtiff": 88,
+    "libucl": 101,
+    "libwebp": 354,
+    "libxml2": 722,
+    "lua": 136,
+    "lz4": 80,
+    "mbedtls": 4,
+    "md4c": 90,
+    "miniz": 19,
+    "mjson": 21,
+    "nanosvg": 35,
+    "oniguruma": 158,
+    "parson": 23,
+    "pcre2": 165,
+    "slre": 6,
+    "stb": 67,
+    "tomlc99": 13,
+    "utf8proc": 6,
+    "yyjson": 84,
+    "zlib": 40,
+    "zstd": 289
+  },
+  "bug_class_counts": {
+    "alloc": 409,
+    "doublefree": 21,
+    "intover": 46,
+    "spatial": 2254,
+    "typeconf": 293,
+    "uaf": 105,
+    "uninit": 339
+  },
+  "dedupe_policy": {
+    "exact_diff_key": "project + normalized diff before/after",
+    "root_cause_key": "project + bug_class + source_file + function + source line + normalized original before block; injected after value ignored",
+    "classification_policy": "conservative: any below wins over borderline; any borderline wins over clearly; selected only clearly groups"
+  },
+  "source_stats": {
+    "exact_diff_unique_candidates_scanned": 4146,
+    "root_cause_unique_candidates_scanned": 3996,
+    "selected_clearly_hard_natural_root_causes": 3467
+  },
+  "generated_on": "2026-06-26",
+  "updated_on": "2026-06-29",
+  "updates": [
+    {
+      "source": "/Users/yiyang/cyberplayground/hard_instances_existing_dfu_intover_uaf_0629/bugs.json",
+      "appended_on": "2026-06-29",
+      "record_count": 7,
+      "project_counts": {
+        "brotli": 1,
+        "flac": 2,
+        "mbedtls": 4
+      },
+      "bug_class_counts": {
+        "doublefree": 3,
+        "intover": 1,
+        "uaf": 3
+      },
+      "dedupe_checks": [
+        "id",
+        "exact_diff_key",
+        "root_cause_key"
+      ]
+    }
+  ]
+}

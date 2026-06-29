@@ -1,0 +1,28 @@
+{
+  "target": "/Users/yiyang/cyberplayground/hard_instances_0626",
+  "source": "/Users/yiyang/cyberplayground/hard_instances_existing_dfu_intover_uaf_0629/bugs.json",
+  "appended_total": 7,
+  "already_present_total": 0,
+  "appended_by_project": {
+    "brotli": 1,
+    "flac": 2,
+    "mbedtls": 4
+  },
+  "appended_by_class": {
+    "doublefree": 3,
+    "intover": 1,
+    "uaf": 3
+  },
+  "appended_ids": [
+    "existing_20260629_flac_doublefree_vorbiscomment_early_comments_free",
+    "existing_20260629_flac_uaf_seektable_reset_realloc",
+    "existing_20260629_mbedtls_uaf_x509_chain_append_rollback",
+    "existing_20260629_mbedtls_uaf_pkcs7_signer_issuer_list",
+    "existing_20260629_mbedtls_doublefree_dtls_completed_flight",
+    "existing_20260629_mbedtls_doublefree_dtls_future_record",
+    "existing_20260629_brotli_intover_large_window_distance_limit"
+  ],
+  "already_present_ids": [],
+  "post_record_count": 3467,
+  "post_project_count": 46
+}
